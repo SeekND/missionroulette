@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Mission Generator</title>
+
+
+</head>
+<body>
+
+<table style="border-collapse: collapse; border: none;">
+    <tr>
+        <td style=" border: none;"></td> <!-- Left column (empty) -->
+        <td style=" border: none;">
+            <!-- Center column -->
+            <label for="difficulty">Choose difficulty:</label>
+            <select name="difficulty" id="difficulty" onchange="toggleVisibility()">
+                <option value="Easy">Easy</option>
+                <option value="Hard">Hard</option>
+            </select>
+		<br>
+            <label for="missionlength">Choose mission length:</label>
+            <select name="missionlength" id="missionlength" onchange="toggleVisibility()">
+                <option value="Short">Short</option>
+                <option value="Long">Long</option>
+            </select>
+		<br>
+            <label for="typeofmission">Choose type of mission:</label>
+            <select name="typeofmission" id="typeofmission" onchange="toggleVisibility()">
+                <option value="Casual">Casual</option>
+                <option value="Industry">Industry</option>
+                <option value="Combat">Combat</option>
+                <option value="Mixed">Mixed</option>
+            </select>
+        </td>
+        <td style="border-collapse: collapse; border: none;">
+            <!-- Right column -->
+            <button onclick="generateMission()" style="background-color: #1A1C1C; color: white; font-family: 'Roboto', sans-serif; width: 200px; height: 100px;">Generate Mission</button>
+        </td>
+    </tr>
+</table>
+
+<div id="hideSkillz" style="display:none;">
+<button class="button2" onclick="hideSkills()" style="background-color: #1A1C1C; color: white; font-family: 'Roboto', sans-serif;">Hide/Unhide</button>
+</div>
+<div id="skillsunlockeddiv" style="display:none;">
+    <table style="border-collapse: collapse; border: none;">
+        <tr>
+            <td class="title-table">Select your max Bounty Level:</td>
+            <td><label class="label2"><input type="radio" name="Bounty" value="VLRT" checked><br>VLRT</label></td>
+            <td><label class="label2"><input type="radio" name="Bounty" value="LRT"><br>LRT</label></td>
+            <td><label class="label2"><input type="radio" name="Bounty" value="MRT"><br>MRT</label></td>
+            <td><label class="label2"><input type="radio" name="Bounty" value="VHRT"><br>VHRT</label></td>
+            <td><label class="label2"><input type="radio" name="Bounty" value="ERT"><br>ERT</label></td>
+        </tr>
+        <tr>
+            <td class="title-table"><b>Unlocked Group Bounty:</b></td>
+            <td><label class="label2"><input type="radio" name="GroupBounty" value="No" checked><br>No</label></td>
+            <td><label class="label2"><input type="radio" name="GroupBounty" value="Yes"><br>Yes</label></td>
+        </tr>
+        <tr>
+            <td class="title-table"><b>Level in Service Beacons:</b></td>
+            <td><label class="label2"><input type="radio" name="group3" value="Low" checked><br>Low</label></td>
+            <td><label class="label2"><input type="radio" name="group3" value="Medium"><br>Medium</label></td>
+            <td><label class="label2"><input type="radio" name="group3" value="High"><br>High</label></td>
+        </tr>
+        <tr>
+            <td class="title-table"><b>Security level in Hurston:</b></td>
+            <td><label class="label2"><input type="radio" name="Hurston" value="LVL1" checked><br>LVL1</label></td>
+            <td><label class="label2"><input type="radio" name="Hurston" value="LVL2"><br>LVL2</label></td>
+            <td><label class="label2"><input type="radio" name="Hurston" value="LVL3"><br>LVL3</label></td>
+            <td><label class="label2"><input type="radio" name="Hurston" value="LVL4"><br>LVL4</label></td>
+            <td><label class="label2"><input type="radio" name="Hurston" value="LVL5"><br>LVL5</label></td>
+            <td><label class="label2"><input type="radio" name="Hurston" value="LVL6"><br>LVL6</label></td>
+        </tr>
+        <tr>
+            <td class="title-table"><b>Security level in Microtech:</b></td>
+            <td><label class="label2"><input type="radio" name="Microtech" value="LVL1" checked><br>LVL1</label></td>
+            <td><label class="label2"><input type="radio" name="Microtech" value="LVL2"><br>LVL2</label></td>
+            <td><label class="label2"><input type="radio" name="Microtech" value="LVL3"><br>LVL3</label></td>
+            <td><label class="label2"><input type="radio" name="Microtech" value="LVL4"><br>LVL4</label></td>
+            <td><label class="label2"><input type="radio" name="Microtech" value="LVL5"><br>LVL5</label></td>
+            <td><label class="label2"><input type="radio" name="Microtech" value="LVL6"><br>LVL6</label></td>
+        </tr>
+        <tr>
+            <td class="title-table"><b>Security level in Arccorp:</b></td>
+            <td><label class="label2"><input type="radio" name="Arccorp" value="LVL1" checked><br>LVL1</label></td>
+            <td><label class="label2"><input type="radio" name="Arccorp" value="LVL2"><br>LVL2</label></td>
+            <td><label class="label2"><input type="radio" name="Arccorp" value="LVL3"><br>LVL3</label></td>
+            <td><label class="label2"><input type="radio" name="Arccorp" value="LVL4"><br>LVL4</label></td>
+            <td><label class="label2"><input type="radio" name="Arccorp" value="LVL5"><br>LVL5</label></td>
+            <td><label class="label2"><input type="radio" name="Arccorp" value="LVL6"><br>LVL6</label></td>
+        </tr>
+        <tr>
+            <td class="title-table"><b>Security level in Crusader:</b></td>
+            <td><label class="label2"><input type="radio" name="Crusader" value="LVL1" checked><br>LVL1</label></td>
+            <td><label class="label2"><input type="radio" name="Crusader" value="LVL2"><br>LVL2</label></td>
+            <td><label class="label2"><input type="radio" name="Crusader" value="LVL3"><br>LVL3</label></td>
+            <td><label class="label2"><input type="radio" name="Crusader" value="LVL4"><br>LVL4</label></td>
+            <td><label class="label2"><input type="radio" name="Crusader" value="LVL5"><br>LVL5</label></td>
+            <td><label class="label2"><input type="radio" name="Crusader" value="LVL6"><br>LVL6</label></td>
+        </tr>
+    </table>
+</div>
+
+<div id="copy2clipboard" style="display: none;"><button onclick="copyToClipboard()" style="background-color: #1A1C1C; color: white; font-family: 'Roboto', sans-serif;">Copy to Clipboard</button></div>
+<div id="showmissiondiv" ></div>
+
+
+</body>
+
+<script>
+
+    function copyToClipboard() {
+        // Get the content of the div
+        var content = document.getElementById('showmissiondiv').innerText;
+
+        // Create a temporary textarea element
+        var textarea = document.createElement('textarea');
+        textarea.value = content;
+
+        // Append the textarea to the document
+        document.body.appendChild(textarea);
+
+        // Select the content of the textarea
+        textarea.select();
+
+        // Copy the selected text to the clipboard
+        document.execCommand('copy');
+
+        // Remove the temporary textarea
+        document.body.removeChild(textarea);
+
+        //alert('Content copied to clipboard!');
+    }
+
+    function hideSkills() {
+
+        var skillsunlocked1 = document.getElementById("skillsunlockeddiv");
+        if ( skillsunlocked1.style.display === "block") {
+            skillsunlocked1.style.display = "none"
+        }
+        else {
+            skillsunlocked1.style.display = "block";
+        }
+    }
+    function toggleVisibility() {
+        var typeofmission1 = document.getElementById("typeofmission");
+        var skillsunlocked1 = document.getElementById("skillsunlockeddiv");
+        var generatemission1 = document.getElementById("generatemissiondiv");
+
+        if (typeofmission1.value === "Combat" || typeofmission1.value === "Mixed") {
+            skillsunlocked1.style.display = "block"; // Show the div
+            hideSkillz.style.display = "block"; // Show the div
+        } else {
+            skillsunlocked1.style.display = "none"; // Hide the div
+            hideSkillz.style.display = "none"; // Show the div
+        }
+    }
+
+    function generateMission() {
+        var skillsunlocked1 = document.getElementById("skillsunlockeddiv");
+        skillsunlocked1.style.display = "none"; // Hide the div
+
+        var clipCopy = document.getElementById("copy2clipboard");
+        clipCopy.style.display = "block"; // Show the div
+        var difficulty = document.getElementById("difficulty").value;
+        var missionlength = document.getElementById("missionlength").value;
+        var typeofmission = document.getElementById("typeofmission").value;
+        var showmissiondiv = document.getElementById("showmissiondiv");
+
+        // Arrays for randomization
+        var planets = ["Crusader", "Hurston", "Microtech", "Arccorp"];
+
+        var armourHardOptions = ["clothes only", "light armour"];
+        var armourEasyOptions = ["maximum medium armour", "maximum heavy armour", "extreme-weather undersuit"];
+        var weaponHardOptions = ["pistols only", "shotguns only"];
+        var weaponEasyOptions = ["any sniper and pistol combo","any assault rifle", "any SMG", "any weapon"];
+
+        var shipEasyOptions = ["any small ship each", "maximum of two medium multicrew ships or similar", "maximum of one large multicrew or similar w/ (opt) support ship"];
+        var shipHardOptions = ["racing ships or similar", "starter ships", "any alien ship or similar"];
+
+        var combatMissions = ["Ship Bounty", "Ship Group Bounty", "Entrenched Bounty", "Evict Illegal Occupants", "Guard Site", "Clear Drugs", "890J rescue"];
+        var industryMissions = ["Ship Salvage", "Ship Mining", "Ground Vehicle Mining", "Hand Mining", "Hand Salvaging"];
+        var casualMissions = ["Delivery", "Search and/or Investigation", "Research and/or Maintenance"];
+        var secondaryCombatMissions = ["Player Bounty", "Rescue any random Player outside the group", "Service Beacons"];
+        var secondaryMissions = ["Rescue any random Player outside the group", "Assist any random Player outside the group"];
+
+        var numMissions;
+        var selectedArmour;
+        var selectedWeapon;
+        var selectedShip;
+
+        // armours and ships according to difficulty
+
+        if (difficulty === "Easy") {
+            if ( typeofmission === "Industry") {
+                selectedArmour = getWeightedRandomOption(armourEasyOptions, "extreme-weather undersuit", 3);
+            }
+            else {
+                selectedArmour = getRandomOption(armourEasyOptions);
+            }
+
+            selectedWeapon = getRandomOption(weaponEasyOptions);
+            selectedShip = getRandomOption(shipEasyOptions);
+        } else if (difficulty === "Hard") {
+            selectedArmour = getWeightedRandomOption(armourHardOptions, "clothes only", 2);
+            selectedWeapon = getWeightedRandomOption(weaponHardOptions, "pistols only", 2);
+            selectedShip = getWeightedRandomOption(shipHardOptions, "starter ships", 2);
+        }
+
+        // mission length
+
+        if (missionlength === "Short") {
+            numMissions = getRandomNumber(2, 3);
+        } else if (missionlength === "Long") {
+            numMissions = getRandomNumber(4, 8);
+        }
+
+
+        // final mission details
+
+        showmissiondiv.innerHTML = "<h2>Mission Requirements:</h2>";
+        showmissiondiv.innerHTML += "<p>Main Objective: " + getMainObjective(difficulty) + "</p>";
+
+
+        showmissiondiv.innerHTML += "<b>Armour:</b> Use " + selectedArmour + "<br>";
+        showmissiondiv.innerHTML += "<b>Weapons:</b> Use " + selectedWeapon + "<br>";
+        showmissiondiv.innerHTML += "<b>Ships:</b> Use " + selectedShip + "</p>";
+
+        // Additional mission details based on difficulty and type
+        if (difficulty === "Easy") {
+            showmissiondiv.innerHTML += "<p>Recommended for " + getRecommendedPlayers(missionlength) + ".<br>If more players are available create separate teams with same parallel missions</p>";
+        } else if (difficulty === "Hard") {
+            showmissiondiv.innerHTML += "<p>Recommended for " + getRecommendedPlayers(missionlength) + ".<br>If more players are available create separate teams with same parallel missions</p>";
+        }
+        showmissiondiv.innerHTML += "<br>";
+        for (var i = 1; i <= numMissions; i++) {
+            var randomPlanet = getRandomOption(planets);
+            var randomMission;
+
+            if (typeofmission === "Combat") {
+                randomMission = getRandomOption(combatMissions);
+
+
+                if (randomMission === "890J rescue" ){
+                    if (randomPlanet === "Crusader" || randomPlanet === "Hurston") {
+                        randomMission = getRandomOption(combatMissions.filter(mission => mission !== "890J rescue")); // Exclude "890J rescue"
+                    }
+                }
+
+                if ( randomMission === "Ship Bounty" ) {
+                    if ( difficulty === "Hard" ) {
+                        if ( document.querySelector('input[name="GroupBounty"]:checked').value === "Yes" ) {
+                            if (randomPlanet === "Crusader" || randomPlanet === "Hurston" ){
+                                randomMission = "Ship Group Bounty";
+                            }
+                        }
+                    }
+                }
+                else if ( (  randomMission === "Ship Group Bounty"  && (randomPlanet === "Microtech" || randomPlanet === "Arccorp")  ) || document.querySelector('input[name="GroupBounty"]:checked').value === "No"    ) {
+                    randomMission = getRandomOption(combatMissions.filter(mission => mission !== "Ship Group Bounty")); // Exclude "Ship Group Bounty"
+                }
+            } else if (typeofmission === "Industry") {
+                randomMission = getRandomOption(industryMissions);
+
+                if ( difficulty === "Hard" && randomMission === "Ship Salvage") {
+                    randomMission = "Hand Salvaging";
+                }
+                else if ( difficulty === "Hard" && randomMission === "Ship Mining") {
+                    randomMission = "Hand Mining";
+                }
+                else if ( difficulty === "Easy" && randomMission === "Hand Salvaging") {
+                    randomMission = "Ship Salvage";
+                }
+                else if ( difficulty === "Easy" && randomMission === "Hand Mining") {
+                    randomMission = "Ground Vehicle Mining";
+                }
+            } else if (typeofmission === "Casual") {
+                randomMission = getRandomOption(casualMissions);
+            } else if (typeofmission === "Mixed") {
+                // Randomly select one mission from each type
+                if (i % 3 === 1) {
+                    randomMission = getRandomOption(combatMissions);
+                    if (randomMission === "890J rescue" && (randomPlanet === "Crusader" || randomPlanet === "Hurston")) {
+                        randomMission = getRandomOption(combatMissions.filter(mission => mission !== "890J rescue")); // Exclude "890J rescue"
+                    }
+
+                    if (randomMission === "Ship Bounty" && difficulty === "Hard" && document.querySelector('input[name="GroupBounty"]:checked').value === "Yes" && (randomPlanet === "Crusader" || randomPlanet === "Hurston") ){
+                        randomMission = "Ship Group Bounty";
+                    }
+                    else if ( ( randomMission === "Ship Group Bounty"  && (randomPlanet === "Microtech" || randomPlanet === "Arccorp") ) || document.querySelector('input[name="GroupBounty"]:checked').value === "No"    ) {
+                        randomMission = getRandomOption(combatMissions.filter(mission => mission !== "Ship Group Bounty")); // Exclude "Ship Group Bounty"
+                    }
+                } else if (i % 3 === 2) {
+                    randomMission = getRandomOption(industryMissions);
+                    if ( difficulty === "Hard" && randomMission === "Ship Salvage") {
+                        randomMission = "Hand Salvaging";
+                    }
+                    else if ( difficulty === "Hard" && randomMission === "Ship Mining") {
+                        randomMission = "Hand Mining";
+                    }
+                } else {
+                    randomMission = getRandomOption(casualMissions);
+                }
+            }
+
+            var themoon = getMoon(randomMission, randomPlanet);
+            var thelevel = getLevel(randomMission, randomPlanet);
+
+            // lowers the difficulty in Bounties in easy mode even if players have high ranking unlocked
+            var bountyOptions = ["VLRT", "LRT", "MRT", "VHRT", "ERT"];
+            var selectedBountyLevel = document.querySelector('input[name="Bounty"]:checked').value;
+            var randomBountyLevel = getRandomValueBeforeSelected(bountyOptions, selectedBountyLevel);
+
+            // lowers the difficulty in Mercenary in easy mode even if players have high ranking unlocked
+            var mercenaryOptions = ["LVL1", "LVL2", "LVL3", "LVL4", "LVL5", "LVL6"];
+            var selectedMercenaryLevel = document.querySelector('input[name="' + randomPlanet + '"]:checked').value;
+            var randomMercenaryLevel = getRandomValueBeforeSelected(mercenaryOptions, selectedMercenaryLevel);
+
+
+
+            if (difficulty == "Easy" && bountyOptions.includes(thelevel) ) {
+                thelevel = randomBountyLevel;
+            }
+            else if (difficulty == "Easy" && mercenaryOptions.includes(thelevel) ) {
+                thelevel = randomMercenaryLevel;
+            }
+
+            if ( thelevel === "LVL1" && ( randomMission === "Evict Illegal Occupants" || randomMission === "Clear Drugs" ) )
+            {
+                randomMission = "Guard Site";
+            }
+
+            if ( randomMission === "Evict Illegal Occupants" || randomMission === "Entrenched Bounty" || randomMission === "Clear Drugs"){
+                thelevel = "";
+            }
+
+            showmissiondiv.innerHTML += "<h4>Mission " + i + ":</h4>";
+            showmissiondiv.innerHTML += "Go to " + randomPlanet + " <b>" + themoon + "</b><br>";
+            showmissiondiv.innerHTML += "Mission: " + thelevel + " " + randomMission +"<br>";
+            // Additional mission objectives based on mission type
+            showmissiondiv.innerHTML += "Mission Objective: " + getMissionObjective(randomMission, missionlength, i, difficulty, themoon)+ "<br>";
+
+            if (difficulty === "Hard" && selectedArmour === "clothes only" && (randomMission === "890J rescue" || randomMission === "Hand Mining" ||
+                randomMission === "Hand Salvaging" || randomMission === "Ground Vehicle Mining" || randomMission === "Entrenched Bounty" ||
+                randomMission === "Evict Illegal Occupants" || randomMission === "Guard Site" || randomMission === "Clear Drugs" ||
+                randomMission === "Delivery" || randomMission === "Search and/or Investigation" || randomMission === "Research and/or Maintenance")) {
+
+                    showmissiondiv.innerHTML += "<i>IMPORTANT NOTE: There is potential for EVA during this mission. <br>IF needed, use a light undersuit, helmet, light chest, and backpack (to carry your clothes and items).<br> These can be used ONLY during transit. The mission should still be performed in clothes IF possible.</i>";
+            }
+            showmissiondiv.innerHTML += "<br></p>";
+        }
+
+        if (difficulty === "Hard") {
+
+            if (typeofmission === "Combat" || typeofmission === "Mixed") {
+                var secondaryMission = getRandomOption(secondaryCombatMissions);
+
+                if (secondaryMission === "Service Beacons") {
+                    var serviceBeaconIntensity = document.querySelector('input[name="group3"]:checked').value;
+                    showmissiondiv.innerHTML += "<h3>Secondary Mission: </h3></p>";
+                    showmissiondiv.innerHTML += "Complete (1) Service Beacons, " + serviceBeaconIntensity + "<br>";
+                } else {
+                    showmissiondiv.innerHTML += "<h3>Secondary Mission:</h3></p>";
+                    showmissiondiv.innerHTML += "Complete (1) "+ secondaryMission + "<br>";
+                }
+            }
+            else {
+                var secondaryMission = getRandomOption(secondaryMissions);
+
+
+                if (secondaryMission === "Service Beacons") {
+                    var serviceBeaconIntensity = document.querySelector('input[name="group3"]:checked').value;
+                    showmissiondiv.innerHTML += "<h3>Secondary Mission:</h3></p>";
+                    showmissiondiv.innerHTML += "Complete (1) Service Beacons, " + serviceBeaconIntensity + "<br>";
+                } else {
+                    showmissiondiv.innerHTML += "<h3>Secondary Mission:</h3></p>";
+                    showmissiondiv.innerHTML += "Complete (1) "+secondaryMission + "<br>";
+                }
+            }
+        }
+    }
+
+    function getRandomValueBeforeSelected(options, selectedValue) {
+        // Find the index of the selected value in the array
+        const selectedIndex = options.indexOf(selectedValue);
+
+        // If the selected value is not in the array, return an empty array
+        if (selectedIndex === -1) {
+            return [];
+        }
+
+        // Slice the array to get values from the beginning up to the selected index
+        const selectedValues = options.slice(0, selectedIndex + 1);
+
+        // Randomly select one value from the selected values
+        const randomIndex = Math.floor(Math.random() * selectedValues.length);
+        const randomValue = selectedValues[randomIndex];
+
+        return randomValue;
+    }
+
+
+    function getLevel(missionType,planet) {
+        if ( missionType === "Guard Site" || missionType === "Evict Illegal Occupants" || missionType === "Clear Drugs" ) {
+            return document.querySelector('input[name="' + planet + '"]:checked').value;
+        }
+        else if  ( missionType === "Ship Bounty" || missionType === "Ship Group Bounty" ) {
+            return document.querySelector('input[name="Bounty"]:checked').value;
+        }
+        else {
+            return "";
+        }
+    }
+
+    function getMainObjective(difficulty) {
+        return difficulty === "Easy" ? "Have fun and try not to die" : "Survive with 0 deaths in the team";
+    }
+
+    function getMoon(missionType,planet ) {
+        var crusaderMoons = ["Yela", "Daymar", "Celin"];
+        var arccorpMoons = ["Lyria", "Wala"];
+        var hurstonMoons = ["Arial", "Aberdeen", "Ita", "Magda"];
+        var microtechMoons = ["Calliope", "Clio", "Euterpe"];
+
+        if ( missionType === "Ship Mining" || missionType === "Ground Vehicle Mining" || missionType === "Hand Mining" ||  missionType === "Hand Salvaging") {
+
+            switch (planet) {
+                case "Crusader":
+                    return "[" + getRandomOption(crusaderMoons) + "]";
+                case "Arccorp":
+                    return "[" + getRandomOption(arccorpMoons) + "]";
+                case "Hurston":
+                    return "[" + getRandomOption(hurstonMoons) + "]";
+                case "Microtech":
+                    return "[" + getRandomOption(microtechMoons) + "]";
+                default:
+                    return ""; // Default case
+            }
+        }
+        else {
+            return ""; // remove moons if not necessary
+        }
+    }
+
+
+    function getMissionObjective(missionType, missiontime, numMissions, difficulty, moonselected) {
+        var objective = "";
+        var multiplier = (difficulty === "Easy") ? 1 : 2; // If difficulty is easy, multiplier is 1; if hard, multiplier is 2
+
+        if (missionType === "Ship Salvage") {
+            objective = "Find a salvage contract nearby and collect minimum of " + (numMissions * 3 * multiplier) + " SCU of salvage per player";
+        } else if (missionType === "Ship Mining") {
+            objective = "Find appropriate rocks in " +moonselected + " and fill minimum of " + (numMissions * 10 * multiplier) + "% of your cargo hold per player";
+        } else if (missionType === "Hand Mining") {
+            objective = "Find a cave in " +moonselected + " and collect minimum of " + (numMissions * 10 * multiplier) + " rocks per player";
+        } else if (missionType === "Hand Salvaging") {
+            objective = "Find an abandoned ship in " +moonselected + " and generate minimum of " + (numMissions * 1000 * multiplier) + " aUEC profit per player";
+        } else if (missionType === "Ground Vehicle Mining") {
+            objective = "Find appropriate rocks in " +moonselected + " and fill minimum of " + (numMissions * 10 * multiplier) + "% of your cargo hold per player";
+        }
+        else
+        {
+            if (missiontime === "Long" && ( missionType === "Entrenched Bounty" || missionType === "Evict Illegal Occupants" ) ) {
+                if (difficulty === "Easy") {
+                    var easyLongGroundCombat = [ "Complete mission", "Land at least " + numMissions + "km from objective and travel the rest of the way with a ground vehicle or gravlev bike" ];
+                    objective = getWeightedRandomOption(easyLongGroundCombat, "Complete mission", 2);
+                } else {
+                    var hardLongGroundCombat = [ "Complete mission", "Land at least " + numMissions*2 + "km from objective and travel the rest of the way with a gravlev bike" ];
+                    objective = getWeightedRandomOption(hardLongGroundCombat);
+                }
+            }
+            else {
+                var anyMission = [ "Complete mission", "Complete mission and take a group photo at the end" ];
+                objective = getWeightedRandomOption(anyMission);
+            }
+
+        }
+        return objective;
+    }
+
+    function getRecommendedPlayers(missionLength) {
+        var difficulty = document.getElementById("difficulty").value;
+
+        if (difficulty === "Easy") {
+            return missionLength === "Short" ? "1-2 players" : "1-3 players";
+        } else if (difficulty === "Hard") {
+            return missionLength === "Short" ? "2-3 players" : "2-4 players";
+        }
+
+        return ""; // Default case
+    }
+
+    function getRandomOption(options) {
+        var randomIndex = getRandomNumber(0, options.length - 1);
+        return options[randomIndex];
+    }
+
+    function getWeightedRandomOption(options, preferredOption, weight) {
+        var weightedOptions = [];
+
+        for (var i = 0; i < options.length; i++) {
+            if (options[i] === preferredOption) {
+                for (var j = 0; j < weight; j++) {
+                    weightedOptions.push(options[i]);
+                }
+            } else {
+                weightedOptions.push(options[i]);
+            }
+        }
+
+        var randomIndex = getRandomNumber(0, weightedOptions.length - 1);
+        return weightedOptions[randomIndex];
+    }
+    function getRandomNumber(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+</script>
+
+</html>
