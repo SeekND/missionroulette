@@ -3,14 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <title>Mission Generator</title>
+<style>
 
+
+body { 
+  text-align:center;
+  width: 100%; /* Set a fixed width for the body element */ 
+  margin: 0 auto; /* Center the body element within its parent */ 
+} 
+h1 {
+    text-align:center;
+}
+
+table, th, td {
+  border: 0px solid black;
+  border-collapse: collapse;
+}
+
+table.center {
+  margin-left: auto; 
+  margin-right: auto;
+}
+
+</style>
 
 </head>
 <body>
+<h1>Mission Roulette</h1>
 
-<table style="border-collapse: collapse; border: none;">
+<table class="center" style="border-collapse: collapse; border: none;">
     <tr>
-        <td style=" border: none;"></td> <!-- Left column (empty) -->
+       
+     <td style=" border: none;"></td> <!-- Left column (empty) -->
         <td style=" border: none;">
             <!-- Center column -->
             <label for="difficulty">Choose difficulty:</label>
@@ -39,32 +63,37 @@
         </td>
     </tr>
 </table>
-
+<br>
 <div id="hideSkillz" style="display:none;">
-<button class="button2" onclick="hideSkills()" style="background-color: #1A1C1C; color: white; font-family: 'Roboto', sans-serif;">Hide/Unhide</button>
+<button class="button2" onclick="hideSkills()" style="background-color: #1A1C1C; color: white; font-family: 'Roboto', sans-serif;">Hide/Unhide options</button>
 </div>
+<br>
 <div id="skillsunlockeddiv" style="display:none;">
-    <table style="border-collapse: collapse; border: none;">
-        <tr>
-            <td class="title-table">Select your max Bounty Level:</td>
-            <td><label class="label2"><input type="radio" name="Bounty" value="VLRT" checked><br>VLRT</label></td>
+<h3>Additional information is required:</h3> <br> 
+
+    <table class="center" style="border-collapse: collapse; border: none;">
+
+        <tr style="height:50px;">
+            <td class="title-table"><b>Select your max Bounty Level:</b></td>
+            <td><label class="label2"><input type="radio" name="Bounty" value="VLRT" checked><br>VLRT </label></td>
             <td><label class="label2"><input type="radio" name="Bounty" value="LRT"><br>LRT</label></td>
             <td><label class="label2"><input type="radio" name="Bounty" value="MRT"><br>MRT</label></td>
             <td><label class="label2"><input type="radio" name="Bounty" value="VHRT"><br>VHRT</label></td>
             <td><label class="label2"><input type="radio" name="Bounty" value="ERT"><br>ERT</label></td>
         </tr>
-        <tr>
+        <tr style="height:50px;">
             <td class="title-table"><b>Unlocked Group Bounty:</b></td>
             <td><label class="label2"><input type="radio" name="GroupBounty" value="No" checked><br>No</label></td>
             <td><label class="label2"><input type="radio" name="GroupBounty" value="Yes"><br>Yes</label></td>
         </tr>
-        <tr>
-            <td class="title-table"><b>Level in Service Beacons:</b></td>
-            <td><label class="label2"><input type="radio" name="group3" value="Low" checked><br>Low</label></td>
+        <tr style="height:50px;">
+            <td class="title-table"><b>Level in Service Beacons:</b></td>            
+	    <td><label class="label2"><input type="radio" name="group3" value="None" checked><br>None</label></td>
+            <td><label class="label2"><input type="radio" name="group3" value="Low"><br>Low</label></td>
             <td><label class="label2"><input type="radio" name="group3" value="Medium"><br>Medium</label></td>
             <td><label class="label2"><input type="radio" name="group3" value="High"><br>High</label></td>
         </tr>
-        <tr>
+        <tr style="height:50px;">
             <td class="title-table"><b>Security level in Hurston:</b></td>
             <td><label class="label2"><input type="radio" name="Hurston" value="LVL1" checked><br>LVL1</label></td>
             <td><label class="label2"><input type="radio" name="Hurston" value="LVL2"><br>LVL2</label></td>
@@ -73,7 +102,7 @@
             <td><label class="label2"><input type="radio" name="Hurston" value="LVL5"><br>LVL5</label></td>
             <td><label class="label2"><input type="radio" name="Hurston" value="LVL6"><br>LVL6</label></td>
         </tr>
-        <tr>
+        <tr style="height:50px;">
             <td class="title-table"><b>Security level in Microtech:</b></td>
             <td><label class="label2"><input type="radio" name="Microtech" value="LVL1" checked><br>LVL1</label></td>
             <td><label class="label2"><input type="radio" name="Microtech" value="LVL2"><br>LVL2</label></td>
@@ -82,7 +111,7 @@
             <td><label class="label2"><input type="radio" name="Microtech" value="LVL5"><br>LVL5</label></td>
             <td><label class="label2"><input type="radio" name="Microtech" value="LVL6"><br>LVL6</label></td>
         </tr>
-        <tr>
+        <tr style="height:50px;">
             <td class="title-table"><b>Security level in Arccorp:</b></td>
             <td><label class="label2"><input type="radio" name="Arccorp" value="LVL1" checked><br>LVL1</label></td>
             <td><label class="label2"><input type="radio" name="Arccorp" value="LVL2"><br>LVL2</label></td>
@@ -91,7 +120,7 @@
             <td><label class="label2"><input type="radio" name="Arccorp" value="LVL5"><br>LVL5</label></td>
             <td><label class="label2"><input type="radio" name="Arccorp" value="LVL6"><br>LVL6</label></td>
         </tr>
-        <tr>
+        <tr style="height:50px;">
             <td class="title-table"><b>Security level in Crusader:</b></td>
             <td><label class="label2"><input type="radio" name="Crusader" value="LVL1" checked><br>LVL1</label></td>
             <td><label class="label2"><input type="radio" name="Crusader" value="LVL2"><br>LVL2</label></td>
@@ -105,7 +134,8 @@
 
 <div id="copy2clipboard" style="display: none;"><button onclick="copyToClipboard()" style="background-color: #1A1C1C; color: white; font-family: 'Roboto', sans-serif;">Copy to Clipboard</button></div>
 <div id="showmissiondiv" ></div>
-
+<br>
+<button class="button2" onclick="location.reload();location.href='index.html'" style="background-color: #1A1C1C; color: white; font-family: 'Roboto', sans-serif;">Main Menu</button>
 
 </body>
 
@@ -244,8 +274,13 @@
 
 
                 if (randomMission === "890J rescue" ){
-                    if (randomPlanet === "Crusader" || randomPlanet === "Hurston") {
+                    if (randomPlanet === "Crusader") {
                         randomMission = getRandomOption(combatMissions.filter(mission => mission !== "890J rescue")); // Exclude "890J rescue"
+			console.log("No Crusader");
+                    }
+                    if (randomPlanet === "Hurston") {
+                        randomMission = getRandomOption(combatMissions.filter(mission => mission !== "890J rescue")); // Exclude "890J rescue"
+			console.log("No Hurston");
                     }
                 }
 
@@ -282,7 +317,10 @@
                 // Randomly select one mission from each type
                 if (i % 3 === 1) {
                     randomMission = getRandomOption(combatMissions);
-                    if (randomMission === "890J rescue" && (randomPlanet === "Crusader" || randomPlanet === "Hurston")) {
+                    if (randomMission === "890J rescue" && (randomPlanet === "Crusader")) {
+                        randomMission = getRandomOption(combatMissions.filter(mission => mission !== "890J rescue")); // Exclude "890J rescue"
+                    }
+                    if (randomMission === "890J rescue" && (randomPlanet === "Hurston")) {
                         randomMission = getRandomOption(combatMissions.filter(mission => mission !== "890J rescue")); // Exclude "890J rescue"
                     }
 
