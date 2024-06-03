@@ -274,18 +274,11 @@ table.center {
 
 
                 if (randomMission === "890J rescue" ){
-                    console.log("890J rescue has been selected!!!! The random planet is: ");
-                    console.log(randomPlanet);
                     if (randomPlanet === "Crusader") {
                         randomMission = getRandomOption(combatMissions.filter(mission => mission !== "890J rescue")); // Exclude "890J rescue"
-			            console.log("Crusader found-----------------------");
-			            console.log(randomMission);
-			
                     }
                     if (randomPlanet === "Hurston") {
                         randomMission = getRandomOption(combatMissions.filter(mission => mission !== "890J rescue")); // Exclude "890J rescue"
-			            console.log("Hurston found ----------------------- New Mission:");
-			            console.log(randomMission);
                     }
                 }
 
@@ -394,8 +387,6 @@ table.center {
             if ( randomMission === "Evict Illegal Occupants" || randomMission === "Entrenched Bounty" || randomMission === "Clear Drugs"){
                 thelevel = "";
             }
-            console.log("________ mission selected is:");
-		    console.log(randomMission);
 
             showmissiondiv.innerHTML += "<h4>Mission " + i + ":</h4>";
             showmissiondiv.innerHTML += "Go to " + randomPlanet + " <b>" + themoon + "</b><br>";
