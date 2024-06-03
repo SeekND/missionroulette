@@ -274,13 +274,18 @@ table.center {
 
 
                 if (randomMission === "890J rescue" ){
+                    console.log("890J rescue has been selected!!!! The random planet is: ");
+                    console.log(randomPlanet);
                     if (randomPlanet === "Crusader") {
                         randomMission = getRandomOption(combatMissions.filter(mission => mission !== "890J rescue")); // Exclude "890J rescue"
-			console.log("No Crusader");
+			            console.log("Crusader found-----------------------");
+			            console.log(randomMission);
+			
                     }
                     if (randomPlanet === "Hurston") {
                         randomMission = getRandomOption(combatMissions.filter(mission => mission !== "890J rescue")); // Exclude "890J rescue"
-			console.log("No Hurston");
+			            console.log("Hurston found ----------------------- New Mission:");
+			            console.log(randomMission);
                     }
                 }
 
@@ -293,8 +298,16 @@ table.center {
                         }
                     }
                 }
-                else if ( (  randomMission === "Ship Group Bounty"  && (randomPlanet === "Microtech" || randomPlanet === "Arccorp")  ) || document.querySelector('input[name="GroupBounty"]:checked').value === "No"    ) {
-                    randomMission = getRandomOption(combatMissions.filter(mission => mission !== "Ship Group Bounty")); // Exclude "Ship Group Bounty"
+                else if (   randomMission === "Ship Group Bounty" ) {
+                    if ( randomPlanet === "Hurston" || randomPlanet === "Crusader") {
+                        randomMission = getRandomOption(combatMissions.filter(mission => mission !== "Ship Group Bounty" && mission !== "890J rescue"));
+                    }
+                    else if (document.querySelector('input[name="GroupBounty"]:checked').value === "No") {
+                        randomMission = getRandomOption(combatMissions.filter(mission => mission !== "Ship Group Bounty"));
+                    }
+                    else {
+                        randomMission = getRandomOption(combatMissions.filter(mission => mission !== "Ship Group Bounty")); // Exclude "Ship Group Bounty"
+                    }
                 }
             } else if (typeofmission === "Industry") {
                 randomMission = getRandomOption(industryMissions);
@@ -327,8 +340,16 @@ table.center {
                     if (randomMission === "Ship Bounty" && difficulty === "Hard" && document.querySelector('input[name="GroupBounty"]:checked').value === "Yes" && (randomPlanet === "Crusader" || randomPlanet === "Hurston") ){
                         randomMission = "Ship Group Bounty";
                     }
-                    else if ( ( randomMission === "Ship Group Bounty"  && (randomPlanet === "Microtech" || randomPlanet === "Arccorp") ) || document.querySelector('input[name="GroupBounty"]:checked').value === "No"    ) {
-                        randomMission = getRandomOption(combatMissions.filter(mission => mission !== "Ship Group Bounty")); // Exclude "Ship Group Bounty"
+                    if (   randomMission === "Ship Group Bounty" ) {
+                        if ( randomPlanet === "Hurston" || randomPlanet === "Crusader") {
+                            randomMission = getRandomOption(combatMissions.filter(mission => mission !== "Ship Group Bounty" && mission !== "890J rescue"));
+                        }
+                        else if (document.querySelector('input[name="GroupBounty"]:checked').value === "No") {
+                            randomMission = getRandomOption(combatMissions.filter(mission => mission !== "Ship Group Bounty"));
+                        }
+                        else {
+                            randomMission = getRandomOption(combatMissions.filter(mission => mission !== "Ship Group Bounty")); // Exclude "Ship Group Bounty"
+                        }
                     }
                 } else if (i % 3 === 2) {
                     randomMission = getRandomOption(industryMissions);
@@ -373,6 +394,8 @@ table.center {
             if ( randomMission === "Evict Illegal Occupants" || randomMission === "Entrenched Bounty" || randomMission === "Clear Drugs"){
                 thelevel = "";
             }
+            console.log("________ mission selected is:");
+		    console.log(randomMission);
 
             showmissiondiv.innerHTML += "<h4>Mission " + i + ":</h4>";
             showmissiondiv.innerHTML += "Go to " + randomPlanet + " <b>" + themoon + "</b><br>";
