@@ -260,9 +260,9 @@ table.center {
 
         // Additional mission details based on difficulty and type
         if (difficulty === "Easy") {
-            showmissiondiv.innerHTML += "<p>Recommended for " + getRecommendedPlayers(missionlength) + ".<br>If more players are available create separate teams with same parallel missions</p>";
+            showmissiondiv.innerHTML += "<p><i>Recommended for " + getRecommendedPlayers(missionlength) + ".<br>If more players are available create separate teams with same parallel missions</i></p>";
         } else if (difficulty === "Hard") {
-            showmissiondiv.innerHTML += "<p>Recommended for " + getRecommendedPlayers(missionlength) + ".<br>If more players are available create separate teams with same parallel missions</p>";
+            showmissiondiv.innerHTML += "<p><i>Recommended for " + getRecommendedPlayers(missionlength) + ".<br>If more players are available create separate teams with same parallel missions</i></p>";
         }
         showmissiondiv.innerHTML += "<br>";
         for (var i = 1; i <= numMissions; i++) {
