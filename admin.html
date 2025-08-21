@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Star Citizen Mission Admin</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Mission Admin Panel</h1>
+        <div class="io-buttons">
+            <input type="file" id="import-file" accept=".json" style="display: none;">
+            <button id="import-btn">Import JSON</button>
+            <button id="export-btn">Export JSON</button>
+        </div>
+    </header>
+
+    <main class="admin-container">
+        <div class="panel" id="definitions-panel">
+            <div class="panel-section">
+                <h2>1. Mission Types</h2>
+                <form id="add-type-form">
+                    <input type="text" id="type-name" placeholder="e.g., Ship Combat" required>
+                    <button type="submit">Add Type</button>
+                </form>
+                <ul id="types-list"></ul>
+            </div>
+            <div class="panel-section">
+                <h2>2. Mission Subsystems</h2>
+                <form id="add-subsystem-form">
+                    <select id="subsystem-parent-type" required></select>
+                    <input type="text" id="subsystem-name" placeholder="e.g., Bounty Hunting" required>
+                    <textarea id="subsystem-desc" placeholder="Mission Description..."></textarea>
+                    <input type="number" id="subsystem-time" placeholder="Est. Time (mins)" required>
+                    <input type="text" id="subsystem-faction" placeholder="Faction/Giver" required>
+                    <div class="tags">
+                        <label><input type="checkbox" id="tag-legal"> Legal</label>
+                        <label><input type="checkbox" id="tag-illegal"> Illegal</label>
+                    </div>
+                    <button type="submit">Add Subsystem</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="panel" id="locations-panel">
+            <div class="panel-section">
+                <h2>3. Systems</h2>
+                <form id="add-system-form">
+                    <input type="text" id="system-name" placeholder="e.g., Stanton" required>
+                    <button type="submit">Add System</button>
+                </form>
+                <ul id="systems-list"></ul>
+            </div>
+            <div class="panel-section">
+                <h2>4. Planets</h2>
+                <form id="add-planet-form">
+                    <select id="planet-parent-system" required></select>
+                    <input type="text" id="planet-name" placeholder="e.g., MicroTech" required>
+                    <button type="submit">Add Planet</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="canvas-container">
+            <svg id="linking-canvas">
+                <defs>
+                    <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#9a9a9a" />
+                    </marker>
+                </defs>
+            </svg>
+            <div id="subsystem-nodes"></div>
+            <div id="planet-nodes"></div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

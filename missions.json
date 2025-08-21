@@ -1,0 +1,159 @@
+{
+  "missionTypes": {
+    "type-ship-combat": { "name": "Ship Combat" },
+    "type-fps-combat": { "name": "FPS Combat" },
+    "type-salvage": { "name": "Salvage" },
+    "type-hauling": { "name": "Hauling" },
+    "type-mining": { "name": "Mining" }
+  },
+  "subsystems": {
+    "sub-bounty-legal": {
+      "parentId": "type-ship-combat", "name": "Bounty", "description": "Find this mission under Bounty Hunter tab",
+      "time": 10, "faction": "BH Guild", "alignment": ["legal"], "disabled": false
+    },
+    "sub-patrol-legal": {
+      "parentId": "type-ship-combat", "name": "Patrol", "description": "Find this mission under Mercenary tab",
+      "time": 15, "faction": "Foxwell", "alignment": ["legal"], "disabled": false
+    },
+    "sub-escort-legal": {
+      "parentId": "type-ship-combat", "name": "Escort", "description": "Find this mission under Mercenary tab",
+      "time": 20, "faction": "Foxwell", "alignment": ["legal"], "disabled": false
+    },
+    "sub-ambush-legal": {
+      "parentId": "type-ship-combat", "name": "Ambush", "description": "Find this mission under Mercenary tab",
+      "time": 10, "faction": "Foxwell", "alignment": ["legal"], "disabled": false
+    },
+    "sub-ship-assist-stanton": {
+      "parentId": "type-ship-combat", "name": "Ship Assistance", "description": "Find this mission under Mercenary tab",
+      "time": 15, "faction": "Foxwell", "alignment": ["legal"], "disabled": false
+    },
+    "sub-ship-assist-pyro": {
+      "parentId": "type-ship-combat", "name": "Ship Assistance", "description": "Find this mission under Mercenary tab",
+      "time": 15, "faction": "Headhunters/CFP", "alignment": ["illegal"], "disabled": false
+    },
+    "sub-patrol-illegal": {
+      "parentId": "type-ship-combat", "name": "Patrol", "description": "Find this mission under unverified Mercenary tab",
+      "time": 15, "faction": "Headhunters", "alignment": ["illegal"], "disabled": false
+    },
+    "sub-escort-illegal": {
+      "parentId": "type-ship-combat", "name": "Escort", "description": "Find this mission under unverified Mercenary tab",
+      "time": 20, "faction": "Headhunters", "alignment": ["illegal"], "disabled": false
+    },
+    "sub-ambush-illegal": {
+      "parentId": "type-ship-combat", "name": "Ambush", "description": "Find this mission under unverified Mercenary tab",
+      "time": 10, "faction": "Headhunters", "alignment": ["illegal"], "disabled": false
+    },
+    "sub-assassinate-ship-illegal": {
+      "parentId": "type-ship-combat", "name": "Assassinate", "description": "Find this mission under unverified Mercenary tab",
+      "time": 20, "faction": "Vaughn", "alignment": ["illegal"], "disabled": false
+    },
+    "sub-assist-site-legal": {
+      "parentId": "type-fps-combat", "name": "Assist Site", "description": "Find this mission under Mercenary tab",
+      "time": 10, "faction": "Foxwell or local authorities", "alignment": ["legal"], "disabled": false
+    },
+    "sub-assist-location-pyro": {
+      "parentId": "type-fps-combat", "name": "Assist at Location", "description": "Find this mission under Mercenary tab",
+      "time": 10, "faction": "Headhunters or CFP", "alignment": ["legal"], "disabled": false
+    },
+    "sub-boarding-legal": {
+      "parentId": "type-fps-combat", "name": "Boarding in Progress", "description": "Find this mission under Mercenary tab",
+      "time": 15, "faction": "Northrock", "alignment": ["legal"], "disabled": false
+    },
+    "sub-asd-sites-legal": {
+      "parentId": "type-fps-combat", "name": "ASD Sites", "description": "Find this mission under Investigation tab",
+      "time": 20, "faction": "Hockrow", "alignment": ["legal"], "disabled": false
+    },
+    "sub-assassinate-fps-illegal": {
+      "parentId": "type-fps-combat", "name": "Assassinate", "description": "Find this mission under unverified Mercenary tab",
+      "time": 20, "faction": "Vaughn", "alignment": ["illegal"], "disabled": false
+    },
+    "sub-disrupt-illegal": {
+      "parentId": "type-fps-combat", "name": "Disrupt", "description": "Find this mission under unverified Mercenary tab",
+      "time": 20, "faction": "Bit Zeros", "alignment": ["illegal"], "disabled": false
+    },
+    "sub-pay-salvage-legal": {
+      "parentId": "type-salvage", "name": "Pay for Salvage", "description": "Find this mission under Salvage tab",
+      "time": 30, "faction": "Dusters", "alignment": ["legal"], "disabled": false
+    },
+    "sub-quick-strip-legal": {
+      "parentId": "type-salvage", "name": "Quick Strip", "description": "Find this mission under unverified Salvage tab",
+      "time": 30, "faction": "Unknown", "alignment": ["legal", "illegal"], "disabled": false
+    },
+    "sub-repair-location-pyro": {
+      "parentId": "type-salvage", "name": "Repair Location", "description": "Find this mission under Mercenary tab",
+      "time": 30, "faction": "Location owner", "alignment": ["legal"], "disabled": false
+    },
+    "sub-hauling-covalex": {
+      "parentId": "type-hauling", "name": "Hauling Cargo", "description": "Find this mission under hauling missions",
+      "time": 35, "faction": "Covalex", "alignment": ["legal"], "disabled": false
+    },
+    "sub-hauling-redwind": {
+      "parentId": "type-hauling", "name": "Hauling Cargo", "description": "Find this mission under hauling missions",
+      "time": 35, "faction": "Redwind", "alignment": ["legal"], "disabled": false
+    },
+    "sub-hauling-headhunters": {
+      "parentId": "type-hauling", "name": "Hauling Cargo", "description": "Find this mission under hauling missions",
+      "time": 40, "faction": "Headhunters or CFP", "alignment": ["legal"], "disabled": false
+    },
+    "sub-steal-cargo-illegal": {
+      "parentId": "type-hauling", "name": "Steal Cargo", "description": "Ship combat missions in unverified Mercenary tab",
+      "time": 40, "faction": "Vaughn", "alignment": ["illegal"], "disabled": false
+    },
+    "sub-mining-ship": {
+      "parentId": "type-mining", "name": "Ship Mining", "description": "Collect 1 full load of the best material available",
+      "time": 30, "faction": "Rocks4U", "alignment": ["legal"], "disabled": false
+    },
+    "sub-mining-vehicle": {
+      "parentId": "type-mining", "name": "Vehicle Mining", "description": "Collect 1 full load of the best material available",
+      "time": 40, "faction": "Rocks4U", "alignment": ["legal"], "disabled": false
+    },
+    "sub-mining-hand": {
+      "parentId": "type-mining", "name": "Hand Mining", "description": "Collect 1 backpack full of best material available",
+      "time": 50, "faction": "Rocks4U", "alignment": ["legal"], "disabled": false
+    }
+  },
+  "systems": {
+    "sys-stanton": { "name": "Stanton" },
+    "sys-pyro": { "name": "Pyro" }
+  },
+  "planets": {
+    "pla-microtech": { "parentId": "sys-stanton", "name": "Microtech" },
+    "pla-hurston": { "parentId": "sys-stanton", "name": "Hurston" },
+    "pla-arccorp": { "parentId": "sys-stanton", "name": "Arccorp" },
+    "pla-crusader": { "parentId": "sys-stanton", "name": "Crusader" },
+    "pla-pyro1": { "parentId": "sys-pyro", "name": "Pyro I" },
+    "pla-monox": { "parentId": "sys-pyro", "name": "Monox" },
+    "pla-bloom": { "parentId": "sys-pyro", "name": "Bloom" },
+    "pla-pyro4": { "parentId": "sys-pyro", "name": "Pyro IV" },
+    "pla-pyro5": { "parentId": "sys-pyro", "name": "Pyro V" },
+    "pla-terminus": { "parentId": "sys-pyro", "name": "Terminus" }
+  },
+  "links": [
+    {"from": "sub-bounty-legal", "to": "pla-microtech"}, {"from": "sub-bounty-legal", "to": "pla-hurston"}, {"from": "sub-bounty-legal", "to": "pla-arccorp"}, {"from": "sub-bounty-legal", "to": "pla-crusader"}, {"from": "sub-bounty-legal", "to": "pla-pyro1"}, {"from": "sub-bounty-legal", "to": "pla-monox"}, {"from": "sub-bounty-legal", "to": "pla-bloom"}, {"from": "sub-bounty-legal", "to": "pla-pyro4"}, {"from": "sub-bounty-legal", "to": "pla-pyro5"}, {"from": "sub-bounty-legal", "to": "pla-terminus"},
+    {"from": "sub-patrol-legal", "to": "pla-microtech"}, {"from": "sub-patrol-legal", "to": "pla-hurston"}, {"from": "sub-patrol-legal", "to": "pla-arccorp"}, {"from": "sub-patrol-legal", "to": "pla-crusader"}, {"from": "sub-patrol-legal", "to": "pla-pyro1"}, {"from": "sub-patrol-legal", "to": "pla-monox"}, {"from": "sub-patrol-legal", "to": "pla-bloom"}, {"from": "sub-patrol-legal", "to": "pla-pyro4"}, {"from": "sub-patrol-legal", "to": "pla-pyro5"}, {"from": "sub-patrol-legal", "to": "pla-terminus"},
+    {"from": "sub-escort-legal", "to": "pla-microtech"}, {"from": "sub-escort-legal", "to": "pla-hurston"}, {"from": "sub-escort-legal", "to": "pla-arccorp"}, {"from": "sub-escort-legal", "to": "pla-crusader"}, {"from": "sub-escort-legal", "to": "pla-pyro1"}, {"from": "sub-escort-legal", "to": "pla-monox"}, {"from": "sub-escort-legal", "to": "pla-bloom"}, {"from": "sub-escort-legal", "to": "pla-pyro4"}, {"from": "sub-escort-legal", "to": "pla-pyro5"}, {"from": "sub-escort-legal", "to": "pla-terminus"},
+    {"from": "sub-ambush-legal", "to": "pla-microtech"}, {"from": "sub-ambush-legal", "to": "pla-hurston"}, {"from": "sub-ambush-legal", "to": "pla-arccorp"}, {"from": "sub-ambush-legal", "to": "pla-crusader"}, {"from": "sub-ambush-legal", "to": "pla-pyro1"}, {"from": "sub-ambush-legal", "to": "pla-monox"}, {"from": "sub-ambush-legal", "to": "pla-bloom"}, {"from": "sub-ambush-legal", "to": "pla-pyro4"}, {"from": "sub-ambush-legal", "to": "pla-pyro5"}, {"from": "sub-ambush-legal", "to": "pla-terminus"},
+    {"from": "sub-ship-assist-stanton", "to": "pla-microtech"}, {"from": "sub-ship-assist-stanton", "to": "pla-hurston"}, {"from": "sub-ship-assist-stanton", "to": "pla-arccorp"}, {"from": "sub-ship-assist-stanton", "to": "pla-crusader"},
+    {"from": "sub-ship-assist-pyro", "to": "pla-pyro1"}, {"from": "sub-ship-assist-pyro", "to": "pla-monox"}, {"from": "sub-ship-assist-pyro", "to": "pla-bloom"}, {"from": "sub-ship-assist-pyro", "to": "pla-pyro4"}, {"from": "sub-ship-assist-pyro", "to": "pla-pyro5"}, {"from": "sub-ship-assist-pyro", "to": "pla-terminus"},
+    {"from": "sub-patrol-illegal", "to": "pla-microtech"}, {"from": "sub-patrol-illegal", "to": "pla-hurston"}, {"from": "sub-patrol-illegal", "to": "pla-arccorp"}, {"from": "sub-patrol-illegal", "to": "pla-crusader"},
+    {"from": "sub-escort-illegal", "to": "pla-microtech"}, {"from": "sub-escort-illegal", "to": "pla-hurston"}, {"from": "sub-escort-illegal", "to": "pla-arccorp"}, {"from": "sub-escort-illegal", "to": "pla-crusader"},
+    {"from": "sub-ambush-illegal", "to": "pla-microtech"}, {"from": "sub-ambush-illegal", "to": "pla-hurston"}, {"from": "sub-ambush-illegal", "to": "pla-arccorp"}, {"from": "sub-ambush-illegal", "to": "pla-crusader"},
+    {"from": "sub-assassinate-ship-illegal", "to": "pla-microtech"}, {"from": "sub-assassinate-ship-illegal", "to": "pla-hurston"}, {"from": "sub-assassinate-ship-illegal", "to": "pla-arccorp"}, {"from": "sub-assassinate-ship-illegal", "to": "pla-crusader"},
+    {"from": "sub-assist-site-legal", "to": "pla-microtech"}, {"from": "sub-assist-site-legal", "to": "pla-hurston"}, {"from": "sub-assist-site-legal", "to": "pla-arccorp"}, {"from": "sub-assist-site-legal", "to": "pla-crusader"},
+    {"from": "sub-assist-location-pyro", "to": "pla-pyro1"}, {"from": "sub-assist-location-pyro", "to": "pla-monox"}, {"from": "sub-assist-location-pyro", "to": "pla-bloom"}, {"from": "sub-assist-location-pyro", "to": "pla-pyro4"}, {"from": "sub-assist-location-pyro", "to": "pla-pyro5"}, {"from": "sub-assist-location-pyro", "to": "pla-terminus"},
+    {"from": "sub-boarding-legal", "to": "pla-arccorp"}, {"from": "sub-boarding-legal", "to": "pla-microtech"},
+    {"from": "sub-asd-sites-legal", "to": "pla-microtech"}, {"from": "sub-asd-sites-legal", "to": "pla-hurston"}, {"from": "sub-asd-sites-legal", "to": "pla-arccorp"}, {"from": "sub-asd-sites-legal", "to": "pla-crusader"},
+    {"from": "sub-assassinate-fps-illegal", "to": "pla-microtech"}, {"from": "sub-assassinate-fps-illegal", "to": "pla-hurston"}, {"from": "sub-assassinate-fps-illegal", "to": "pla-arccorp"}, {"from": "sub-assassinate-fps-illegal", "to": "pla-crusader"},
+    {"from": "sub-disrupt-illegal", "to": "pla-microtech"}, {"from": "sub-disrupt-illegal", "to": "pla-hurston"}, {"from": "sub-disrupt-illegal", "to": "pla-arccorp"}, {"from": "sub-disrupt-illegal", "to": "pla-crusader"},
+    {"from": "sub-pay-salvage-legal", "to": "pla-microtech"}, {"from": "sub-pay-salvage-legal", "to": "pla-hurston"}, {"from": "sub-pay-salvage-legal", "to": "pla-arccorp"}, {"from": "sub-pay-salvage-legal", "to": "pla-crusader"},
+    {"from": "sub-quick-strip-legal", "to": "pla-microtech"}, {"from": "sub-quick-strip-legal", "to": "pla-hurston"}, {"from": "sub-quick-strip-legal", "to": "pla-arccorp"}, {"from": "sub-quick-strip-legal", "to": "pla-crusader"},
+    {"from": "sub-repair-location-pyro", "to": "pla-pyro1"}, {"from": "sub-repair-location-pyro", "to": "pla-monox"}, {"from": "sub-repair-location-pyro", "to": "pla-bloom"}, {"from": "sub-repair-location-pyro", "to": "pla-pyro4"}, {"from": "sub-repair-location-pyro", "to": "pla-pyro5"}, {"from": "sub-repair-location-pyro", "to": "pla-terminus"},
+    {"from": "sub-hauling-covalex", "to": "pla-microtech"}, {"from": "sub-hauling-covalex", "to": "pla-hurston"}, {"from": "sub-hauling-covalex", "to": "pla-arccorp"}, {"from": "sub-hauling-covalex", "to": "pla-crusader"},
+    {"from": "sub-hauling-redwind", "to": "pla-pyro1"}, {"from": "sub-hauling-redwind", "to": "pla-monox"}, {"from": "sub-hauling-redwind", "to": "pla-bloom"}, {"from": "sub-hauling-redwind", "to": "pla-pyro4"}, {"from": "sub-hauling-redwind", "to": "pla-pyro5"}, {"from": "sub-hauling-redwind", "to": "pla-terminus"},
+    {"from": "sub-hauling-headhunters", "to": "pla-pyro1"}, {"from": "sub-hauling-headhunters", "to": "pla-monox"}, {"from": "sub-hauling-headhunters", "to": "pla-bloom"}, {"from": "sub-hauling-headhunters", "to": "pla-pyro4"}, {"from": "sub-hauling-headhunters", "to": "pla-pyro5"}, {"from": "sub-hauling-headhunters", "to": "pla-terminus"},
+    {"from": "sub-steal-cargo-illegal", "to": "pla-microtech"}, {"from": "sub-steal-cargo-illegal", "to": "pla-hurston"}, {"from": "sub-steal-cargo-illegal", "to": "pla-arccorp"}, {"from": "sub-steal-cargo-illegal", "to": "pla-crusader"},
+    {"from": "sub-mining-ship", "to": "pla-microtech"}, {"from": "sub-mining-ship", "to": "pla-hurston"}, {"from": "sub-mining-ship", "to": "pla-arccorp"}, {"from": "sub-mining-ship", "to": "pla-crusader"}, {"from": "sub-mining-ship", "to": "pla-pyro1"}, {"from": "sub-mining-ship", "to": "pla-monox"}, {"from": "sub-mining-ship", "to": "pla-bloom"}, {"from": "sub-mining-ship", "to": "pla-pyro4"}, {"from": "sub-mining-ship", "to": "pla-pyro5"}, {"from": "sub-mining-ship", "to": "pla-terminus"},
+    {"from": "sub-mining-vehicle", "to": "pla-microtech"}, {"from": "sub-mining-vehicle", "to": "pla-hurston"}, {"from": "sub-mining-vehicle", "to": "pla-arccorp"}, {"from": "sub-mining-vehicle", "to": "pla-crusader"}, {"from": "sub-mining-vehicle", "to": "pla-pyro1"}, {"from": "sub-mining-vehicle", "to": "pla-monox"}, {"from": "sub-mining-vehicle", "to": "pla-bloom"}, {"from": "sub-mining-vehicle", "to": "pla-pyro4"}, {"from": "sub-mining-vehicle", "to": "pla-pyro5"}, {"from": "sub-mining-vehicle", "to": "pla-terminus"},
+    {"from": "sub-mining-hand", "to": "pla-microtech"}, {"from": "sub-mining-hand", "to": "pla-hurston"}, {"from": "sub-mining-hand", "to": "pla-arccorp"}, {"from": "sub-mining-hand", "to": "pla-crusader"}, {"from": "sub-mining-hand", "to": "pla-pyro1"}, {"from": "sub-mining-hand", "to": "pla-monox"}, {"from": "sub-mining-hand", "to": "pla-bloom"}, {"from": "sub-mining-hand", "to": "pla-pyro4"}, {"from": "sub-mining-hand", "to": "pla-pyro5"}, {"from": "sub-mining-hand", "to": "pla-terminus"}
+  ]
+}

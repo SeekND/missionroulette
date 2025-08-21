@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Star Citizen Mission Roulette</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="roulette-style.css">
+</head>
+<body>
+
+    <main id="app-container">
+
+        <div id="view-setup" class="view active">
+            <div class="card">
+                <h2>How much time do you have?</h2>
+                <div class="slider-container">
+                    <input type="range" id="session-duration" min="15" max="300" value="60" step="5">
+                    <span id="duration-display">60 minutes</span>
+                </div>
+
+                <h2>Choose your alignment:</h2>
+                <div class="choice-group">
+                    <button class="choice-btn" data-alignment="legal">Legal</button>
+                    <button class="choice-btn" data-alignment="any">Any</button>
+                    <button class="choice-btn" data-alignment="illegal">Illegal</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-path" class="view">
+            <div class="card">
+                <h2>Select Your Experience</h2>
+                <p>You've chosen a <strong id="path-summary"></strong> session.</p>
+                <div class="choice-group">
+                    <button id="btn-quick-session">🚀<br>Quick<br>Session</button>
+                    <button id="btn-custom-session">⚙️<br>Custom<br>Session</button>
+                </div>
+                 <button class="back-btn" data-target="view-setup">Go Back</button>
+            </div>
+        </div>
+
+        <div id="view-filters" class="view">
+            <div class="card">
+                <h2>Customise Your Session</h2>
+                <div class="filter-group">
+                    <label for="filter-type">Mission Type</label>
+                    <select id="filter-type">
+                        <option value="any">Any Mission Type</option>
+                    </select>
+
+                    <label for="filter-system">System</label>
+                    <select id="filter-system">
+                        <option value="any">Any System</option>
+                    </select>
+
+                    <label for="filter-crew">Crew Size</label>
+                    <select id="filter-crew">
+                        <option value="1">Solo</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4+</option>
+                    </select>
+                </div>
+                <button id="btn-generate">Generate Mission Playlist</button>
+                <button class="back-btn" data-target="view-path">Go Back</button>
+            </div>
+        </div>
+
+        <div id="view-results" class="view">
+            <h2>Your Mission Playlist</h2>
+
+            <p id="total-time-summary"></p>
+            <button id="btn-copy-discord" class="discord-btn">📋 Copy to Clipboard</button>
+
+            <div id="playlist-container">
+                </div>
+
+            <div class="choice-group">
+                <button class="back-btn" data-target="view-filters">Go Back</button>
+                <button class="back-btn" data-target="view-setup">Start Over</button>
+            </div>
+        </div>
+
+    </main>
+
+    <script src="roulette-script.js"></script>
+</body>
+</html>

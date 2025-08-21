@@ -1,0 +1,242 @@
+:root {
+    --bg-color: #1a1a1d;
+    --panel-bg: #2c2f33;
+    --border-color: #4f545c;
+    --text-color: #e1e1e1;
+    --accent-blue: #00aaff;
+    --accent-orange: #ff8c00;
+    --accent-red: #d9534f;
+    --accent-purple: #8e44ad;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    overflow: hidden;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: var(--panel-bg);
+    border-bottom: 2px solid var(--border-color);
+}
+
+button {
+    background-color: var(--accent-blue);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+button.edit-mode {
+    background-color: var(--accent-purple);
+}
+
+button:hover {
+    filter: brightness(1.2);
+}
+
+.io-buttons button {
+    margin-left: 10px;
+}
+
+input, select, textarea {
+    width: calc(100% - 20px);
+    padding: 8px;
+    margin-bottom: 10px;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    border-radius: 4px;
+}
+
+.admin-container {
+    display: grid;
+    grid-template-columns: 300px 300px 1fr;
+    height: calc(100vh - 60px);
+}
+
+.panel {
+    background-color: var(--panel-bg);
+    padding: 15px;
+    border-right: 2px solid var(--border-color);
+    overflow-y: auto;
+}
+
+.panel-section {
+    margin-bottom: 20px;
+}
+
+h2 {
+    margin-top: 0;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 5px;
+}
+
+ul { list-style-type: none; padding: 0; }
+
+li {
+    background-color: #3a3e42;
+    padding: 8px;
+    border-radius: 4px;
+    margin-bottom: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.delete-btn {
+    background-color: var(--accent-red);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    font-weight: bold;
+    line-height: 20px;
+    text-align: center;
+}
+
+.canvas-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+#linking-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+/* Make lines clickable */
+#linking-canvas line {
+    cursor: pointer;
+    stroke-width: 4px; /* Thicker for easier clicking */
+    transition: stroke 0.2s;
+}
+#linking-canvas line:hover {
+    stroke: var(--accent-red) !important;
+}
+
+
+.node {
+    padding: 10px;
+    border-radius: 5px;
+    width: 600px; /* Changed from 200px */
+    border: 2px solid transparent;
+    position: relative;
+    cursor: grab;
+    transition: opacity 0.3s;
+}
+
+.canvas-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    /* ADD these lines */
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.node-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.node-content {
+    cursor: pointer;
+    flex-grow: 1;
+    /* Add these lines to align the name and type */
+    display: flex;
+    align-items: baseline;
+    gap: 15px;
+}
+
+.node-type {
+    font-size: 0.8em;
+    opacity: 0.7;
+    font-style: italic;
+}
+
+.node.disabled {
+    opacity: 0.4;
+    border-style: dashed;
+}
+
+/* Node coloring */
+.subsystem-node.legal-node { background-color: #1e3a5f; border-color: var(--accent-blue); }
+.subsystem-node.illegal-node { background-color: #5f1e1e; border-color: var(--accent-red); }
+.subsystem-node.mixed-node { border-color: var(--accent-purple); background: linear-gradient(90deg, #5f1e1e 50%, #1e3a5f 50%); }
+
+.planet-node { background-color: #6a3a00; border-color: var(--accent-orange); }
+
+.node-handle {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 12px;
+    height: 12px;
+    background-color: white;
+    border-radius: 50%;
+    border: 2px solid var(--border-color);
+    cursor: crosshair;
+}
+
+.node-system {
+    font-size: 0.8em;
+    opacity: 0.7;
+    font-style: italic;
+}
+
+.node-mission-counts {
+    font-size: 0.8em;
+    font-weight: bold;
+    flex-shrink: 0; /* Prevents it from shrinking */
+    margin-left: auto; /* Pushes it to the right */
+    padding-left: 15px;
+}
+
+.handle-out { right: -8px; }
+.handle-in { left: -8px; }
+
+.node-actions {
+    margin-top: 0;
+    display: flex;
+    gap: 5px;
+    flex-shrink: 0; /* Prevents buttons from shrinking */
+}
+#subsystem-nodes, #planet-nodes {
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 20px 50px;
+}
+
+/* ADD THIS NEW RULE */
+#planet-nodes {
+    position: sticky;
+    top: 60px;
+}
+.node-actions button {
+    flex-grow: 1;
+    padding: 4px 10px; /* Increased horizontal padding */
+    font-size: 12px;
+}
+.node-actions .delete-node-btn { background-color: var(--accent-red); }
