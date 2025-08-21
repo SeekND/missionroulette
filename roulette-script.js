@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = document.getElementById('playlist-container');
         const copyBtn = document.getElementById('btn-copy-discord');
         container.innerHTML = '';
-        let discordText = '';
+        let discordBodyText = ''; // Changed variable name for clarity
 
         if (playlist.length === 0) {
             container.innerHTML = '<p>Could not generate a playlist with the selected criteria. Try being less restrictive!</p>';
@@ -225,8 +225,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         copyBtn.style.display = 'block';
-        discordText += `**Star Citizen Mission Playlist (${playlist.totalTime} mins approx.)**\n`;
-        discordText += `> Alignment: ${userChoices.alignment.charAt(0).toUpperCase() + userChoices.alignment.slice(1)}\n\n`;
 
         playlist.forEach((item, index) => {
             const card = document.createElement('div');
@@ -260,29 +258,41 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             container.appendChild(card);
 
-            // --- START OF MODIFIED DISCORD TEXT ---
-            discordText += `**${index + 1}. ${item.subsystem.name}** (${item.subsystem.time} mins)\n`;
-
+            // Build the body of the Discord text
+            discordBodyText += `**${index + 1}. ${item.subsystem.name}** (${item.subsystem.time} mins)\n`;
             if (index > 0 && item.travelTime > 0) {
                 const previousItem = playlist[index - 1];
                 let travelReason = 'new planet';
                 if (previousItem && item.system.name !== previousItem.system.name) {
                     travelReason = 'new system';
                 }
-                discordText += `   - *Travel to ${travelReason} (${item.travelTime} mins)*\n`;
+                discordBodyText += `   - *Travel to ${travelReason} (${item.travelTime} mins)*\n`;
             }
-
-            discordText += `   - **Type:** ${missionType}\n`;
-            discordText += `   - **${locationLabel}** ${item.planet.name} (${item.system.name})\n`;
-            discordText += `   - **Faction:** ${item.subsystem.faction}\n`;
-            discordText += `   - **Brief:** ${item.subsystem.description}\n\n`;
-            // --- END OF MODIFIED DISCORD TEXT ---
+            discordBodyText += `   - **Type:** ${missionType}\n`;
+            discordBodyText += `   - **${locationLabel}** ${item.planet.name} (${item.system.name})\n`;
+            discordBodyText += `   - **Faction:** ${item.subsystem.faction}\n`;
+            discordBodyText += `   - **Brief:** ${item.subsystem.description}\n\n`;
         });
 
-        copyBtn.dataset.playlistText = discordText;
+        // --- START OF NEW TIME FORMATTING LOGIC ---
+        let formattedTotalTime;
+        const totalMinutes = playlist.totalTime;
+        if (totalMinutes < 60) {
+            formattedTotalTime = `${totalMinutes} minutes`;
+        } else {
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = totalMinutes % 60;
+            const hourText = hours > 1 ? 'hours' : 'hour';
+            const minuteText = minutes > 0 ? ` ${minutes} minutes` : '';
+            formattedTotalTime = `${hours} ${hourText}${minuteText}`;
+        }
+
+        // Use the formatted time for both the Discord header and the on-page summary
+        const discordHeader = `**Star Citizen Mission Playlist (${formattedTotalTime} approx.)**\n> Alignment: ${userChoices.alignment.charAt(0).toUpperCase() + userChoices.alignment.slice(1)}\n\n`;
+        copyBtn.dataset.playlistText = discordHeader + discordBodyText;
 
         document.getElementById('total-time-summary').textContent =
-            `Generated ${playlist.length} missions. Estimated total time: ${playlist.totalTime} minutes.`;
+            `Generated ${playlist.length} missions. Estimated total time: ${formattedTotalTime}.`;
     }
 
     // Helper to find a key by its value object
