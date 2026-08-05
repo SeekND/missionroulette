@@ -1,0 +1,1549 @@
+{
+  "_meta": {
+    "purpose": "In-game aUEC PURCHASE prices (base) — used for the 'graduate from renting to buying your signature ship' finishers.",
+    "updated": "2026-08-02",
+    "source": "starcitizen.tools/Purchasing_ships (Alpha 4.8.2 table). Re-pull next patch.",
+    "shopCodes": {
+      "A18": "Astro Armada, Area 18 (Stanton)",
+      "ORI": "Crusader Showroom, Orison (Stanton)",
+      "LOR": "New Deal, Lorville (Stanton)",
+      "LEV": "Teach's, Levski (Nyx)",
+      "RUIN": "Buy & Fly, Ruin Station (Pyro)"
+    },
+    "note": "You CANNOT rent in Pyro, but you CAN buy some ships at Ruin Station (RUIN). Finisher = reach the money target (frozen wallet) and buy the ship.",
+    "fields": {
+      "n": "ship name",
+      "m": "manufacturer code",
+      "p": "base price aUEC",
+      "s": "shops that sell it"
+    },
+    "finishers": {
+      "mining": {
+        "buyShip": "MOLE",
+        "price": 8483738,
+        "target": 10000000,
+        "altHero": "Rockcracker"
+      },
+      "hauler": {
+        "buyShip": "Caterpillar",
+        "price": 11850300,
+        "target": 12000000
+      },
+      "salvager": {
+        "buyShip": "MOTH",
+        "price": 8483738,
+        "target": 10000000
+      },
+      "_note": "Combat/FPS/explorer/outlaw tracks finish on a HERO adventure; a buy-ship finisher is optional there (TODO pick signatures, e.g. fighter=Vanguard/Scorpius, explorer=600i Explorer)."
+    }
+  },
+  "ships": [
+    {
+      "n": "Avenger Stalker",
+      "m": "AEGS",
+      "p": 1508220,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Avenger Titan",
+      "m": "AEGS",
+      "p": 1290366,
+      "s": [
+        "LOR",
+        "LEV"
+      ]
+    },
+    {
+      "n": "Avenger Titan Renegade",
+      "m": "AEGS",
+      "p": 1759590,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Avenger Warlock",
+      "m": "AEGS",
+      "p": 2136645,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Eclipse",
+      "m": "AEGS",
+      "p": 7541100,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Gladius",
+      "m": "AEGS",
+      "p": 2262330,
+      "s": [
+        "LOR",
+        "LEV"
+      ]
+    },
+    {
+      "n": "Gladius Valiant",
+      "m": "AEGS",
+      "p": 2765070,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Hammerhead",
+      "m": "AEGS",
+      "p": 34466568,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Reclaimer",
+      "m": "AEGS",
+      "p": 30164400,
+      "s": [
+        "LOR",
+        "LEV"
+      ]
+    },
+    {
+      "n": "Redeemer",
+      "m": "AEGS",
+      "p": 9803430,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Retaliator",
+      "m": "AEGS",
+      "p": 7541100,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Sabre",
+      "m": "AEGS",
+      "p": 4273290,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Sabre Comet",
+      "m": "AEGS",
+      "p": 4650345,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Sabre Firebird",
+      "m": "AEGS",
+      "p": 5580414,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Sabre Peregrine",
+      "m": "AEGS",
+      "p": 3845961,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Vanguard Harbinger",
+      "m": "AEGS",
+      "p": 8200400,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Vanguard Hoplite",
+      "m": "AEGS",
+      "p": 6645250,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Vanguard Sentinel",
+      "m": "AEGS",
+      "p": 7776700,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Vanguard Warden",
+      "m": "AEGS",
+      "p": 7354900,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Arrow",
+      "m": "ANVL",
+      "p": 1984500,
+      "s": [
+        "A18",
+        "LEV"
+      ]
+    },
+    {
+      "n": "Asgard",
+      "m": "ANVL",
+      "p": 17860500,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "Ballista",
+      "m": "ANVL",
+      "p": 1407672,
+      "s": [
+        "A18",
+        "LOR"
+      ]
+    },
+    {
+      "n": "C8 Pisces",
+      "m": "ANVL",
+      "p": 745290,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "C8R Pisces Rescue",
+      "m": "ANVL",
+      "p": 555660,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "C8X Pisces Expedition",
+      "m": "ANVL",
+      "p": 515970,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "Carrack",
+      "m": "ANVL",
+      "p": 34398000,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "Centurion",
+      "m": "ANVL",
+      "p": 1106028,
+      "s": [
+        "A18",
+        "LOR"
+      ]
+    },
+    {
+      "n": "F7C Hornet Mk I",
+      "m": "ANVL",
+      "p": 2910600,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "F7C Hornet Mk II",
+      "m": "ANVL",
+      "p": 4650345,
+      "s": [
+        "A18",
+        "LOR"
+      ]
+    },
+    {
+      "n": "F7C Hornet Wildfire Mk I",
+      "m": "ANVL",
+      "p": 4630500,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "F7C-M Super Hornet Mk I",
+      "m": "ANVL",
+      "p": 4762800,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "F7C-R Hornet Tracker Mk I",
+      "m": "ANVL",
+      "p": 3210480,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "F7C-R Hornet Tracker Mk II",
+      "m": "ANVL",
+      "p": 4882858,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "F7C-S Hornet Ghost Mk I",
+      "m": "ANVL",
+      "p": 3307500,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "F7C-S Hornet Ghost Mk II",
+      "m": "ANVL",
+      "p": 5115370,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Gladiator",
+      "m": "ANVL",
+      "p": 4365900,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "Hawk",
+      "m": "ANVL",
+      "p": 2646000,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "Hurricane",
+      "m": "ANVL",
+      "p": 5556600,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "Paladin",
+      "m": "ANVL",
+      "p": 15876000,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "Spartan",
+      "m": "ANVL",
+      "p": 804384,
+      "s": [
+        "A18",
+        "LOR"
+      ]
+    },
+    {
+      "n": "Terrapin",
+      "m": "ANVL",
+      "p": 5433120,
+      "s": [
+        "A18",
+        "LEV"
+      ]
+    },
+    {
+      "n": "Terrapin Medic",
+      "m": "ANVL",
+      "p": 5704770,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "Valkyrie",
+      "m": "ANVL",
+      "p": 19845000,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "ATLS",
+      "m": "ARGO",
+      "p": 71820,
+      "s": [
+        "A18",
+        "ORI",
+        "LOR",
+        "LEV",
+        "RUIN"
+      ]
+    },
+    {
+      "n": "ATLS GEO",
+      "m": "ARGO",
+      "p": 86184,
+      "s": [
+        "A18",
+        "ORI",
+        "LOR",
+        "LEV",
+        "RUIN"
+      ]
+    },
+    {
+      "n": "CSV-SM",
+      "m": "ARGO",
+      "p": 359100,
+      "s": [
+        "ORI",
+        "LOR",
+        "RUIN"
+      ]
+    },
+    {
+      "n": "MOLE",
+      "m": "ARGO",
+      "p": 8483738,
+      "s": [
+        "LOR",
+        "LEV"
+      ]
+    },
+    {
+      "n": "MOTH",
+      "m": "ARGO",
+      "p": 8483738,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "MPUV Cargo",
+      "m": "ARGO",
+      "p": 314213,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "MPUV Personnel",
+      "m": "ARGO",
+      "p": 359100,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "MPUV Tractor",
+      "m": "ARGO",
+      "p": 395010,
+      "s": [
+        "LOR",
+        "LEV"
+      ]
+    },
+    {
+      "n": "RAFT",
+      "m": "ARGO",
+      "p": 3366563,
+      "s": [
+        "LOR",
+        "LEV"
+      ]
+    },
+    {
+      "n": "SRV",
+      "m": "ARGO",
+      "p": 3770550,
+      "s": [
+        "LOR",
+        "LEV"
+      ]
+    },
+    {
+      "n": "Defender",
+      "m": "BANU",
+      "p": 6237000,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "HoverQuad",
+      "m": "CNOU",
+      "p": 53865,
+      "s": [
+        "A18",
+        "LOR"
+      ]
+    },
+    {
+      "n": "Mustang Alpha",
+      "m": "CNOU",
+      "p": 610470,
+      "s": [
+        "LOR",
+        "LEV"
+      ]
+    },
+    {
+      "n": "Mustang Beta",
+      "m": "CNOU",
+      "p": 622440,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Mustang Delta",
+      "m": "CNOU",
+      "p": 1228500,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "Mustang Gamma",
+      "m": "CNOU",
+      "p": 1178100,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "Nomad",
+      "m": "CNOU",
+      "p": 1436400,
+      "s": [
+        "LOR",
+        "LEV"
+      ]
+    },
+    {
+      "n": "A1 Spirit",
+      "m": "CRUS",
+      "p": 4961250,
+      "s": [
+        "ORI"
+      ]
+    },
+    {
+      "n": "A2 Hercules Starlifter",
+      "m": "CRUS",
+      "p": 37800200,
+      "s": [
+        "ORI",
+        "LEV"
+      ]
+    },
+    {
+      "n": "Ares Inferno",
+      "m": "CRUS",
+      "p": 4725000,
+      "s": [
+        "ORI"
+      ]
+    },
+    {
+      "n": "Ares Ion",
+      "m": "CRUS",
+      "p": 4725000,
+      "s": [
+        "ORI"
+      ]
+    },
+    {
+      "n": "C1 Spirit",
+      "m": "CRUS",
+      "p": 3118500,
+      "s": [
+        "ORI"
+      ]
+    },
+    {
+      "n": "C2 Hercules Starlifter",
+      "m": "CRUS",
+      "p": 18900000,
+      "s": [
+        "A18",
+        "ORI"
+      ]
+    },
+    {
+      "n": "Intrepid",
+      "m": "CRUS",
+      "p": 1173060,
+      "s": [
+        "A18",
+        "ORI",
+        "LOR"
+      ]
+    },
+    {
+      "n": "M2 Hercules Starlifter",
+      "m": "CRUS",
+      "p": 28009800,
+      "s": [
+        "ORI",
+        "LOR"
+      ]
+    },
+    {
+      "n": "Mercury Star Runner",
+      "m": "CRUS",
+      "p": 12285000,
+      "s": [
+        "ORI"
+      ]
+    },
+    {
+      "n": "Buccaneer",
+      "m": "DRAK",
+      "p": 1580040,
+      "s": [
+        "LOR",
+        "RUIN"
+      ]
+    },
+    {
+      "n": "Caterpillar",
+      "m": "DRAK",
+      "p": 11850300,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Clipper",
+      "m": "DRAK",
+      "p": 3619728,
+      "s": [
+        "LOR",
+        "LEV",
+        "RUIN"
+      ]
+    },
+    {
+      "n": "Corsair",
+      "m": "DRAK",
+      "p": 6224400,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Cutlass Black",
+      "m": "DRAK",
+      "p": 2010960,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Cutlass Blue",
+      "m": "DRAK",
+      "p": 3519180,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Cutlass Red",
+      "m": "DRAK",
+      "p": 2714796,
+      "s": [
+        "LOR",
+        "RUIN"
+      ]
+    },
+    {
+      "n": "Cutlass Steel",
+      "m": "DRAK",
+      "p": 3797483,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Cutter",
+      "m": "DRAK",
+      "p": 603288,
+      "s": [
+        "LOR",
+        "LEV"
+      ]
+    },
+    {
+      "n": "Cutter Rambler",
+      "m": "DRAK",
+      "p": 703836,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Cutter Scout",
+      "m": "DRAK",
+      "p": 670320,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Dragonfly",
+      "m": "DRAK",
+      "p": 325584,
+      "s": [
+        "LOR",
+        "RUIN"
+      ]
+    },
+    {
+      "n": "Golem",
+      "m": "DRAK",
+      "p": 1005480,
+      "s": [
+        "LOR",
+        "LEV",
+        "RUIN"
+      ]
+    },
+    {
+      "n": "Herald",
+      "m": "DRAK",
+      "p": 1220940,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Mule",
+      "m": "DRAK",
+      "p": 64638,
+      "s": [
+        "LOR",
+        "LEV"
+      ]
+    },
+    {
+      "n": "Vulture",
+      "m": "DRAK",
+      "p": 2513700,
+      "s": [
+        "LOR",
+        "LEV",
+        "RUIN"
+      ]
+    },
+    {
+      "n": "Blade",
+      "m": "ESPR",
+      "p": 7796250,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "Prowler",
+      "m": "ESPR",
+      "p": 18711000,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "Prowler Utility",
+      "m": "ESPR",
+      "p": 16839000,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "Stinger",
+      "m": "ESPR",
+      "p": 8930250,
+      "s": [
+        "LEV"
+      ]
+    },
+    {
+      "n": "Talon",
+      "m": "ESPR",
+      "p": 3260250,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "Talon Shrike",
+      "m": "ESPR",
+      "p": 3260250,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "Syulen",
+      "m": "GAMA",
+      "p": 2082500,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "Shiv",
+      "m": "GREY",
+      "p": 5556600,
+      "s": [
+        "LEV"
+      ]
+    },
+    {
+      "n": "MDC",
+      "m": "GRIN",
+      "p": 127575,
+      "s": [
+        "LOR",
+        "RUIN"
+      ]
+    },
+    {
+      "n": "MTC",
+      "m": "GRIN",
+      "p": 75600,
+      "s": [
+        "LOR",
+        "RUIN"
+      ]
+    },
+    {
+      "n": "PTV",
+      "m": "GRIN",
+      "p": 28350,
+      "s": [
+        "A18",
+        "LEV"
+      ]
+    },
+    {
+      "n": "ROC",
+      "m": "GRIN",
+      "p": 98753,
+      "s": [
+        "LOR",
+        "LEV"
+      ]
+    },
+    {
+      "n": "ROC-DS",
+      "m": "GRIN",
+      "p": 134663,
+      "s": [
+        "LOR",
+        "LEV"
+      ]
+    },
+    {
+      "n": "STV",
+      "m": "GRIN",
+      "p": 75600,
+      "s": [
+        "A18",
+        "RUIN"
+      ]
+    },
+    {
+      "n": "L-21 Wolf",
+      "m": "KRIG",
+      "p": 2381400,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "P-52 Merlin",
+      "m": "KRIG",
+      "p": 283500,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "P-72 Archimedes",
+      "m": "KRIG",
+      "p": 449820,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "Fortune",
+      "m": "MISC",
+      "p": 1795500,
+      "s": [
+        "LOR",
+        "LEV",
+        "RUIN"
+      ]
+    },
+    {
+      "n": "Freelancer",
+      "m": "MISC",
+      "p": 2962575,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Freelancer DUR",
+      "m": "MISC",
+      "p": 3151103,
+      "s": [
+        "LOR",
+        "LEV"
+      ]
+    },
+    {
+      "n": "Freelancer MAX",
+      "m": "MISC",
+      "p": 4039875,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Freelancer MIS",
+      "m": "MISC",
+      "p": 4713188,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Hull A",
+      "m": "MISC",
+      "p": 1615950,
+      "s": [
+        "LOR",
+        "LEV"
+      ]
+    },
+    {
+      "n": "Hull C",
+      "m": "MISC",
+      "p": 15710625,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Prospector",
+      "m": "MISC",
+      "p": 2783025,
+      "s": [
+        "LOR",
+        "RUIN"
+      ]
+    },
+    {
+      "n": "Reliant Kore",
+      "m": "MISC",
+      "p": 1633905,
+      "s": [
+        "LOR",
+        "LEV"
+      ]
+    },
+    {
+      "n": "Reliant Mako",
+      "m": "MISC",
+      "p": 2388015,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Reliant Sen",
+      "m": "MISC",
+      "p": 2136645,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Reliant Tana",
+      "m": "MISC",
+      "p": 1885275,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Starfarer",
+      "m": "MISC",
+      "p": 13891500,
+      "s": [
+        "LOR",
+        "LEV"
+      ]
+    },
+    {
+      "n": "Starfarer Gemini",
+      "m": "MISC",
+      "p": 14244300,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Starlancer MAX",
+      "m": "MISC",
+      "p": 8379000,
+      "s": [
+        "A18",
+        "LOR"
+      ]
+    },
+    {
+      "n": "Starlancer TAC",
+      "m": "MISC",
+      "p": 13381200,
+      "s": [
+        "A18",
+        "LOR"
+      ]
+    },
+    {
+      "n": "Fury",
+      "m": "MRAI",
+      "p": 691268,
+      "s": [
+        "A18",
+        "LOR"
+      ]
+    },
+    {
+      "n": "Fury LX",
+      "m": "MRAI",
+      "p": 824670,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "Fury MX",
+      "m": "MRAI",
+      "p": 691268,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Guardian",
+      "m": "MRAI",
+      "p": 6284250,
+      "s": [
+        "A18",
+        "LOR"
+      ]
+    },
+    {
+      "n": "Guardian MX",
+      "m": "MRAI",
+      "p": 7038360,
+      "s": [
+        "A18",
+        "LOR"
+      ]
+    },
+    {
+      "n": "Pulse",
+      "m": "MRAI",
+      "p": 175959,
+      "s": [
+        "A18",
+        "LOR"
+      ]
+    },
+    {
+      "n": "Pulse LX",
+      "m": "MRAI",
+      "p": 201096,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Razor",
+      "m": "MRAI",
+      "p": 1770363,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Razor EX",
+      "m": "MRAI",
+      "p": 1669815,
+      "s": [
+        "A18",
+        "LOR"
+      ]
+    },
+    {
+      "n": "Razor LX",
+      "m": "MRAI",
+      "p": 1831410,
+      "s": [
+        "A18",
+        "LOR"
+      ]
+    },
+    {
+      "n": "100i",
+      "m": "ORIG",
+      "p": 1089270,
+      "s": [
+        "A18",
+        "LOR"
+      ]
+    },
+    {
+      "n": "125a",
+      "m": "ORIG",
+      "p": 1508220,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "135c",
+      "m": "ORIG",
+      "p": 1490580,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "300i",
+      "m": "ORIG",
+      "p": 1375920,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "315p",
+      "m": "ORIG",
+      "p": 1490580,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "325a",
+      "m": "ORIG",
+      "p": 1852200,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "350r",
+      "m": "ORIG",
+      "p": 3748500,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "400i",
+      "m": "ORIG",
+      "p": 8389063,
+      "s": [
+        "A18",
+        "LOR"
+      ]
+    },
+    {
+      "n": "600i Explorer",
+      "m": "ORIG",
+      "p": 27231750,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "600i Touring",
+      "m": "ORIG",
+      "p": 24938550,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "85X",
+      "m": "ORIG",
+      "p": 544635,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "890 Jump",
+      "m": "ORIG",
+      "p": 65356200,
+      "s": [
+        "A18",
+        "LOR"
+      ]
+    },
+    {
+      "n": "M50",
+      "m": "ORIG",
+      "p": 1424430,
+      "s": [
+        "A18",
+        "LOR"
+      ]
+    },
+    {
+      "n": "X1",
+      "m": "ORIG",
+      "p": 125685,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "X1 Force",
+      "m": "ORIG",
+      "p": 132300,
+      "s": [
+        "A18",
+        "LOR"
+      ]
+    },
+    {
+      "n": "X1 Velocity",
+      "m": "ORIG",
+      "p": 113117,
+      "s": [
+        "A18",
+        "LOR"
+      ]
+    },
+    {
+      "n": "Apollo Medivac",
+      "m": "RSI",
+      "p": 8295210,
+      "s": [
+        "LEV"
+      ]
+    },
+    {
+      "n": "Apollo Triage",
+      "m": "RSI",
+      "p": 7541100,
+      "s": [
+        "LEV"
+      ]
+    },
+    {
+      "n": "Aurora CL",
+      "m": "RSI",
+      "p": 969570,
+      "s": [
+        "LOR",
+        "LEV"
+      ]
+    },
+    {
+      "n": "Aurora ES",
+      "m": "RSI",
+      "p": 402192,
+      "s": [
+        "LOR",
+        "LEV"
+      ]
+    },
+    {
+      "n": "Aurora LN",
+      "m": "RSI",
+      "p": 861840,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Aurora LX",
+      "m": "RSI",
+      "p": 653562,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Aurora MR",
+      "m": "RSI",
+      "p": 646380,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Constellation Andromeda",
+      "m": "RSI",
+      "p": 9652608,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Constellation Aquila",
+      "m": "RSI",
+      "p": 11577384,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Constellation Phoenix",
+      "m": "RSI",
+      "p": 14076720,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Constellation Taurus",
+      "m": "RSI",
+      "p": 7641648,
+      "s": [
+        "LOR",
+        "LEV"
+      ]
+    },
+    {
+      "n": "Hermes",
+      "m": "RSI",
+      "p": 7110180,
+      "s": [
+        "LEV"
+      ]
+    },
+    {
+      "n": "Lynx",
+      "m": "RSI",
+      "p": 129276,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Mantis",
+      "m": "RSI",
+      "p": 3231900,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Meteor",
+      "m": "RSI",
+      "p": 4309200,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Perseus",
+      "m": "RSI",
+      "p": 39680000,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "Salvation",
+      "m": "RSI",
+      "p": 1185030,
+      "s": [
+        "LEV"
+      ]
+    },
+    {
+      "n": "Scorpius",
+      "m": "RSI",
+      "p": 5171040,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Scorpius Antares",
+      "m": "RSI",
+      "p": 4955580,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Ursa",
+      "m": "RSI",
+      "p": 107730,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Ursa Medivac",
+      "m": "RSI",
+      "p": 118503,
+      "s": [
+        "LOR",
+        "LEV"
+      ]
+    },
+    {
+      "n": "Zeus Mk II CL",
+      "m": "RSI",
+      "p": 6463800,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Zeus Mk II ES",
+      "m": "RSI",
+      "p": 4201470,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Cyclone",
+      "m": "TMBL",
+      "p": 98753,
+      "s": [
+        "LOR",
+        "RUIN"
+      ]
+    },
+    {
+      "n": "Cyclone AA",
+      "m": "TMBL",
+      "p": 143640,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Cyclone MT",
+      "m": "TMBL",
+      "p": 134663,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Cyclone RC",
+      "m": "TMBL",
+      "p": 116708,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Cyclone RN",
+      "m": "TMBL",
+      "p": 116708,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Cyclone TR",
+      "m": "TMBL",
+      "p": 116708,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Nova",
+      "m": "TMBL",
+      "p": 861840,
+      "s": [
+        "LOR",
+        "RUIN"
+      ]
+    },
+    {
+      "n": "Storm",
+      "m": "TMBL",
+      "p": 430920,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Storm AA",
+      "m": "TMBL",
+      "p": 452466,
+      "s": [
+        "LOR"
+      ]
+    },
+    {
+      "n": "Khartu-al",
+      "m": "XNAA",
+      "p": 7229250,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "Nox",
+      "m": "XNAA",
+      "p": 722925,
+      "s": [
+        "A18"
+      ]
+    },
+    {
+      "n": "San’tok.yāi",
+      "m": "XNAA",
+      "p": 9355500,
+      "s": [
+        "A18"
+      ]
+    }
+  ]
+}

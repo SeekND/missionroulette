@@ -1,91 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Star Citizen Mission Roulette</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="roulette-style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mission Roulette — Star Citizen</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="home.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>◎</text></svg>">
 </head>
-<body>
+<body class="home">
+  <nav class="topbar">
+    <a class="hub-link" href="https://seeknd.github.io/sc-hub/">← SC Hub</a>
+  </nav>
 
-    <main id="app-container">
+  <main class="stage-wrap">
+    <div class="roulette-stage">
+      <!-- decorative wheel -->
+      <svg class="wheel" viewBox="0 0 100 100" aria-hidden="true">
+        <circle class="wheel-ring" cx="50" cy="50" r="39"/>
+        <circle class="wheel-ring2" cx="50" cy="50" r="39"/>
+      </svg>
 
-        <div id="view-setup" class="view active">
-            <div class="card">
-                <h2>How much time do you have?</h2>
-                <div class="slider-container">
-                    <input type="range" id="session-duration" min="15" max="300" value="60" step="5">
-                    <span id="duration-display">60 minutes</span>
-                </div>
+      <div class="hub">
+        <span class="hub-glyph">◎</span>
+        <span class="hub-title">Mission<br>Roulette</span>
+      </div>
 
-                <h2>Choose your alignment:</h2>
-                <div class="choice-group">
-                    <button class="choice-btn" data-alignment="legal">Legal</button>
-                    <button class="choice-btn" data-alignment="any">Any</button>
-                    <button class="choice-btn" data-alignment="illegal">Illegal</button>
-                </div>
-            </div>
-        </div>
+      <a class="node node-surprise" href="surprise.html">
+        <span class="node-icon">⟳</span>
+        <span class="node-name">Surprise Me</span>
+        <span class="node-sub">Keep the jobs coming</span>
+      </a>
 
-        <div id="view-path" class="view">
-            <div class="card">
-                <h2>Select Your Experience</h2>
-                <p>You've chosen a <strong id="path-summary"></strong> session.</p>
-                <div class="choice-group">
-                    <button id="btn-quick-session">🚀<br>Quick<br>Session</button>
-                    <button id="btn-custom-session">⚙️<br>Custom<br>Session</button>
-                </div>
-                 <button class="back-btn" data-target="view-setup">Go Back</button>
-            </div>
-        </div>
+      <a class="node node-hero" href="heroes.html">
+        <span class="node-icon">✦</span>
+        <span class="node-name">Hero Adventures</span>
+        <span class="node-sub">The big set-pieces</span>
+      </a>
 
-        <div id="view-filters" class="view">
-            <div class="card">
-                <h2>Customise Your Session</h2>
-                <div class="filter-group">
-                    <label for="filter-type">Mission Type</label>
-                    <select id="filter-type">
-                        <option value="any">Any Mission Type</option>
-                    </select>
+      <a class="node node-story" href="story.html">
+        <span class="node-icon">⚑</span>
+        <span class="node-name">Story Mode</span>
+        <span class="node-sub">Solo roguelite run</span>
+      </a>
+    </div>
 
-                    <label for="filter-system">System</label>
-                    <select id="filter-system">
-                        <option value="any">Any System</option>
-                    </select>
+    <p class="stage-tagline">Played too long and don't know what to do? Spin something up.</p>
+  </main>
 
-                    <label for="filter-crew">Crew Size</label>
-                    <select id="filter-crew">
-                        <option value="1">Solo</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4+</option>
-                    </select>
-                </div>
-                <button id="btn-generate">Generate Mission Playlist</button>
-                <button class="back-btn" data-target="view-path">Go Back</button>
-            </div>
-        </div>
-
-        <div id="view-results" class="view">
-            <h2>Your Mission Playlist</h2>
-
-            <p id="total-time-summary"></p>
-            <button id="btn-copy-discord" class="discord-btn">📋 Copy to Clipboard</button>
-
-            <div id="playlist-container">
-                </div>
-
-            <div class="choice-group">
-                <button class="back-btn" data-target="view-filters">Go Back</button>
-                <button class="back-btn" data-target="view-setup">Start Over</button>
-            </div>
-        </div>
-
-    </main>
-
-    <script src="roulette-script.js"></script>
+  <footer>
+    <span>Unofficial · <a href="https://cloudimperiumgames.com/" target="_blank" rel="noopener">CIG</a> owns Star Citizen</span>
+    <span><a href="https://github.com/SeekND/missionroulette" target="_blank" rel="noopener">GitHub</a></span>
+  </footer>
 </body>
 </html>

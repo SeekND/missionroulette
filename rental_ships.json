@@ -1,0 +1,91 @@
+{
+  "_meta": {
+    "purpose": "Rentable-ship roster for Mission Roulette story mode (rentals are the only ships allowed). Full current data from the SC wiki.",
+    "updated": "2026-08-02",
+    "gamePatch": "Data is Alpha 4.8.2 (wiki 'last updated Jul 10 2026'). Live game is 4.9 (4.10 in ~2 weeks) — re-pull next patch.",
+    "source": "starcitizen.tools Ship_renting — pulled from its ag-grid data API. 122 location listings -> 49 unique vehicles.",
+    "mechanics": {
+      "durations": "1, 3, or 7 days",
+      "discount": "1d 0%, 3d 10%, 7d 25% (as of v4.8.0)",
+      "priceDerivation": "Only 1-day price stored. 3-day = round(p1 * 3 * 0.90); 7-day = round(p1 * 7 * 0.75).",
+      "timer": "Real-world time — counts down even while logged off. When it expires the ship is gone.",
+      "rules": "Includes default loadout + full insurance. Cargo/gear OK, but no weapon/component modification (mobiGlas customization disabled).",
+      "locations": ["Area 18", "Lorville", "New Babbage", "Orison", "Levski", "Cargo Deck", "Refinery Deck"]
+    },
+    "storyNotes": {
+      "firstShipOnly": "Only the FIRST ship's price matters (what you earn to start). After that, chapter completion gates progression, not price.",
+      "cheapestFlyableShip": "Aurora Mk I ES — 6,350 aUEC/day at Area 18 or Orison.",
+      "mainShipMustBeQuantum": "A rented MAIN ship must be quantum-capable. Ground/snub vehicles need a carrier and are never the main ship.",
+      "deferred": "RACING has no missions in-game (removed) — the racing ships (M50, Mustang Gamma, Razor) are folded into light fighters; a racing mode is deferred to v2/v3. MEDICAL is not a profession (no missions/requirements) — medical ships are storyUse:utility (self-repair only), deferred as an aspiration.",
+      "situationalAndExcluded": "STV, Cyclone, Ursa, Ursa Medivac, ROC, Dragonfly (storyUse:situational) are ground/snub vehicles used ONLY if a mission forces ground work. MPUV Tractor (storyUse:excluded) is not used at all."
+    },
+    "conventions": {
+      "byLocation": "location -> 1-day price in aUEC (availability + price; a ship only appears where it's actually rentable)",
+      "quantum": "true = valid MAIN ship (travels the system). false = ground/snub; needs a carrier.",
+      "needsCarrier": "true = must be hauled inside a carrier ship",
+      "carriers": "example rentable ships that can transport this ground vehicle (not exhaustive)",
+      "storyUse": "main = progression/aspiration ship · situational = ground vehicle only for a forced ground objective · utility = self-support (medical), not an aspiration · excluded = not used",
+      "tierHint": "loose capability rung 1-4; NOT a hard gate (chapters gate progression)",
+      "category": "primary role bucket for aspiration matching"
+    }
+  },
+
+  "ships": {
+    "aurora_es":      { "name": "Aurora Mk I ES", "manufacturer": "Roberts Space Industries", "size": "S", "category": "starter", "roles": ["Starter", "Pathfinder"], "quantum": true, "storyUse": "main", "tierHint": 1, "byLocation": { "Area 18": 6350, "Lorville": 10054, "Orison": 6350 } },
+    "aurora_mr":      { "name": "Aurora Mk I MR", "manufacturer": "Roberts Space Industries", "size": "S", "category": "starter", "roles": ["Light Fighter"], "quantum": true, "storyUse": "main", "tierHint": 1, "byLocation": { "Area 18": 17010, "Lorville": 16159, "Orison": 17010 } },
+    "aurora_ln":      { "name": "Aurora Mk I LN", "manufacturer": "Roberts Space Industries", "size": "S", "category": "fighter", "roles": ["Light Fighter"], "quantum": true, "storyUse": "main", "tierHint": 1, "byLocation": { "Area 18": 22680, "Lorville": 21546, "Orison": 22680 } },
+    "aurora_cl":      { "name": "Aurora Mk I CL", "manufacturer": "Roberts Space Industries", "size": "S", "category": "freight", "roles": ["Light Freight"], "quantum": true, "storyUse": "main", "tierHint": 1, "byLocation": { "Area 18": 20412, "Lorville": 19391, "Orison": 20412 } },
+    "mustang_alpha":  { "name": "Mustang Alpha", "manufacturer": "Consolidated Outland", "size": "S", "category": "starter", "roles": ["Starter"], "quantum": true, "storyUse": "main", "tierHint": 1, "byLocation": { "Area 18": 9639, "Lorville": 9157, "Orison": 9639 } },
+    "cutter":         { "name": "Cutter", "manufacturer": "Drake Interplanetary", "size": "S", "category": "starter", "roles": ["Starter", "Light Freight"], "quantum": true, "storyUse": "main", "tierHint": 1, "byLocation": { "Area 18": 9525, "Cargo Deck": 9049, "Levski": 9525, "Lorville": 15082, "Orison": 9525 } },
+    "100i":           { "name": "100i", "manufacturer": "Origin Jumpworks", "size": "S", "category": "starter", "roles": ["Starter", "Touring"], "quantum": true, "storyUse": "main", "tierHint": 1, "byLocation": { "New Babbage": 28665 } },
+    "reliant_kore":   { "name": "Reliant Kore", "manufacturer": "Musashi (MISC)", "size": "S", "category": "starter", "roles": ["Starter", "Light Freight"], "quantum": true, "storyUse": "main", "tierHint": 2, "byLocation": { "Lorville": 40847 } },
+
+    "300i":           { "name": "300i", "manufacturer": "Origin Jumpworks", "size": "S", "category": "touring", "roles": ["Luxury Touring"], "quantum": true, "storyUse": "main", "tierHint": 2, "byLocation": { "New Babbage": 34398 } },
+    "600i_explorer":  { "name": "600i Explorer", "manufacturer": "Origin Jumpworks", "size": "L", "category": "explorer", "roles": ["Expedition"], "quantum": true, "storyUse": "main", "tierHint": 4, "byLocation": { "New Babbage": 680793 } },
+    "c8_pisces":      { "name": "C8 Pisces", "manufacturer": "Anvil Aerospace", "size": "S", "category": "explorer", "roles": ["Pathfinder"], "quantum": true, "storyUse": "main", "tierHint": 1, "byLocation": { "Area 18": 18632, "Orison": 18632 } },
+
+    "325a":           { "name": "325a", "manufacturer": "Origin Jumpworks", "size": "S", "category": "fighter", "roles": ["Interceptor"], "quantum": true, "storyUse": "main", "tierHint": 2, "byLocation": { "New Babbage": 46305 } },
+    "buccaneer":      { "name": "Buccaneer", "manufacturer": "Drake Interplanetary", "size": "S", "category": "fighter", "roles": ["Light Fighter"], "quantum": true, "storyUse": "main", "tierHint": 2, "byLocation": { "Lorville": 39501 } },
+    "defender":       { "name": "Defender", "manufacturer": "Banu Souli", "size": "M", "category": "fighter", "roles": ["Light Fighter"], "quantum": true, "storyUse": "main", "tierHint": 4, "byLocation": { "New Babbage": 155925 } },
+    "corsair":        { "name": "Corsair", "manufacturer": "Drake Interplanetary", "size": "L", "category": "fighter", "roles": ["Expedition"], "quantum": true, "storyUse": "main", "tierHint": 3, "byLocation": { "Lorville": 155610 } },
+    "m50":            { "name": "M50", "manufacturer": "Origin Jumpworks", "size": "S", "category": "fighter", "roles": ["Light Fighter", "Racing"], "quantum": true, "storyUse": "main", "tierHint": 2, "note": "Racing hull — used as a light fighter (racing missions not in game).", "byLocation": { "New Babbage": 37485 } },
+    "mustang_gamma":  { "name": "Mustang Gamma", "manufacturer": "Consolidated Outland", "size": "S", "category": "fighter", "roles": ["Light Fighter", "Racing"], "quantum": true, "storyUse": "main", "tierHint": 2, "note": "Racing hull — used as a light fighter.", "byLocation": { "New Babbage": 29452 } },
+    "razor":          { "name": "Razor", "manufacturer": "Mirai", "size": "S", "category": "fighter", "roles": ["Light Fighter", "Racing"], "quantum": true, "storyUse": "main", "tierHint": 2, "note": "Racing hull — used as a light fighter.", "byLocation": { "New Babbage": 46588 } },
+    "cutlass_black":  { "name": "Cutlass Black", "manufacturer": "Drake Interplanetary", "size": "M", "category": "multi", "roles": ["Fighter", "Light Freight"], "quantum": true, "storyUse": "main", "tierHint": 3, "byLocation": { "Cargo Deck": 50274, "Lorville": 50274, "Refinery Deck": 50274 } },
+    "constellation_andromeda": { "name": "Constellation Andromeda", "manufacturer": "Roberts Space Industries", "size": "L", "category": "multi", "roles": ["Gunship", "Light Freight"], "quantum": true, "storyUse": "main", "tierHint": 4, "byLocation": { "New Babbage": 254016 } },
+
+    "avenger_titan":  { "name": "Avenger Titan", "manufacturer": "Aegis Dynamics", "size": "S", "category": "freight", "roles": ["Light Freight"], "quantum": true, "storyUse": "main", "tierHint": 1, "byLocation": { "Area 18": 27165, "Levski": 27165, "Orison": 27165 } },
+    "nomad":          { "name": "Nomad", "manufacturer": "Consolidated Outland", "size": "S", "category": "freight", "roles": ["Light Freight"], "quantum": true, "storyUse": "main", "tierHint": 1, "byLocation": { "Area 18": 30240, "Cargo Deck": 28728, "Orison": 30240 } },
+    "c1_spirit":      { "name": "C1 Spirit", "manufacturer": "Crusader Industries", "size": "M", "category": "freight", "roles": ["Light Freight"], "quantum": true, "storyUse": "main", "tierHint": 2, "byLocation": { "Area 18": 62370, "Orison": 62370 } },
+    "hull_a":         { "name": "Hull A", "manufacturer": "Musashi (MISC)", "size": "S", "category": "freight", "roles": ["Light Freight"], "quantum": true, "storyUse": "main", "tierHint": 2, "byLocation": { "Cargo Deck": 32319, "Levski": 68040, "Lorville": 32319 } },
+    "freelancer":     { "name": "Freelancer", "manufacturer": "Musashi (MISC)", "size": "M", "category": "freight", "roles": ["Light Freight"], "quantum": true, "storyUse": "main", "tierHint": 2, "byLocation": { "Lorville": 59251 } },
+    "freelancer_max": { "name": "Freelancer MAX", "manufacturer": "Musashi (MISC)", "size": "M", "category": "freight", "roles": ["Medium Freight"], "quantum": true, "storyUse": "main", "tierHint": 3, "byLocation": { "Cargo Deck": 80797, "Lorville": 80797 } },
+    "raft":           { "name": "RAFT", "manufacturer": "Argo Astronautics", "size": "M", "category": "freight", "roles": ["Medium Freight"], "quantum": true, "storyUse": "main", "tierHint": 3, "byLocation": { "Lorville": 67331 } },
+    "constellation_taurus": { "name": "Constellation Taurus", "manufacturer": "Roberts Space Industries", "size": "L", "category": "freight", "roles": ["Medium Freight"], "quantum": true, "storyUse": "main", "tierHint": 3, "byLocation": { "New Babbage": 160876 } },
+    "hermes":         { "name": "Hermes", "manufacturer": "Roberts Space Industries", "size": "M", "category": "freight", "roles": ["Medium Freight"], "quantum": true, "storyUse": "main", "tierHint": 4, "byLocation": { "Area 18": 187110, "Lorville": 187110, "New Babbage": 187110, "Orison": 187110 } },
+    "clipper":        { "name": "Clipper", "manufacturer": "Drake Interplanetary", "size": "M", "category": "freight", "roles": ["Generalist"], "quantum": true, "storyUse": "main", "tierHint": 3, "byLocation": { "Area 18": 95256, "Lorville": 90493, "Orison": 95256, "Refinery Deck": 90493 } },
+    "prowler_utility":{ "name": "Prowler Utility", "manufacturer": "Esperia", "size": "M", "category": "freight", "roles": ["Light Freight"], "quantum": true, "storyUse": "main", "tierHint": 4, "note": "Rentable variant is the UTILITY (cargo-capable); the base Prowler carries none.", "byLocation": { "Area 18": 336780, "Levski": 336780, "Lorville": 336780, "New Babbage": 336780, "Orison": 336780 } },
+
+    "prospector":     { "name": "Prospector", "manufacturer": "Musashi (MISC)", "size": "S", "category": "mining", "roles": ["Prospecting", "Mining"], "quantum": true, "storyUse": "main", "tierHint": 2, "byLocation": { "Cargo Deck": 69575, "Lorville": 69575, "Refinery Deck": 69575 } },
+    "golem":          { "name": "Golem", "manufacturer": "Drake Interplanetary", "size": "S", "category": "mining", "roles": ["Starter", "Light Mining"], "quantum": true, "storyUse": "main", "tierHint": 2, "byLocation": { "Area 18": 15876, "Levski": 15876, "Lorville": 15082, "Orison": 15876, "Refinery Deck": 15082 } },
+    "mole":           { "name": "MOLE", "manufacturer": "Argo Astronautics", "size": "L", "category": "mining", "roles": ["Prospecting", "Mining"], "quantum": true, "storyUse": "main", "tierHint": 4, "byLocation": { "Cargo Deck": 212093, "Levski": 234419, "Lorville": 223256, "Refinery Deck": 223256 } },
+    "roc":            { "name": "ROC", "manufacturer": "Greycat Industrial", "size": "vehicle", "category": "mining", "roles": ["Light Mining"], "quantum": false, "needsCarrier": true, "carriers": ["Corsair", "Constellation Taurus", "Constellation Andromeda", "Freelancer", "Cutlass Black", "600i Explorer"], "storyUse": "situational", "note": "Ground mining vehicle — needs a carrier; only for a forced ground objective.", "tierHint": 1, "byLocation": { "Levski": 2598, "Lorville": 2468, "Refinery Deck": 2468 } },
+
+    "vulture":        { "name": "Vulture", "manufacturer": "Drake Interplanetary", "size": "S", "category": "salvage", "roles": ["Light Salvage"], "quantum": true, "storyUse": "main", "tierHint": 3, "byLocation": { "Levski": 69457 } },
+    "fortune":        { "name": "Fortune", "manufacturer": "Musashi (MISC)", "size": "S", "category": "salvage", "roles": ["Light Salvage"], "quantum": true, "storyUse": "main", "tierHint": 2, "byLocation": { "Area 18": 28350, "Levski": 28350, "Lorville": 28350, "Orison": 28350, "Refinery Deck": 28350 } },
+    "moth":           { "name": "MOTH", "manufacturer": "Argo Astronautics", "size": "L", "category": "salvage", "roles": ["Medium Salvage"], "quantum": true, "storyUse": "main", "tierHint": 4, "byLocation": { "Lorville": 223256, "Refinery Deck": 223256 } },
+    "salvation":      { "name": "Salvation", "manufacturer": "Roberts Space Industries", "size": "M", "category": "salvage", "roles": ["Salvaging"], "quantum": true, "storyUse": "main", "tierHint": 2, "byLocation": { "Area 18": 31185, "Cargo Deck": 31185, "Levski": 31185, "Lorville": 31185, "New Babbage": 31185, "Orison": 31185, "Refinery Deck": 31185 } },
+
+    "pisces_rescue":  { "name": "C8R Pisces Rescue", "manufacturer": "Anvil Aerospace", "size": "S", "category": "medical", "roles": ["Medical"], "quantum": true, "storyUse": "utility", "tierHint": 2, "byLocation": { "Area 18": 13891, "Orison": 13891 } },
+    "cutlass_red":    { "name": "Cutlass Red", "manufacturer": "Drake Interplanetary", "size": "M", "category": "medical", "roles": ["Medical"], "quantum": true, "storyUse": "utility", "tierHint": 3, "byLocation": { "Lorville": 67869 } },
+    "apollo_triage":  { "name": "Apollo Triage", "manufacturer": "Roberts Space Industries", "size": "M", "category": "medical", "roles": ["Medical"], "quantum": true, "storyUse": "utility", "tierHint": 4, "byLocation": { "Area 18": 198450, "Levski": 198450, "Lorville": 198450, "Orison": 198450 } },
+    "apollo_medivac": { "name": "Apollo Medivac", "manufacturer": "Roberts Space Industries", "size": "M", "category": "medical", "roles": ["Medical"], "quantum": true, "storyUse": "utility", "tierHint": 4, "byLocation": { "Area 18": 218295, "Levski": 218295, "Lorville": 218295, "Orison": 218295 } },
+    "ursa_medivac":   { "name": "Ursa Medivac", "manufacturer": "Roberts Space Industries", "size": "vehicle", "category": "medical", "roles": ["Medical"], "quantum": false, "needsCarrier": true, "storyUse": "situational", "note": "Ground medical vehicle — needs a carrier; only for a forced ground objective.", "tierHint": 1, "byLocation": { "Levski": 3118 } },
+
+    "dragonfly_black":{ "name": "Dragonfly Black", "manufacturer": "Drake Interplanetary", "size": "vehicle", "category": "ground", "roles": ["Snub Bike"], "quantum": false, "needsCarrier": true, "storyUse": "situational", "note": "Snub bike — ground/hover only, no quantum. Only for a forced ground objective.", "tierHint": 1, "byLocation": { "Area 18": 8568, "Lorville": 8139, "Orison": 8568 } },
+    "cyclone":        { "name": "Cyclone", "manufacturer": "Tumbril Land Systems", "size": "vehicle", "category": "ground", "roles": ["Exploration", "Recon"], "quantum": false, "needsCarrier": true, "storyUse": "situational", "note": "Ground vehicle. Only for a forced ground objective.", "tierHint": 1, "byLocation": { "Area 18": 2598, "Lorville": 2468, "Orison": 2598 } },
+    "ursa":           { "name": "Ursa", "manufacturer": "Roberts Space Industries", "size": "vehicle", "category": "ground", "roles": ["Pathfinder"], "quantum": false, "needsCarrier": true, "storyUse": "situational", "note": "Ground vehicle. Only for a forced ground objective.", "tierHint": 1, "byLocation": { "Area 18": 2835, "New Babbage": 2835, "Orison": 2835 } },
+    "stv":            { "name": "STV", "manufacturer": "Greycat Industrial", "size": "vehicle", "category": "ground", "roles": ["Passenger"], "quantum": false, "needsCarrier": true, "storyUse": "situational", "note": "Ground buggy. Only for a forced ground objective.", "tierHint": 1, "byLocation": { "Area 18": 1890, "Lorville": 1795, "Orison": 1890 } },
+    "mpuv_tractor":   { "name": "MPUV Tractor", "manufacturer": "Argo Astronautics", "size": "S", "category": "utility", "roles": ["Tractor"], "quantum": false, "needsCarrier": true, "storyUse": "excluded", "note": "No quantum drive; not used in the roulette.", "tierHint": 1, "byLocation": { "Cargo Deck": 9875, "Lorville": 9875 } }
+  }
+}

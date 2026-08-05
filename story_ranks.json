@@ -1,0 +1,164 @@
+{
+  "_meta": {
+    "purpose": "Story Rank ladder for Mission Roulette solo story mode — draft.",
+    "updated": "2026-08-02",
+    "rulesLocked": [
+      "One life. You can only set spawn to a MEDBED ship/vehicle (medical ships; Ursa Medivac for ground) — respawn there = continue. With no medbed set you respawn at a station/city = game over. A medbed is your only safety net.",
+      "R0–R4 ships are RENTED; the Finisher is a PURCHASE — the ship you buy with earnings to graduate the track.",
+      "Rented ships only (until the Finisher). Rentals are forgiving: strip your weapons/gear and move them to your next rental and you keep them; you only lose a ship if you log off and back on past the rent. Re-renting is a chore, not a wipe (there's no cargo to lose unless you leave it aboard).",
+      "Frozen wallet: note your current aUEC; your story wallet starts at the run's amount (10k default, 0 for Beggar). Spend only what the run earns; existing money is off-limits.",
+      "Advance by DOING: clear each rank by completing a modest number of real missions of that rank's tier — works for maxed players, since the challenge is the constraints, not rep.",
+      "Length is emergent — a tense session or two, replayable — not a manufactured weeks-long grind."
+    ],
+    "r0": "R0 Arrival is universal: everyone starts with 10k (0 for Beggar) and grabs a starter — Aurora ES / Mustang Alpha / Cutter — then does general jobs to afford their R1 ship.",
+    "medbedNote": "ONLY a MEDBED lets you set spawn (medical ships + Ursa Medivac ground vehicle) — a normal bed does not. No medbed = no respawn = one death is final. Rentable medbeds: C8R Pisces Rescue, Cutlass Red, Apollo Triage/Medivac, Ursa Medivac (carried). This is WHY the Merc track is the medbed line; other tracks either run without a net (fragile early game — starters have no medbed) or carry an Ursa Medivac inside a vehicle-bay ship for a ground respawn.",
+    "shipCaveat": "Rental ships are confirmed from the 4.8.2 wiki pull. Live game is 4.9 (4.10 soon) — re-verify. Finisher ships are PURCHASES (not rentals): Redeemer, 400i, Starlancer TAC (author-provided)."
+  },
+  "advancement": { "perRank": "~10 missions of the rank's tier (modest, tunable). R4's 'count' is the hero adventure itself." },
+  "aspirations": { "rule": "Pick 1 main (required — drives the ladder + start hub) + up to 2 secondary (optional — blend into the beat pool)." },
+  "path": { "lawful": "legal-tab missions; Stanton/Nyx", "outlaw": "illegal-tab missions, crimestat, forced Pyro cool-off; opens Contested + Valakkar" },
+  "modifiers": {
+    "pacifist": { "effect": "easier", "desc": "No combat by your hand — industrial/social pool." },
+    "off-grid": { "effect": "harder", "desc": "No station services (repair/refuel/rearm manual or player-assisted). Honor-scored badge; docking to re-rent is allowed." },
+    "beggar":   { "effect": "harder", "display": "Broke", "desc": "Displayed as 'Broke' (key stays 'beggar'). Start with no ship and no credits — earn your first ship on foot. May bum rides/help, never money. Starts at a no-rental location." }
+  },
+  "start": {
+    "note": "Funded starts use the track's startHub (randomized). Beggar starts are no-rental spots — hitch a ride to a hub.",
+    "beggarLegal": ["a Cru-L1 rest stop", "a Hurston-lagrange rest stop", "the People Service Station (Nyx)"],
+    "beggarOutlaw": ["Grim Hex"],
+    "pyro": "Never a start — Pyro is a destination, not a spawn."
+  },
+  "backstory": {
+    "note": "Assembled from SLOTS into 2 sentences: '{Origin}, you {identity} — {motivation}{sideline}. {CityClause}, {closer}.' Rolled once per story (run.backstory), rerollable on the briefing. Content stays generic SC (UEE/corp/colony/crimestat/'the black') — no real NPCs or events. {loc} = the rolled starting city (startLoc, city name only).",
+    "origin": [
+      "an academy washout",
+      "ex-UEE Navy, wrong side of a bad discharge",
+      "a corp lifer who finally walked out",
+      "station-born and station-raised",
+      "a second-gen spacer raised in a cockpit",
+      "fresh off a dead-end colony world",
+      "an old hand with more scars than credits",
+      "a drifter running a borrowed name",
+      "a hangar rat who taught yourself to fly"
+    ],
+    "identity": {
+      "bounty":   ["run down skips across the black", "take the contracts steadier pilots pass on", "chase jumpers for scrip", "make your living down a gun-sight"],
+      "miner":    ["read rock better than most read people", "chase the next rich seam", "pull ore the big outfits overlook", "know a good rock by the way it rings"],
+      "hauler":   ["move cargo nobody else will touch", "know every back-route in the system", "keep the freight lanes fed", "haul whatever pays, no questions"],
+      "salvager": ["see credits in every wreck", "pick the bones of dead ships", "cut hulls for a living", "make dead ships pay one panel at a time"],
+      "explorer": ["map the black one jump at a time", "chase uncharted markers", "chart what everyone else flies past", "read the dark between the beacons"],
+      "merc":     ["clear bunkers for coin", "fight for whoever signs the chit", "keep a very steady trigger", "take the jobs that need boots on the ground"]
+    },
+    "motivation": [
+      "chasing one good score",
+      "one big job from walking away",
+      "just to keep the lights on",
+      "out to prove the washouts wrong",
+      "building toward a ship of your own",
+      "because it's the only life you know",
+      "outrunning a mistake back home",
+      "saving for a berth somewhere quiet",
+      "still chasing the name you never made"
+    ],
+    "side": { "bounty":"hunting skips", "miner":"prospecting a rich rock", "hauler":"running freight", "salvager":"stripping wrecks", "explorer":"charting the black", "merc":"taking gun-work" },
+    "city": [
+      "cutting your teeth in {loc}",
+      "getting your start in {loc}",
+      "washed up in {loc}",
+      "working out of {loc}",
+      "starting fresh in {loc}"
+    ],
+    "closer": {
+      "lawful":        ["and you keep it clean — mostly", "with no crimestat to your name yet", "playing the board straight"],
+      "lawful-beggar": ["broke but honest", "empty pockets and a clean record", "nothing to your name but a clean sheet"],
+      "outlaw":        ["outlaw to the bone", "already on the law's bad side", "no friend to the UEE"],
+      "outlaw-beggar": ["outlaw and flat broke", "wanted and running on empty", "broke, marked, and used to it"]
+    }
+  },
+  "startTool": {
+    "note": "The starting kit tool is what your MAIN calling needs — a weapon, or a multi-tool with the right attachment. Player buys whatever brand/version is available; we only name the tool + why.",
+    "bounty":   { "name": "a multi-tool + salvage attachment", "why": "to patch your ship's hull" },
+    "miner":    { "name": "a multi-tool + mining attachment",  "why": "to hand-mine" },
+    "hauler":   { "name": "a multi-tool + tractor-beam attachment", "why": "to move cargo & boxes" },
+    "salvager": { "name": "a multi-tool + tractor-beam attachment", "why": "to pull parts & guns off wrecks" },
+    "explorer": { "name": "a pistol" },
+    "merc":     { "name": "a decent gun" }
+  },
+  "tracks": {
+    "bounty": {
+      "name": "Fighter Pilot",
+      "_key": "internal key stays 'bounty'; display renamed to Fighter Pilot (space combat — ship bounties + ship merc work)",
+      "startHub": ["Lorville · Hurston", "Area18 · ArcCorp", "Orison · Crusader"],
+      "ranks": [
+        { "r": 0, "ship": ["Aurora ES", "Mustang Alpha", "Cutter"], "clear": "Starter — 10k startup (Beggar earns it on foot); general jobs to afford your R1 ship" },
+        { "r": 1, "ship": ["Aurora LN", "Aurora MR"], "bountyTier": "VLRT", "gilly": 2, "clear": "~10 VLRT bounty missions" },
+        { "r": 2, "ship": ["325a", "Buccaneer"], "bountyTier": "MRT", "gilly": 3, "clear": "~10 LRT–MRT bounty missions" },
+        { "r": 3, "ship": ["Corsair"], "bountyTier": "HRT", "gilly": 6, "clear": "~12 HRT bounties (Corsair caps at HRT — VHRT is a stretch, and an ERT / Polaris is impossible solo)" },
+        { "r": 4, "ship": ["Constellation Andromeda", "Defender"], "climax": "Vanduul Tech Smugglers (solo-hard) → Tactical Strike Groups (org 10)" }
+      ],
+      "finisher": { "name": "Redeemer", "note": "buy your own to graduate (author pick)" }
+    },
+    "miner": {
+      "name": "Miner",
+      "startHub": ["Lorville · Hurston", "Levski · Nyx", "Area18 · ArcCorp"],
+      "sources": "Standard mining missions + Battaglia (Nyx) 'find the materials' missions",
+      "ranks": [
+        { "r": 0, "ship": ["Aurora ES", "Mustang Alpha", "Cutter"], "clear": "Starter — 10k startup (Beggar earns it); general jobs to afford your first mining ship" },
+        { "r": 1, "ship": ["Golem"], "clear": "~10 mining missions" },
+        { "r": 2, "ship": ["Prospector"], "clear": "~10 ship-mining missions" },
+        { "r": 3, "ship": ["MOLE"], "clear": "~12 high-yield mining missions" },
+        { "r": 4, "ship": ["MOLE"], "climax": "Rockcracker (needs a MOLE — the hero IS the finale)" }
+      ],
+      "finisher": { "name": "own MOLE", "note": "buy the MOLE you were renting to graduate" }
+    },
+    "hauler": {
+      "name": "Hauler",
+      "startHub": ["Area18 · ArcCorp", "Orison · Crusader", "Lorville · Hurston"],
+      "ranks": [
+        { "r": 0, "ship": ["Aurora ES", "Mustang Alpha", "Cutter"], "clear": "Starter — 10k startup (Beggar earns it); general jobs to afford your R1 hauler" },
+        { "r": 1, "ship": ["Nomad", "Avenger Titan"], "haulScale": "Local", "clear": "~10 local hauling missions" },
+        { "r": 2, "ship": ["C1 Spirit", "Freelancer", "Hull A"], "haulScale": "Stellar", "clear": "~10 regional cargo missions" },
+        { "r": 3, "ship": ["Freelancer MAX", "RAFT"], "haulScale": "Interstellar", "clear": "~12 medium freight missions" },
+        { "r": 4, "ship": ["Constellation Taurus", "Hermes"], "climax": "No hero — the top rentable hauler is the ceiling" }
+      ],
+      "finisher": { "name": "Caterpillar", "note": "buy your own big hauler to graduate (author pick)" }
+    },
+    "salvager": {
+      "name": "Salvager",
+      "startHub": ["Area18 · ArcCorp", "Lorville · Hurston", "Levski · Nyx"],
+      "ranks": [
+        { "r": 0, "ship": ["Aurora ES", "Mustang Alpha", "Cutter"], "clear": "Starter — 10k startup (Beggar earns it); general jobs to afford your R1 salvage ship" },
+        { "r": 1, "ship": ["Fortune", "Salvation"], "clear": "~10 light-salvage missions" },
+        { "r": 2, "ship": ["Vulture"], "clear": "~10 hull-scraping missions" },
+        { "r": 3, "ship": ["MOTH"], "clear": "~12 medium-salvage missions" },
+        { "r": 4, "ship": ["MOTH"], "climax": "No hero — the top rentable salvager is the ceiling" }
+      ],
+      "finisher": { "name": "MOTH", "note": "buy the MOTH you were renting to graduate (Reclaimer is far too expensive — 30M)" }
+    },
+    "explorer": {
+      "name": "Explorer",
+      "startHub": ["New Babbage · microTech", "Area18 · ArcCorp", "Orison · Crusader"],
+      "ranks": [
+        { "r": 0, "ship": ["Aurora ES", "Mustang Alpha", "Cutter"], "clear": "Starter — 10k startup (Beggar earns it); general jobs to afford your R1 explorer" },
+        { "r": 1, "ship": ["C8 Pisces", "100i"], "clear": "~10 investigation / ASD-site missions" },
+        { "r": 2, "ship": ["300i"], "clear": "~10 deeper investigation missions" },
+        { "r": 3, "ship": ["600i Explorer"], "climax": "Yormandi (ASD Site B)" },
+        { "r": 4, "ship": ["600i Explorer"], "climax": "Hyperion (needs all ASD investigations complete)" }
+      ],
+      "finisher": { "name": "400i", "note": "buy your own to graduate (author pick)" }
+    },
+    "merc": {
+      "name": "Mercenary",
+      "_key": "internal key stays 'merc'; display renamed to Mercenary (ground/FPS combat + the medbed respawn line)",
+      "startHub": ["Area18 · ArcCorp", "Orison · Crusader", "Lorville · Hurston"],
+      "ranks": [
+        { "r": 0, "ship": ["Aurora ES", "Mustang Alpha", "Cutter"], "clear": "Starter — 10k startup (Beggar earns it); general jobs to afford your R1 medbed ship" },
+        { "r": 1, "ship": ["C8R Pisces Rescue"], "clear": "~10 FPS bounties / bunkers — the medbed is your respawn point" },
+        { "r": 2, "ship": ["Clipper"], "clear": "~10 assist-site / ASD-site missions (Clipper has a medbed)" },
+        { "r": 3, "ship": ["Cutlass Red", "Corsair", "+ Ursa Medivac"], "climax": "Hathor (hand-mining + gunfights) / Yormandi" },
+        { "r": 4, "ship": ["Apollo Triage", "Apollo Medivac"], "climax": "Orison / Valakkar (group) / Contested (Pyro)" }
+      ],
+      "finisher": { "name": "Starlancer TAC", "note": "buy your own to graduate (author pick — has beds, ideal with the respawn rule)" }
+    }
+  }
+}

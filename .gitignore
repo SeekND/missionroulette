@@ -1,0 +1,12 @@
+# Local tooling & AI assistant configs — never publish
+.claude/
+CLAUDE.md
+AGENTS.md
+.cursor/
+.aider*
+
+# Internal design notes — not for the public site
+DESIGN.md
+
+# Deprecated, unused data (kept locally, not served)
+mission_pool.json

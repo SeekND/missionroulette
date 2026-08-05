@@ -1,0 +1,83 @@
+{
+  "_meta": {
+    "purpose": "Provider-based roll data for Surprise Me. Roll = a real CONTRACT PROVIDER (faction) + its category + a mission TYPE + a place to GO + a challenge ship.",
+    "updated": "2026-08-03",
+    "sources": "Author-curated from in-game observation and community references — verify tabs/systems each patch.",
+    "byType": "Each provider maps TYPE -> [systems]. This is per-type-per-system (e.g. Foxwell does ship-combat in Stanton+Pyro but ground-combat only in Stanton). The roller only offers valid (type, system) pairs.",
+    "category": "In-UI the contract rows are called CATEGORY (author's term), not 'tab'. altTab/altTabSys = a second category the provider also posts under, in certain systems (e.g. CFP posts Bounty Hunter as well as Mercenary in Pyro).",
+    "challenge": "The ship line is a CHALLENGE: pick a RANDOM adequate ship from the type's pool (not the cheapest) to nudge players into hulls they rarely fly. 'or similar size' keeps it flexible. Gilly overrides with its tier ladder.",
+    "pyroPlaces": "Pyro contract hubs are the 3 big stations (Orbituary, Checkmate, Ruin Station). Monox is a valid alt near Checkmate; Pyro IV/V are the far region served by Ruin Station (longest haul). Planets have only small FPS shops -> restock flagged false, points to the serving station."
+  },
+
+  "types": {
+    "ship-combat":   { "name": "Ship Combat",   "combat": true,  "rentPool": ["aurora_ln", "aurora_mr", "mustang_gamma", "325a", "buccaneer", "corsair", "constellation_andromeda"] },
+    "ground-combat": { "name": "Ground Combat", "combat": true,  "rentPool": ["c1_spirit", "nomad", "cutlass_black", "cutlass_red", "freelancer", "corsair"], "vehicles": ["stv", "dragonfly_black"] },
+    "mining":        { "name": "Mining",        "combat": false, "rentPool": ["prospector", "golem", "mole"] },
+    "hauling":       { "name": "Hauling",       "combat": false, "rentPool": ["freelancer", "nomad", "avenger_titan", "hull_a", "cutter"] },
+    "salvage":       { "name": "Salvage",       "combat": false, "rentPool": ["salvation", "fortune", "vulture"] },
+    "investigation": { "name": "Investigation", "combat": false, "rentPool": ["c8_pisces", "pisces_rescue", "cutter", "avenger_titan"] }
+  },
+
+  "locations": {
+    "Stanton": ["Hurston", "Crusader", "ArcCorp", "microTech"],
+    "Pyro": ["Orbituary", "Checkmate", "Monox", "Ruin Station", "Pyro IV", "Pyro V"],
+    "Nyx": ["Levski"]
+  },
+  "restockStations": {
+    "Stanton": { "Hurston": "Everus Harbor", "Crusader": "Seraphim Station", "ArcCorp": "Area18", "microTech": "Port Tressler" },
+    "Nyx": { "Levski": "Levski" }
+  },
+  "pyroMap": {
+    "_src": "Strata (C:/scdata/Mining) data/mining_data.json -> map_positions.pyro. Distance-correct polar coords {angle a, ring r}. restock station = nearest station to the destination body by polar distance (e.g. Pyro IV/V -> Gaslight, Terminus -> Ruin Station, Monox -> Checkmate).",
+    "stations": {
+      "Orbituary": {"a":274,"r":4}, "Checkmate": {"a":86,"r":2}, "Ruin Station": {"a":314,"r":7},
+      "Starlight": {"a":290,"r":3}, "Rat's Nest": {"a":257,"r":5}, "Rod's Fuel": {"a":106,"r":5},
+      "Patch City": {"a":114,"r":4}, "Gaslight": {"a":180,"r":6}, "Dudley & Daughters": {"a":240,"r":7},
+      "Endgame": {"a":120,"r":7}, "Megumi": {"a":22,"r":7}
+    },
+    "bodies": { "Monox": {"a":137,"r":2}, "Pyro IV": {"a":169,"r":5}, "Pyro V": {"a":180,"r":5} }
+  },
+  "carrierFits": {
+    "_src": "Author's list — which rentable ships fit which ground vehicles (S=STV, D=Dragonfly, C=Cyclone, R=ROC, U=Ursa). Used to only offer a vehicle the challenge ship can actually carry.",
+    "hermes": ["stv", "dragonfly_black", "cyclone", "roc"],
+    "apollo_medivac": ["stv", "dragonfly_black", "cyclone", "roc"],
+    "apollo_triage": ["stv", "dragonfly_black", "cyclone", "roc"],
+    "600i_explorer": ["stv", "dragonfly_black", "cyclone", "ursa", "roc"],
+    "c1_spirit": ["stv", "dragonfly_black", "roc"],
+    "constellation_andromeda": ["stv", "dragonfly_black", "cyclone", "ursa", "roc"],
+    "constellation_taurus": ["stv", "dragonfly_black", "cyclone", "ursa", "roc"],
+    "corsair": ["stv", "dragonfly_black", "cyclone", "ursa", "roc"],
+    "cutlass_black": ["stv", "dragonfly_black", "cyclone", "roc"],
+    "cutlass_red": ["stv", "dragonfly_black"],
+    "freelancer": ["stv", "dragonfly_black", "cyclone", "roc"],
+    "freelancer_max": ["stv", "dragonfly_black", "cyclone", "ursa", "roc"],
+    "mole": ["stv", "dragonfly_black"],
+    "moth": ["stv", "dragonfly_black"],
+    "nomad": ["stv", "dragonfly_black"],
+    "reliant_kore": ["stv"]
+  },
+
+  "providers": {
+    "foxwell":   { "name": "Foxwell",                    "tab": "Mercenary",     "path": "legal",   "byType": { "ship-combat": ["Stanton", "Pyro"], "ground-combat": ["Stanton"] } },
+    "gilly":     { "name": "Gilly Flight School",        "tab": "Mercenary",     "path": "legal",   "byType": { "ship-combat": ["Stanton"] }, "ladder": { "tiers": [ {"t":1,"ship":"aurora_ln"}, {"t":2,"ship":"325a"}, {"t":3,"ship":"buccaneer"}, {"t":5,"ship":"freelancer"}, {"t":6,"ship":"constellation_andromeda"} ], "_ref": "Author ladder 1-8: 1 newbie / 2 low-end / 3 small / 4 stealth / 5 Freelancer+Vanguard / 6 Gladius+Connie / 7 Hammerhead (very hard) / 8 Polaris (not soloable). Only rentable, soloable tiers (1,2,3,5,6) roll." } },
+    "cfp":       { "name": "Citizens for Prosperity",    "tab": "Mercenary",     "altTab": "Bounty Hunter", "altTabSys": ["Pyro"], "path": "legal", "byType": { "ship-combat": ["Pyro", "Nyx"], "ground-combat": ["Pyro"] } },
+    "intersec":  { "name": "InterSec Defense Solutions", "tab": "Mercenary",     "path": "legal",   "byType": { "ship-combat": ["Nyx"] } },
+    "eckhart":   { "name": "Eckhart Security",           "tab": "Mercenary",     "path": "legal",   "byType": { "ship-combat": ["Nyx"], "ground-combat": ["Stanton"] } },
+    "bhg":       { "name": "Bounty Hunters Guild",       "tab": "Bounty Hunter", "path": "legal",   "byType": { "ship-combat": ["Stanton", "Pyro", "Nyx"], "ground-combat": ["Stanton", "Nyx"] }, "note": "The on-foot bounties here are out in the asteroid belts.", "noteSys": ["Nyx"] },
+    "highpoint": { "name": "Highpoint Wilderness Specialists", "tab": "Mercenary", "path": "legal", "byType": { "ground-combat": ["Nyx"] } },
+    "battaglia": { "name": "Battaglia",                  "tab": "Battaglia",     "path": "legal",   "byType": { "ground-combat": ["Nyx"], "mining": ["Nyx"] } },
+
+    "shubin":    { "name": "Shubin Interstellar",        "tab": "Mining",        "path": "legal",   "byType": { "mining": ["Stanton", "Pyro"] } },
+    "covalex":   { "name": "Covalex",                    "tab": "Hauling",       "path": "legal",   "byType": { "hauling": ["Stanton", "Pyro", "Nyx"] } },
+    "ling":      { "name": "Ling Family Hauling",        "tab": "Delivery",      "path": "legal",   "byType": { "hauling": ["Stanton"] } },
+    "ftl":       { "name": "FTL Courier",                "tab": "Delivery",      "path": "legal",   "byType": { "hauling": ["Stanton", "Nyx"] } },
+    "redwind":   { "name": "Red Wind Linehaul",          "tab": "Delivery",      "path": "legal",   "byType": { "hauling": ["Nyx", "Pyro"] } },
+    "adagio":    { "name": "Adagio Holdings",            "tab": "Salvage",       "path": "legal",   "byType": { "salvage": ["Stanton", "Pyro"] } },
+    "hockrow":   { "name": "Hockrow Agency",             "tab": "Investigation", "path": "legal",   "byType": { "investigation": ["Stanton"] }, "note": "The ASD investigation line." },
+    "rayari":    { "name": "Rayari",                     "tab": "Collection",    "path": "legal",   "byType": { "investigation": ["Stanton"] } },
+
+    "headhunters": { "name": "Headhunters", "tab": "Mercenary", "path": "illegal", "byType": { "ship-combat": ["Pyro", "Stanton"], "ground-combat": ["Pyro"] } },
+    "bitzeros":    { "name": "Bit Zeros",   "tab": "Delivery",  "path": "illegal", "byType": { "hauling": ["Stanton", "Pyro"] }, "note": "Transport runs — pack a sidearm, they can turn hot. Pyro postings depend on your standing." },
+    "deadsaints":  { "name": "Dead Saints", "tab": "Delivery",  "path": "illegal", "byType": { "hauling": ["Stanton", "Pyro", "Nyx"] }, "note": "Work from Twitch, an unsavoury fixer riding the edge of the law — transport with a real chance of a fight." }
+  }
+}

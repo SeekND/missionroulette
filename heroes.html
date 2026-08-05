@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hero Adventures — Mission Roulette</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="home.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>✦</text></svg>">
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <span class="logo" style="color:var(--hero)">✦</span>
+      <div>
+        <h1>Hero Adventures</h1>
+        <p class="tagline">Tap any adventure for the full how-to. Built to read on a phone.</p>
+      </div>
+    </div>
+    <a class="hub-link" href="index.html">← Mission Roulette</a>
+  </header>
+
+  <main class="codex-main">
+    <a class="back" href="index.html">← Back to modes</a>
+    <div id="codex" class="codex"></div>
+    <section class="about">
+      <h3>About</h3>
+      <p>A living guide to Star Citizen's memorable multi-step activities. Details reflect the current patch and may change. Star Citizen and all in-game content are property of <a href="https://cloudimperiumgames.com/" target="_blank" rel="noopener">Cloud Imperium Games</a>; this tool is unofficial and not endorsed by CIG.</p>
+    </section>
+  </main>
+
+  <footer>
+    <span>Mission Roulette · part of <a href="https://seeknd.github.io/sc-hub/">SC Hub</a></span>
+    <span><a href="https://github.com/SeekND/missionroulette" target="_blank" rel="noopener">GitHub</a></span>
+  </footer>
+  <div id="detail" class="detail-backdrop" hidden></div>
+  <script src="heroes-script.js"></script>
+</body>
+</html>

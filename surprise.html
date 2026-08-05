@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Surprise Me — Mission Roulette</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="home.css?v=15">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>⟳</text></svg>">
+</head>
+<body class="home" data-align="legal">
+  <nav class="topbar"><a class="hub-link" href="index.html">← Wheel</a></nav>
+
+  <main class="surprise-main">
+    <h1 class="s-title">Surprise Me</h1>
+    <p class="s-lede">Select your preferred mission type, system and alignment.<br>
+      Completing missions logs your time and type at the bottom.<br>
+      If you don't like the mission you can always re-roll for a new one.</p>
+
+    <section class="s-block">
+      <h2>Mission type <span class="s-hint">pick any, or none for all</span></h2>
+      <div id="type-grid" class="type-grid"></div>
+    </section>
+
+    <section class="s-block">
+      <h2>System <span class="s-hint">pick any, or none for all</span></h2>
+      <div id="sys-grid" class="seg-grid seg-3"></div>
+    </section>
+
+    <section class="s-block">
+      <h2>Alignment <span class="s-hint">pick one, or none for any</span></h2>
+      <div class="seg-grid seg-2" id="align-row">
+        <button class="seg-btn" data-align="legal">Legal</button>
+        <button class="seg-btn" data-align="illegal">Illegal</button>
+      </div>
+    </section>
+
+    <div class="above-card">
+      <button id="roll" class="roll-btn">Roll a mission →</button>
+      <button id="skip" class="roll-btn secondary" hidden>↻ Give me a different mission</button>
+    </div>
+    <div id="result" class="s-result" hidden></div>
+    <div id="stats" class="stats-bar" hidden></div>
+  </main>
+
+  <footer>
+    <span>Unofficial · <a href="https://cloudimperiumgames.com/" target="_blank" rel="noopener">CIG</a> owns Star Citizen</span>
+    <span><a href="surprise-classic.html">classic version</a></span>
+  </footer>
+
+  <script src="surprise-script.js?v=15"></script>
+</body>
+</html>

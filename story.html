@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mission Roulette — Story Mode</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="story-style.css?v=10">
+</head>
+<body>
+<a href="index.html" style="position:fixed;top:12px;left:14px;z-index:50;font:600 13px/1 system-ui,sans-serif;color:#a78bfa;text-decoration:none;background:rgba(10,12,18,.6);border:1px solid #2e3447;padding:8px 13px;border-radius:20px">← Home</a>
+<main id="app">
+
+  <!-- ============ SETUP ============ -->
+  <section id="view-setup" class="view active">
+    <div class="card">
+      <h1>Story Mode <span class="tag">roguelite</span></h1>
+      <p class="lede">Start from nothing. Rent your way up. One fragile life. Follow the jobs to a hero finish — and don't respawn at a station.</p>
+
+      <h2>Your calling <span class="hint" id="asp-hint"></span></h2>
+      <div id="asp-grid" class="asp-grid"></div>
+
+      <h2>Current home <span class="hint" id="home-hint">pick your current in-game home from the list</span></h2>
+      <div class="home-grid" id="home-row">
+        <button class="seg-btn" data-home="Area18 · ArcCorp">Area18 · ArcCorp</button>
+        <button class="seg-btn" data-home="Lorville · Hurston">Lorville · Hurston</button>
+        <button class="seg-btn" data-home="New Babbage · microTech">New Babbage · microTech</button>
+        <button class="seg-btn" data-home="Orison · Crusader">Orison · Crusader</button>
+        <button class="seg-btn" data-home="Levski · Nyx">Levski · Nyx</button>
+        <button class="seg-btn" data-home="Somewhere else">Somewhere else</button>
+      </div>
+
+      <h2>Path</h2>
+      <div class="seg-row seg-2" id="path-row">
+        <button class="seg-opt on" data-path="lawful">Lawful</button>
+        <button class="seg-opt" data-path="outlaw">Outlaw</button>
+      </div>
+
+      <h2>Modifiers <span class="hint">optional</span></h2>
+      <div class="mod-grid" id="mods-row">
+        <button class="mod-card" data-mod="pacifist"><b>Pacifist</b><em>easier · no combat by your hand</em></button>
+        <button class="mod-card" data-mod="off-grid"><b>Off-Grid</b><em>harder · no station services</em></button>
+        <button class="mod-card" data-mod="beggar"><b>Broke</b><em>harder · start with nothing</em></button>
+      </div>
+
+      <button id="btn-start" class="primary big">Start my story →</button>
+      <p id="resume-line" class="resume" hidden>You have a story in progress. <button id="btn-resume" class="link">Resume it</button> or start fresh above.</p>
+    </div>
+  </section>
+
+  <!-- ============ BRIEFING ============ -->
+  <section id="view-briefing" class="view">
+    <div class="card">
+      <h1>Setup Briefing</h1>
+      <div id="briefing"></div>
+      <div class="choice-row">
+        <button class="ghost" data-target="view-setup">← Back</button>
+        <button id="btn-begin" class="primary big">Start your adventure →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ RUN ============ -->
+  <section id="view-run" class="view">
+    <header id="run-hud"></header>
+    <div class="run-body">
+      <div id="beat" class="card beat"></div>
+      <div class="actions">
+        <button id="btn-done" class="primary">✓ Done — next job</button>
+        <button id="btn-died" class="danger">✝ I died (station/city respawn)</button>
+      </div>
+      <details id="log-wrap" class="log-wrap" open>
+        <summary>Captain's Log</summary>
+        <ol id="log"></ol>
+      </details>
+    </div>
+  </section>
+
+  <!-- ============ END ============ -->
+  <section id="view-end" class="view">
+    <div class="card">
+      <h1 id="end-title"></h1>
+      <div id="end-body"></div>
+      <button id="btn-copy" class="ghost">📋 Copy log</button>
+      <button id="btn-reroll-run" class="primary big">Start a new story →</button>
+    </div>
+  </section>
+
+</main>
+<script src="story-engine.js?v=21"></script>
+</body>
+</html>
