@@ -1381,6 +1381,20 @@
   function maybeSendReport() {
     if (!netMode || !state || !state.report || !store.claimOnce) return;
     if (!state.season || state.season.mustering) return;
+    // the starting gun announces itself — instant proof the pipeline works
+    if (state.tick === 0 && !state.season.over && !reportTried.start) {
+      reportTried.start = true;
+      store.claimOnce('start', { at: Date.now(), by: callsign() }).then(won => {
+        if (!won) return;
+        const members = Object.keys(state.members).length;
+        const hulls = (state.fleet || []).filter(f => f.status !== 'withdrawn').length;
+        postToDiscord(state.report.webhook,
+          `🚀 **${state.config.name || 'Org Campaign'}** — the season begins! ` +
+          `${state.config.seasonDays} days on the clock · ${members} enlisted · ${hulls} hull${hulls === 1 ? '' : 's'} pledged.\n` +
+          `First battle report lands when day 1 closes. Good hunting.`
+        ).catch(err => console.error('kickoff post failed:', err));
+      });
+    }
     const target = state.season.over ? 'final' : (state.tick > 0 ? 'd' + (state.tick - 1) : null);
     if (!target || reportTried[target]) return;
     reportTried[target] = true;
@@ -1862,8 +1876,7 @@
       `<button type="button" class="start-card" id="st-join"><span class="start-n">1</span><span class="start-body">` +
       `<b>Join with your org's code</b><br><span>Organizer or member — paste the join code. If the board is still empty, you set the campaign up; otherwise you enlist.</span></span></button>` +
       `<button type="button" class="start-card" id="st-create"><span class="start-n">2</span><span class="start-body">` +
-      `<b>Try it solo</b><br><span>A demo campaign that lives in this browser — no code, no database. Good for kicking the tires.</span></span></button>` +
-      `<div class="f-note" style="margin-top:12px">No join code yet? The <a class="linklike" href="org-setup.html">ten-minute organizer guide</a> creates your org's shared board and hands you the code.</div>`,
+      `<b>Try it solo</b><br><span>A demo campaign that lives in this browser — no code, no database. Good for kicking the tires.</span></span></button>`,
       true
     );
     $('st-join').addEventListener('click', showJoinCode);
@@ -1908,8 +1921,8 @@
         ? `<h2>You're first in — set up the campaign</h2>` +
           `<div class="m-sub">This board is shared: everyone with the join code lands here. Six quick steps and the war room opens for the whole org.</div>`
         : `<h2>2 · Solo demo campaign</h2>` +
-          `<div class="m-sub">Six quick steps and the war room opens. This demo lives in this browser only — for your org's shared board, ` +
-          `use the <a class="linklike" href="org-setup.html">organizer guide</a> and come back through door 1 with the code.</div>`) +
+          `<div class="m-sub">Six quick steps and the war room opens. This demo lives in this browser only — ` +
+          `your org's shared campaign is joined through door 1, with a code from your organizer.</div>`) +
       `<label class="f-label">1 · Name the campaign</label><input class="f-input" id="su-name" value="The Stanton Campaign">` +
       `<label class="f-label">2 · How many days will it last?</label>` +
       `<div class="seg-row" id="su-days">` +
