@@ -1,4 +1,4 @@
-# Local tooling & AI assistant configs — never publish
+# Local tooling configs — never publish
 .claude/
 CLAUDE.md
 AGENTS.md
@@ -7,6 +7,8 @@ AGENTS.md
 
 # Internal design notes — not for the public site
 DESIGN.md
+ARCHITECTURE.md
+ORG_DESIGN.md
 
 # Deprecated, unused data (kept locally, not served)
 mission_pool.json

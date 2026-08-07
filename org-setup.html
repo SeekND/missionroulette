@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Set up your org's campaign — Mission Roulette</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="org-style.css?v=26">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚑</text></svg>">
+  <style>
+    .guide{max-width:760px;margin:0 auto;padding:10px 4px 40px}
+    .guide h1{font-size:24px;margin:14px 0 6px}
+    .guide .lede{color:var(--text-dim);font-size:14px;line-height:1.6;margin-bottom:18px}
+    .g-step{background:var(--bg-elev);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:12px}
+    .g-step h2{font-size:15px;margin-bottom:8px}
+    .g-step h2 .n{display:inline-block;background:var(--accent);color:#14121f;border-radius:50%;width:22px;height:22px;
+      text-align:center;line-height:22px;font-size:12.5px;font-weight:700;margin-right:8px}
+    .g-step p,.g-step li{font-size:13.5px;line-height:1.65;color:var(--text-dim)}
+    .g-step b{color:var(--text)}
+    .g-step ol{padding-left:20px;margin:6px 0}
+    .g-step li{margin-bottom:4px}
+    .code-block{position:relative;background:#0b0d14;border:1px solid var(--border-strong);border-radius:8px;padding:12px;
+      font-family:var(--mono);font-size:11.5px;line-height:1.5;white-space:pre;overflow-x:auto;margin:8px 0;color:#c9d1e0}
+    .copy-btn{position:absolute;top:8px;right:8px}
+    .g-out{margin-top:10px}
+    .g-out textarea{width:100%;min-height:110px;background:var(--bg-card);border:1px solid var(--border-strong);color:var(--text);
+      border-radius:8px;padding:10px;font-family:var(--mono);font-size:11.5px;resize:vertical}
+    .g-code{word-break:break-all;font-family:var(--mono);font-size:12px;background:#0b0d14;border:1px solid var(--accent);
+      border-radius:8px;padding:12px;margin:8px 0;color:var(--text)}
+    .g-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .faq dt{font-weight:600;font-size:13.5px;margin-top:12px}
+    .faq dd{font-size:13px;color:var(--text-dim);line-height:1.6;margin:3px 0 0}
+    .ok-note{color:#3fb950;font-weight:600}
+    .err-note{color:#f0685a;font-weight:600}
+  </style>
+</head>
+<body>
+  <a class="org-home" href="org.html">← Org Campaign</a>
+
+  <div class="guide">
+    <h1>⚑ Set up your org's shared campaign</h1>
+    <p class="lede">
+      One shared war room for your whole org — same map, same treasury, same chronicle, everyone on their own
+      device. Your campaign lives in <b>your org's own free database</b>: this site hosts nothing and can see nothing.
+      Setup takes about ten minutes, once, by one person — you.
+    </p>
+
+    <div class="g-step">
+      <h2><span class="n">1</span>Create a free Firebase project</h2>
+      <ol>
+        <li>Go to <b>console.firebase.google.com</b> and sign in with any Google account.</li>
+        <li><b>Create a project</b> — name it anything (e.g. your org's tag). You can switch Google Analytics <b>off</b>.</li>
+      </ol>
+      <p>Firebase's free tier is far more than a campaign needs — a whole season is a few thousand tiny entries. No credit card involved.</p>
+    </div>
+
+    <div class="g-step">
+      <h2><span class="n">2</span>Turn on anonymous sign-in</h2>
+      <ol>
+        <li>In the left menu: <b>Security → Authentication</b> (on the older console: Build → Authentication), then <b>Get started</b>.</li>
+        <li>Under <b>Sign-in method</b>, choose <b>Anonymous</b> and <b>enable</b> it.</li>
+      </ol>
+      <p>Nobody creates accounts or passwords — this just lets the database tell "someone with the join code" from "the open internet".</p>
+    </div>
+
+    <div class="g-step">
+      <h2><span class="n">3</span>Create the database</h2>
+      <ol>
+        <li>In the left menu: <b>Databases and storage → Realtime Database</b> — it's in the <b>NoSQL</b> group, next to Firestore
+          (older console: Build → Realtime Database). Careful: <b>Realtime Database</b>, not Firestore.</li>
+        <li>Press <b>Create database</b>. Any location; start in <b>locked mode</b>.</li>
+        <li>Open the <b>Rules</b> tab, replace everything with the block below, and press <b>Publish</b>.</li>
+      </ol>
+      <div class="code-block" id="rules-block">{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "campaigns": {
+      "$campaign": {
+        "events": {
+          ".read": "auth != null",
+          "$event": {
+            ".write": "auth != null &amp;&amp; !data.exists()",
+            ".validate": "newData.hasChildren(['t','a','k']) &amp;&amp; newData.child('t').isNumber() &amp;&amp; newData.child('a').isString() &amp;&amp; newData.child('k').isString()"
+          }
+        },
+        "reports": {
+          ".read": "auth != null",
+          "$day": {
+            ".write": "auth != null &amp;&amp; !data.exists()"
+          }
+        }
+      }
+    }
+  }
+}<button class="btn btn-mini copy-btn" id="copy-rules">copy</button></div>
+      <p>These rules make the campaign <b>append-only</b>: entries can be added, never edited or deleted — the war log can grow, but
+      nobody can rewrite history. The <b>reports</b> block lets the board post each day's battle report to your Discord exactly once.</p>
+      <p><b>Already running a campaign from before?</b> Paste these rules again and press Publish — the reports block is new; nothing else changes.</p>
+    </div>
+
+    <div class="g-step">
+      <h2><span class="n">4</span>Register a web app &amp; paste its config here</h2>
+      <ol>
+        <li>Easiest: on the <b>Project Overview</b> page, press <b>+ Add app</b> and choose <b>&lt;/&gt; (Web)</b>.
+          (Also under Settings → Project settings → General → Your apps.)</li>
+        <li>Register it (any nickname, no hosting needed) and copy the <b>firebaseConfig</b> block it shows.</li>
+        <li>Paste the whole thing below — formatting doesn't matter. <b>Do step 3 first</b> — the config only includes
+          the databaseURL once the database exists.</li>
+      </ol>
+      <div class="g-out">
+        <textarea id="cfg-in" placeholder="Paste the firebaseConfig block here…&#10;const firebaseConfig = {&#10;  apiKey: &quot;AIza…&quot;,&#10;  databaseURL: &quot;https://your-project-default-rtdb.firebaseio.com&quot;,&#10;  …&#10;};"></textarea>
+        <div class="g-actions">
+          <button class="btn btn-primary" id="gen-code">Generate the join code →</button>
+          <span id="gen-note" class="f-note" style="align-self:center"></span>
+        </div>
+        <div id="code-out" style="display:none">
+          <div class="card-title" style="margin-top:14px">Your org's join code</div>
+          <div class="g-code" id="code-text"></div>
+          <div class="g-actions">
+            <button class="btn" id="copy-code">Copy the code</button>
+            <button class="btn btn-primary" id="enter-code">Open your war room →</button>
+          </div>
+          <p style="font-size:13px;color:var(--text-dim);margin-top:8px">
+            Share the code in your org's Discord. Members open the <b>Org Campaign</b> page, scroll to
+            <b>"Playing with your org?"</b>, and paste it — that's their whole setup. First person in creates the campaign.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="g-step faq">
+      <h2>Good to know</h2>
+      <dl>
+        <dt>What does it cost?</dt>
+        <dd>Nothing, realistically. A full season is a few thousand small entries — a rounding error inside Firebase's free tier.</dd>
+        <dt>Who can see our campaign?</dt>
+        <dd>Only people with the join code. This site never sees it at all: your board talks straight to your org's own database.</dd>
+        <dt>The code leaked — now what?</dt>
+        <dd>Come back here, paste the same config, and generate a fresh code — it points at a brand-new campaign path. Share the new one, and the old one goes stale.</dd>
+        <dt>Can we run a second campaign?</dt>
+        <dd>Yes — every generated code gets its own path in the same project. One database can hold every season you'll ever run.</dd>
+        <dt>Backups?</dt>
+        <dd>The war room's <b>export log</b> button downloads the entire campaign as a file, any time, from any member.</dd>
+      </dl>
+    </div>
+  </div>
+
+  <footer class="org-disclaimer">Unofficial fan tool. Star Citizen® is a registered trademark of Cloud Imperium Games. Not affiliated with or endorsed by CIG.</footer>
+
+  <script src="org-net.js?v=2"></script>
+  <script>
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      const RULES = $('rules-block').childNodes[0].textContent;
+      $('copy-rules').addEventListener('click', () => {
+        navigator.clipboard.writeText(RULES).then(() => {
+          $('copy-rules').textContent = 'copied ✓';
+          setTimeout(() => { $('copy-rules').textContent = 'copy'; }, 1600);
+        });
+      });
+      const pick = (src, key) => {
+        const m = src.match(new RegExp(key + `\\s*[:=]\\s*["']([^"']+)["']`));
+        return m ? m[1] : null;
+      };
+      $('gen-code').addEventListener('click', () => {
+        const src = $('cfg-in').value;
+        const apiKey = pick(src, 'apiKey');
+        const databaseURL = pick(src, 'databaseURL');
+        const note = $('gen-note');
+        if (!apiKey || !databaseURL) {
+          note.innerHTML = `<span class="err-note">⚠ Couldn't find ${!apiKey ? 'apiKey' : 'databaseURL'} in the paste.</span>` +
+            (!databaseURL ? ' If your config has no databaseURL, create the Realtime Database first (step 3), then copy the config again.' : '');
+          return;
+        }
+        const path = 'campaigns/c' + Array.from(crypto.getRandomValues(new Uint8Array(6))).map(b => (b % 36).toString(36)).join('');
+        const code = OrgNet.makeCode({ apiKey, databaseURL }, path);
+        note.innerHTML = '<span class="ok-note">✓ Code ready.</span>';
+        $('code-text').textContent = code;
+        $('code-out').style.display = '';
+        $('copy-code').addEventListener('click', () => {
+          navigator.clipboard.writeText(code).then(() => {
+            $('copy-code').textContent = 'copied ✓';
+            setTimeout(() => { $('copy-code').textContent = 'Copy the code'; }, 1600);
+          });
+        });
+        $('enter-code').addEventListener('click', () => {
+          localStorage.setItem('smr_org_net', code);
+          location.href = 'org.html';
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

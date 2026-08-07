@@ -1,0 +1,11 @@
+{
+  "_meta": {
+    "note": "Ships that fly in the PU but are not currently sold for aUEC in game (pledge-store / event / loaner hulls). Prices here are ORG VALUATIONS — campaign-board fiction used only for commissioning costs and clearance bands, never a real-game claim. Anchor rule of thumb: price it against the nearest aUEC-purchasable hull of similar class and role, then round. Extend this list freely as patches change what's sold in game.",
+    "fields": { "n": "ship name (must match how owners would pledge it)", "m": "manufacturer code (AEGS/ANVL/ARGO/BANU/CNOU/CRUS/DRAK/ESPR/GAMA/GRIN/KRIG/MISC/MRAI/ORIG/RSI/TMBL/XNAA)", "p": "org valuation in ORG funds", "v": "always true — marks the price as a board valuation, not an in-game price" },
+    "updated": "2026-08-07"
+  },
+  "ships": [
+    { "n": "Polaris", "m": "RSI", "p": 35000000, "v": true },
+    { "n": "Idris-P", "m": "AEGS", "p": 70000000, "v": true }
+  ]
+}

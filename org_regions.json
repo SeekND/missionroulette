@@ -1,0 +1,721 @@
+{
+  "_meta": {
+    "purpose": "Org campaign region/zone data. Regions are the operational theaters contracts can honestly be asked in (contract boards randomize within a planetary region); zones are the map nodes control is spent on.",
+    "updated": "2026-08-05",
+    "sources": "Author-curated from in-game observation and community references — verify availability and archetypes each patch.",
+    "model": "Objectives are only ever generated at REGION level ('run 3 ground-combat contracts in the Crusader region'); completed work yields control % the org assigns to a ZONE in that region. A mission that happens to land on the target zone earns the on-site bonus (self-reported).",
+    "availability": "Per region × type: 'common' rolls normally, 'rare' rolls with the scarcity bonus multiplier, 'none' is never generated. Region-level judgment calls — see _redline.",
+    "recipes": "Each zone archetype declares the mix that fills its control meter. A category's contribution CAPS at its share — no single playstyle can take a zone alone. Buckets: combat (ship+ground), supply (hauling), industry (mining+salvage). Investigation feeds intel, not meters.",
+    "strataCodes": "zone.strata = the body/location code in Strata's data (Mining repo). Map join: planets/map_positions. Ore-yield join: location_ores — only where the body is mineable (city planets and gas giants like ARC/CRU/PY5 have no ore table by design; stations never do). null = not in Strata data at all (e.g. Grim Hex).",
+    "onSite": "zone.onSite = mission types that can actually occur AT that zone (gates the on-site bonus and push flavor). Absent = any type the region offers. Salvage is never on-site anywhere — it is Lagrange-random and credited system-wide as economy. Belts belong to their parent zone (work turns up in them sometimes); Lagrange stations are not zones.",
+    "heroes": "region.setPiece = a hero_adventures id — the region's one set-piece op, visible from day 1. Logged once per season (setpiece.done) for a control surge on the region's front + medals. Crusader=Siege of Orison, Hurston=Hathor, microTech=Yormandi, ArcCorp=Hyperion.",
+    "factionVoice": "Antagonist factions are attribution flavor ONLY — say 'the Headhunters are likely behind this', never claim an in-game event that does not exist ('Headhunters are attacking Everus Harbor' will never be on a mission board). Objective text stays provider-accurate; the faction lives in the fiction line.",
+    "_redline": [
+      "RESOLVED: Crusader planet itself hosts no combat or mining contracts — hauling only, plus the Siege of Orison set-piece. Region-level combat stays 'common' (carried by the moons); the zone's onSite list encodes the planet.",
+      "CONFIRM ground-combat 'rare' for the ArcCorp region (drafted from thin surface content on Lyria/Wala).",
+      "CONFIRM microTech region ground-combat 'common' (planet distribution centers carry it; the ice moons have little/none — hence their mining archetypes).",
+      "CONFIRM investigation 'common' across all four Stanton regions (needs nearby moons for the ASD line).",
+      "CONFIRM zone archetypes marked with 'confirm': bunker vs mining leanings per moon.",
+      "CONFIRM director faction skins — drafted from currently active groups only (Headhunters / Dead Saints; Bit Zeros as alternate).",
+      "Pyro and Nyx sections are v2 DRAFTS: region groupings follow the contract-hub clusters (Checkmate / Orbituary / Ruin Station anchors); availability drafted from the provider matrix.",
+      "Ore headlines rank crafting ores (Aslarite/Ouratite/Lindinium/Savrilium/Torite) just under Quantanium — redline the order if the market disagrees."
+    ],
+    "why": "zone.why = the grounded reason to take it (real services / real geology); zone.ores = the body's notable ship-mining ores from the Strata tables, best first. Display-level truth — held-zone yields stay abstract until the economy layer lands.",
+    "powers": "zone.power / region.regionPower = BOARD-ONLY effects granted while the zone is held (all zones for a regionPower). They change campaign math on this page — control gains, org materials, Director behavior, project costs — never anything in the real game. Org materials and ORG funds are campaign fiction earned by banking contracts."
+  },
+  "availabilityLevels": {
+    "common": {
+      "multiplier": 1.0
+    },
+    "rare": {
+      "multiplier": 1.5,
+      "note": "Scarce work is worth more control."
+    },
+    "none": {
+      "multiplier": 0
+    }
+  },
+  "typeBuckets": {
+    "ship-combat": "combat",
+    "ground-combat": "combat",
+    "hauling": "supply",
+    "mining": "industry",
+    "salvage": "industry",
+    "investigation": "intel"
+  },
+  "archetypes": {
+    "capital": {
+      "name": "Regional Capital",
+      "recipe": {
+        "combat": 40,
+        "supply": 40,
+        "industry": 20
+      },
+      "blurb": "The region's anchor — city, orbital station, the works. Taking it is the regional climax."
+    },
+    "bunker-moon": {
+      "name": "Contested Moon",
+      "recipe": {
+        "combat": 50,
+        "supply": 30,
+        "industry": 20
+      },
+      "blurb": "Surface strongpoints and rough company. Won by force, held by supply."
+    },
+    "mining-moon": {
+      "name": "Resource Moon",
+      "recipe": {
+        "combat": 20,
+        "supply": 30,
+        "industry": 50
+      },
+      "blurb": "The prize is in the ground. Taken primarily by working it."
+    },
+    "station": {
+      "name": "Station",
+      "recipe": {
+        "combat": 30,
+        "supply": 50,
+        "industry": 20
+      },
+      "blurb": "A dock and its contract board. Whoever keeps it fed, owns it."
+    }
+  },
+  "systems": {
+    "Stanton": {
+      "status": "v1",
+      "directorFaction": {
+        "name": "Headhunters",
+        "confirm": "Alternate: Bit Zeros. Skins the opposition only — objectives stay provider-accurate."
+      },
+      "regions": {
+        "hurston": {
+          "name": "Hurston",
+          "anchor": "hurston",
+          "setPiece": "hero-hathor-align-and-mine",
+          "availability": {
+            "ship-combat": "common",
+            "ground-combat": "common",
+            "mining": "common",
+            "hauling": "common",
+            "salvage": "common",
+            "investigation": "common"
+          },
+          "zones": {
+            "hurston": {
+              "name": "Hurston",
+              "kind": "planet",
+              "strata": "HUR",
+              "archetype": "capital",
+              "services": "Lorville · Everus Harbor",
+              "ores": [
+                "Quantanium",
+                "Ouratite",
+                "Aluminium",
+                "Tin"
+              ],
+              "why": "Lorville's rental terminals, Everus Harbor rearm, and the region's market — the operational heart of Hurston space.",
+              "power": {
+                "name": "Logistics Command",
+                "text": "Hauling contracts count +25% more control — zones unlock faster.",
+                "effect": {
+                  "gainMult": {
+                    "bucket": "supply",
+                    "scope": "org",
+                    "mult": 1.25
+                  }
+                }
+              }
+            },
+            "aberdeen": {
+              "name": "Aberdeen",
+              "kind": "moon",
+              "strata": "ABE",
+              "archetype": "bunker-moon",
+              "note": "Klescher territory; cave networks.",
+              "ores": [
+                "Quantanium",
+                "Ouratite",
+                "Titanium",
+                "Corundum"
+              ],
+              "why": "Cave networks worth a fortune in hand-mining — and Klescher's backyard. The rock below seals it.",
+              "power": {
+                "name": "Prison Watch",
+                "text": "+1 intel to the HQ stores every day.",
+                "effect": {
+                  "income": {
+                    "intel": 1
+                  }
+                }
+              }
+            },
+            "arial": {
+              "name": "Arial",
+              "kind": "moon",
+              "strata": "ARI",
+              "archetype": "mining-moon",
+              "confirm": "bunker vs mining lean",
+              "ores": [
+                "Quantanium",
+                "Ouratite",
+                "Hephaestanite",
+                "Corundum"
+              ],
+              "why": "A working miner's moon — its ore table pays steady wages.",
+              "power": {
+                "name": "Refinery Queue",
+                "text": "+1 metals to the HQ stores every day.",
+                "effect": {
+                  "income": {
+                    "metals": 1
+                  }
+                }
+              }
+            },
+            "ita": {
+              "name": "Ita",
+              "kind": "moon",
+              "strata": "ITA",
+              "archetype": "mining-moon",
+              "confirm": "bunker vs mining lean",
+              "ores": [
+                "Quantanium",
+                "Aslarite",
+                "Aluminium",
+                "Tin"
+              ],
+              "why": "Quiet, remote, and mineral-rich — a supply line worth guarding.",
+              "power": {
+                "name": "Deep Anchorage",
+                "text": "Salvage contracts count +50% more control.",
+                "effect": {
+                  "gainMult": {
+                    "type": "salvage",
+                    "scope": "org",
+                    "mult": 1.5
+                  }
+                }
+              }
+            },
+            "magda": {
+              "name": "Magda",
+              "kind": "moon",
+              "strata": "MAG",
+              "archetype": "bunker-moon",
+              "confirm": "bunker vs mining lean",
+              "ores": [
+                "Quantanium",
+                "Aslarite",
+                "Titanium",
+                "Iron"
+              ],
+              "why": "Surface strongpoints and solid ore — a forward post over Lorville's shoulder.",
+              "power": {
+                "name": "Forward Garrison",
+                "text": "Defend objectives in Hurston space need 2 contracts instead of 3.",
+                "effect": {
+                  "defendCount": {
+                    "region": "hurston",
+                    "count": 2
+                  }
+                }
+              }
+            }
+          },
+          "regionPower": {
+            "name": "Hurston Secured",
+            "text": "Raids in Hurston space cost half control when they land.",
+            "effect": {
+              "raidPenaltyMult": 0.5
+            }
+          }
+        },
+        "crusader": {
+          "name": "Crusader",
+          "anchor": "crusader",
+          "setPiece": "hero-siege-of-orison",
+          "availability": {
+            "ship-combat": "common",
+            "ground-combat": "common",
+            "mining": "common",
+            "hauling": "common",
+            "salvage": "common",
+            "investigation": "common"
+          },
+          "zones": {
+            "crusader": {
+              "name": "Crusader",
+              "kind": "planet",
+              "strata": "CRU",
+              "archetype": "capital",
+              "services": "Orison · Seraphim Station",
+              "onSite": [
+                "hauling"
+              ],
+              "note": "Gas giant — the planet itself posts hauling only. Its war is fought around the moons and settled at the Siege of Orison.",
+              "why": "Orison's rentals and Seraphim Station's rearm keep the whole region flying — and the Siege of Orison decides its fate.",
+              "power": {
+                "name": "Orison Shipyards",
+                "text": "Capital-class hulls from the org census can be commissioned here (projects).",
+                "effect": {
+                  "commissionSite": "capital"
+                }
+              }
+            },
+            "cellin": {
+              "name": "Cellin",
+              "kind": "moon",
+              "strata": "CEL",
+              "archetype": "bunker-moon",
+              "ores": [
+                "Quantanium",
+                "Taranite",
+                "Agricium",
+                "Quartz"
+              ],
+              "why": "Bunker country. Whoever holds Cellin's strongpoints watches every approach to Crusader.",
+              "power": {
+                "name": "Early-Warning Net",
+                "text": "Tomorrow's Director move is always shown — no intel needed.",
+                "effect": {
+                  "telegraphFree": true
+                }
+              }
+            },
+            "daymar": {
+              "name": "Daymar",
+              "kind": "moon",
+              "strata": "DAY",
+              "archetype": "bunker-moon",
+              "note": "Cave networks; classic surface-strongpoint moon.",
+              "ores": [
+                "Quantanium",
+                "Agricium",
+                "Titanium",
+                "Quartz"
+              ],
+              "why": "The classic proving ground — caves, outposts, and rock that pays. Holding Daymar is holding the region's crossroads.",
+              "power": {
+                "name": "Rally Point",
+                "text": "Ground combat in Crusader space counts +50% more control.",
+                "effect": {
+                  "gainMult": {
+                    "type": "ground-combat",
+                    "scope": "region",
+                    "region": "crusader",
+                    "mult": 1.5
+                  }
+                }
+              }
+            },
+            "yela": {
+              "name": "Yela",
+              "kind": "moon",
+              "strata": "YEL",
+              "archetype": "mining-moon",
+              "note": "Ice moon; its asteroid ring is part of the zone — work turns up there sometimes.",
+              "ores": [
+                "Quantanium",
+                "Taranite",
+                "Agricium",
+                "Quartz"
+              ],
+              "why": "The ring is the prize: belt mining on the org's doorstep, with Grim Hex traffic to watch.",
+              "power": {
+                "name": "Ring Claim",
+                "text": "+1 metals/day, and industry in Crusader space counts +50% more control.",
+                "effect": {
+                  "income": {
+                    "metals": 1
+                  },
+                  "gainMult": {
+                    "bucket": "industry",
+                    "scope": "region",
+                    "region": "crusader",
+                    "mult": 1.5
+                  }
+                }
+              }
+            }
+          },
+          "regionPower": {
+            "name": "Crusader Secured",
+            "text": "Shipyard projects cost 25% less.",
+            "effect": {
+              "projectDiscount": {
+                "site": "capital",
+                "mult": 0.75
+              }
+            }
+          }
+        },
+        "arccorp": {
+          "name": "ArcCorp",
+          "anchor": "arccorp",
+          "setPiece": "hero-hyperion",
+          "availability": {
+            "ship-combat": "common",
+            "ground-combat": "rare",
+            "mining": "common",
+            "hauling": "common",
+            "salvage": "common",
+            "investigation": "common"
+          },
+          "zones": {
+            "arccorp": {
+              "name": "ArcCorp",
+              "kind": "planet",
+              "strata": "ARC",
+              "archetype": "capital",
+              "services": "Area18 · Baijini Point",
+              "note": "City planet. Baijini Point carries no personal weapons or armor.",
+              "why": "Area18's rentals and market move the region's money; Baijini Point moves its freight (no personal gear there).",
+              "power": {
+                "name": "War Market",
+                "text": "Swap org materials 1:1 in the treasury, and +2 supplies/day.",
+                "effect": {
+                  "convert": true,
+                  "income": {
+                    "supplies": 2
+                  }
+                }
+              }
+            },
+            "lyria": {
+              "name": "Lyria",
+              "kind": "moon",
+              "strata": "LYR",
+              "archetype": "mining-moon",
+              "ores": [
+                "Quantanium",
+                "Laranite",
+                "Copper",
+                "Iron"
+              ],
+              "why": "One of Stanton's richest rocks — Quantanium runs shorten dramatically with Lyria secured.",
+              "power": {
+                "name": "Quantanium Claim",
+                "text": "+1 metals and +100,000 ORG funds to the treasury every day — the good rock pays.",
+                "effect": {
+                  "income": {
+                    "metals": 1,
+                    "funds": 100000
+                  }
+                }
+              }
+            },
+            "wala": {
+              "name": "Wala",
+              "kind": "moon",
+              "strata": "WAL",
+              "archetype": "mining-moon",
+              "ores": [
+                "Quantanium",
+                "Laranite",
+                "Beryl",
+                "Copper"
+              ],
+              "why": "Gem country — ROC prospecting at scale, and a clean staging orbit over Area18.",
+              "power": {
+                "name": "Gem Exchange",
+                "text": "+1 components to the HQ stores every day.",
+                "effect": {
+                  "income": {
+                    "components": 1
+                  }
+                }
+              }
+            }
+          },
+          "regionPower": {
+            "name": "ArcCorp Secured",
+            "text": "Every daily material income +1, and +50,000 ORG funds/day.",
+            "effect": {
+              "incomeBonus": 1,
+              "income": {
+                "funds": 50000
+              }
+            }
+          }
+        },
+        "microtech": {
+          "name": "microTech",
+          "anchor": "microtech",
+          "setPiece": "hero-yormandi",
+          "availability": {
+            "ship-combat": "common",
+            "ground-combat": "common",
+            "mining": "common",
+            "hauling": "common",
+            "salvage": "common",
+            "investigation": "common"
+          },
+          "zones": {
+            "microtech": {
+              "name": "microTech",
+              "kind": "planet",
+              "strata": "MIC",
+              "archetype": "capital",
+              "services": "New Babbage · Port Tressler",
+              "note": "The ground fight lives here — the ice moons are quiet.",
+              "ores": [
+                "Quantanium",
+                "Hephaestanite",
+                "Iron",
+                "Ice"
+              ],
+              "why": "New Babbage rentals, Port Tressler rearm — and the distribution-center fight decides the surface.",
+              "power": {
+                "name": "The Fab Labs",
+                "text": "Tech projects unlock — component work can be commissioned here.",
+                "effect": {
+                  "commissionSite": "tech"
+                }
+              }
+            },
+            "calliope": {
+              "name": "Calliope",
+              "kind": "moon",
+              "strata": "CAL",
+              "archetype": "mining-moon",
+              "ores": [
+                "Quantanium",
+                "Hephaestanite",
+                "Iron",
+                "Ice"
+              ],
+              "why": "Ice-moon veins that feed the refineries — cold, quiet, profitable.",
+              "power": {
+                "name": "Cold Storage",
+                "text": "Ignored relief calls no longer drain the HQ stores.",
+                "effect": {
+                  "distractImmune": true
+                }
+              }
+            },
+            "clio": {
+              "name": "Clio",
+              "kind": "moon",
+              "strata": "CLI",
+              "archetype": "mining-moon",
+              "ores": [
+                "Quantanium",
+                "Taranite",
+                "Copper",
+                "Ice"
+              ],
+              "why": "A gentle moon with honest ore — the safest industry posting in microTech space.",
+              "power": {
+                "name": "Listening Post",
+                "text": "+1 intel to the HQ stores every day.",
+                "effect": {
+                  "income": {
+                    "intel": 1
+                  }
+                }
+              }
+            },
+            "euterpe": {
+              "name": "Euterpe",
+              "kind": "moon",
+              "strata": "EUT",
+              "archetype": "mining-moon",
+              "ores": [
+                "Quantanium",
+                "Taranite",
+                "Copper",
+                "Ice"
+              ],
+              "why": "Frozen and forgotten — which is exactly what makes its deposits worth fencing off.",
+              "power": {
+                "name": "Ice Mines",
+                "text": "+1 supplies to the HQ stores every day.",
+                "effect": {
+                  "income": {
+                    "supplies": 1
+                  }
+                }
+              }
+            }
+          },
+          "regionPower": {
+            "name": "microTech Secured",
+            "text": "All projects need 25% less materials.",
+            "effect": {
+              "projectDiscount": {
+                "site": "any",
+                "mult": 0.75
+              }
+            }
+          }
+        }
+      }
+    },
+    "Pyro": {
+      "status": "v2-draft",
+      "directorFaction": {
+        "name": "Headhunters",
+        "confirm": "Pyro opposition skin — gang territory; could differ per region."
+      },
+      "regions": {
+        "pyro_checkmate": {
+          "name": "Checkmate Reach",
+          "anchor": "checkmate",
+          "availability": {
+            "ship-combat": "common",
+            "ground-combat": "common",
+            "mining": "common",
+            "hauling": "common",
+            "salvage": "common",
+            "investigation": "none"
+          },
+          "zones": {
+            "checkmate": {
+              "name": "Checkmate",
+              "kind": "station",
+              "strata": "CHECKMATE",
+              "archetype": "station",
+              "why": "The lawful foothold in Pyro — contracts, rearm, and a bed this side of the gate."
+            },
+            "monox": {
+              "name": "Monox",
+              "kind": "planet",
+              "strata": "MON",
+              "archetype": "bunker-moon",
+              "ores": [
+                "Stileron",
+                "Hephaestanite",
+                "Iron",
+                "Tin"
+              ],
+              "why": "Toxic ground and good rock — Pyro industry starts here."
+            }
+          }
+        },
+        "pyro_orbituary": {
+          "name": "Orbituary Drift",
+          "anchor": "orbituary",
+          "availability": {
+            "ship-combat": "common",
+            "ground-combat": "common",
+            "mining": "common",
+            "hauling": "common",
+            "salvage": "common",
+            "investigation": "none"
+          },
+          "zones": {
+            "orbituary": {
+              "name": "Orbituary",
+              "kind": "station",
+              "strata": null,
+              "archetype": "station",
+              "why": "Gang country's crossroads — whoever feeds it, owns the drift."
+            },
+            "bloom": {
+              "name": "Bloom",
+              "kind": "planet",
+              "strata": "BLO",
+              "archetype": "mining-moon",
+              "ores": [
+                "Riccite",
+                "Stileron",
+                "Borase",
+                "Quartz"
+              ],
+              "why": "Cold and bright — Bloom's ice fields pay, if the convoys survive."
+            }
+          }
+        },
+        "pyro_ruin": {
+          "name": "Ruin Expanse",
+          "anchor": "ruinstation",
+          "availability": {
+            "ship-combat": "common",
+            "ground-combat": "common",
+            "mining": "common",
+            "hauling": "common",
+            "salvage": "common",
+            "investigation": "none"
+          },
+          "zones": {
+            "ruinstation": {
+              "name": "Ruin Station",
+              "kind": "station",
+              "strata": null,
+              "archetype": "station",
+              "note": "The far end of the system — longest haul.",
+              "why": "The far anchor of the system — the longest haul, and the deepest foothold."
+            },
+            "pyro4": {
+              "name": "Pyro IV",
+              "kind": "planet",
+              "strata": "PY4",
+              "archetype": "bunker-moon",
+              "ores": [
+                "Stileron",
+                "Laranite",
+                "Borase",
+                "Copper"
+              ],
+              "why": "Hard ground in a hard system — a fortress rock on the way to Terminus."
+            },
+            "pyro5": {
+              "name": "Pyro V",
+              "kind": "planet",
+              "strata": "PY5",
+              "archetype": "mining-moon",
+              "note": "Gas giant with its own moon family — served by Gaslight.",
+              "why": "The gas giant's moon family funnels every route past Gaslight — position is the prize."
+            },
+            "terminus": {
+              "name": "Terminus",
+              "kind": "planet",
+              "strata": "TER",
+              "archetype": "mining-moon",
+              "note": "Its belt is part of the zone — work turns up there sometimes.",
+              "ores": [
+                "Riccite",
+                "Stileron",
+                "Gold",
+                "Agricium"
+              ],
+              "why": "The end of the line — its belt pays, and its position commands the outer system."
+            }
+          }
+        }
+      }
+    },
+    "Nyx": {
+      "status": "v2-draft",
+      "directorFaction": {
+        "name": "Dead Saints",
+        "confirm": "Active in all three systems; the natural Nyx skin."
+      },
+      "regions": {
+        "nyx_levski": {
+          "name": "Levski",
+          "anchor": "levski",
+          "availability": {
+            "ship-combat": "common",
+            "ground-combat": "common",
+            "mining": "common",
+            "hauling": "common",
+            "salvage": "none",
+            "investigation": "none"
+          },
+          "zones": {
+            "levski": {
+              "name": "Levski",
+              "kind": "station",
+              "strata": null,
+              "archetype": "capital",
+              "note": "The only real port in the system. Missions post at the station boards — Levski, the gateways, the People Service stations; the Glaciem belt itself posts nothing (belt bounty work is taken from the boards).",
+              "why": "The only real port in Nyx — every contract in the system starts and ends here."
+            }
+          }
+        }
+      }
+    }
+  }
+}

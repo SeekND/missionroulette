@@ -1,0 +1,118 @@
+{
+  "_meta": {
+    "purpose": "Org campaign board layout — where every zone sits on the polar map. Companion to org_regions.json (which owns what the zones ARE).",
+    "updated": "2026-08-05",
+    "src": "Planet, gate, station and belt positions copied verbatim from the Strata map layout (Mining repo, data/mining_data.json -> map_positions) — the distance-correct polar arrangement already used for routing. Satellite offsets are new and display-only.",
+    "projection": "Polar. angle = degrees, 0 = north (12 o'clock), clockwise. Radius = ring x ringSpacing, where ringSpacing = canvasSize x ring_scale/100 / (maxRing + 0.5). Nodes with edge:true sit at canvasSize x edge_scale/100. Belts: belt_radius x ringSpacing (or ring x ringSpacing when given as ring). Matches Strata js/map.js toXY: x = cx + cos(a-90)*r, y = cy + sin(a-90)*r.",
+    "satellites": "Zones with a parent render at the parent's XY plus a polar offset (moonAngle, moonDist x ringSpacing), same compass convention. The arrangement is cosmetic — real moons orbit constantly; only the parent relationship is meaningful. moonDist ladder follows each family's inner-to-outer order.",
+    "zones": "Keys are org_regions.json zone ids — the two files join on them. landmarks are non-target flavor markers that keep the map honest and alive (Pyro's small stations, Nyx People Service stations). Nyx I-III are deliberately absent: map-only bodies, never destinations.",
+    "gates": "Jump gates carry to: the system they lead to (null = not yet a destination). v1 renders them as landmarks; v2 promotes them to chokepoint zones."
+  },
+
+  "systems": {
+    "Stanton": {
+      "config": { "ring_scale": 39, "edge_scale": 46, "maxRing": 4 },
+      "zones": {
+        "hurston":   { "angle": 85,  "ring": 1 },
+        "aberdeen":  { "parent": "hurston", "moonAngle": 75,  "moonDist": 0.45 },
+        "arial":     { "parent": "hurston", "moonAngle": 150, "moonDist": 0.58 },
+        "magda":     { "parent": "hurston", "moonAngle": 225, "moonDist": 0.71 },
+        "ita":       { "parent": "hurston", "moonAngle": 300, "moonDist": 0.84 },
+
+        "crusader":  { "angle": 266, "ring": 2 },
+        "cellin":    { "parent": "crusader", "moonAngle": 190, "moonDist": 0.45 },
+        "daymar":    { "parent": "crusader", "moonAngle": 235, "moonDist": 0.62 },
+        "yela":      { "parent": "crusader", "moonAngle": 75,  "moonDist": 0.72, "hasRing": true },
+
+        "arccorp":   { "angle": 140, "ring": 3 },
+        "lyria":     { "parent": "arccorp", "moonAngle": 90,  "moonDist": 0.45 },
+        "wala":      { "parent": "arccorp", "moonAngle": 215, "moonDist": 0.60 },
+
+        "microtech": { "angle": 31,  "ring": 4 },
+        "calliope":  { "parent": "microtech", "moonAngle": 250, "moonDist": 0.45 },
+        "clio":      { "parent": "microtech", "moonAngle": 110, "moonDist": 0.58 },
+        "euterpe":   { "parent": "microtech", "moonAngle": 175, "moonDist": 0.71 }
+      },
+      "gates": {
+        "pyro":  { "name": "Pyro Gateway",  "angle": 174, "ring": 3,   "to": "Pyro" },
+        "nyx":   { "name": "Nyx Gateway",   "angle": 301, "edge": true, "to": "Nyx" },
+        "terra": { "name": "Terra Gateway", "angle": 97,  "edge": true, "to": null, "note": "Future system — landmark only." }
+      },
+      "belts": {
+        "aaron_halo": { "name": "Aaron Halo", "belt_radius": 2.4 }
+      },
+      "landmarks": {
+        "hur_l1": { "name": "HUR-L1", "angle": 85,  "ring": 0.70, "station": true, "ref": true },
+        "hur_l2": { "name": "HUR-L2", "angle": 85,  "ring": 1.30, "station": true, "ref": true },
+        "hur_l3": { "name": "HUR-L3", "angle": 265, "ring": 1,    "station": true },
+        "hur_l4": { "name": "HUR-L4", "angle": 25,  "ring": 1,    "station": true },
+        "hur_l5": { "name": "HUR-L5", "angle": 145, "ring": 1,    "station": true },
+        "cru_l1": { "name": "CRU-L1", "angle": 266, "ring": 1.70, "station": true, "ref": true },
+        "cru_l2": { "name": "CRU-L2", "angle": 266, "ring": 2.30, "station": true },
+        "cru_l3": { "name": "CRU-L3", "angle": 86,  "ring": 2,    "station": true },
+        "cru_l4": { "name": "CRU-L4", "angle": 206, "ring": 2,    "station": true },
+        "cru_l5": { "name": "CRU-L5", "angle": 326, "ring": 2,    "station": true },
+        "arc_l1": { "name": "ARC-L1", "angle": 140, "ring": 2.70, "station": true, "ref": true },
+        "arc_l2": { "name": "ARC-L2", "angle": 140, "ring": 3.30, "station": true, "ref": true },
+        "arc_l3": { "name": "ARC-L3", "angle": 320, "ring": 3,    "station": true },
+        "arc_l4": { "name": "ARC-L4", "angle": 80,  "ring": 3,    "station": true, "ref": true },
+        "arc_l5": { "name": "ARC-L5", "angle": 200, "ring": 3,    "station": true },
+        "mic_l1": { "name": "MIC-L1", "angle": 31,  "ring": 3.70, "station": true, "ref": true },
+        "mic_l2": { "name": "MIC-L2", "angle": 31,  "ring": 4.30, "station": true, "ref": true },
+        "mic_l3": { "name": "MIC-L3", "angle": 211, "ring": 4,    "station": true },
+        "mic_l4": { "name": "MIC-L4", "angle": 331, "ring": 4,    "station": true },
+        "mic_l5": { "name": "MIC-L5", "angle": 91,  "ring": 4,    "station": true, "ref": true }
+      }
+    },
+
+    "Pyro": {
+      "config": { "ring_scale": 33, "edge_scale": 41, "maxRing": 7 },
+      "zones": {
+        "checkmate":   { "angle": 86,  "ring": 2, "station": true },
+        "monox":       { "angle": 137, "ring": 2 },
+        "orbituary":   { "angle": 274, "ring": 4, "station": true },
+        "bloom":       { "angle": 284, "ring": 4 },
+        "pyro4":       { "angle": 169, "ring": 5 },
+        "pyro5":       { "angle": 180, "ring": 5 },
+        "ruinstation": { "angle": 314, "ring": 7, "station": true },
+        "terminus":    { "angle": 320, "ring": 7, "hasRing": true }
+      },
+      "gates": {
+        "stanton": { "name": "Stanton Gateway", "angle": 39,  "ring": 6, "to": "Stanton" },
+        "nyx":     { "name": "Nyx Gateway",     "angle": 225, "ring": 6, "to": "Nyx" }
+      },
+      "belts": {},
+      "landmarks": {
+        "starlight": { "name": "Starlight",          "angle": 290, "ring": 3, "station": true },
+        "patchcity": { "name": "Patch City",         "angle": 114, "ring": 4, "station": true },
+        "ratsnest":  { "name": "Rat's Nest",         "angle": 257, "ring": 5, "station": true },
+        "rodsfuel":  { "name": "Rod's Fuel",         "angle": 106, "ring": 5, "station": true },
+        "gaslight":  { "name": "Gaslight",           "angle": 180, "ring": 6, "station": true },
+        "dudley":    { "name": "Dudley & Daughters", "angle": 240, "ring": 7, "station": true },
+        "endgame":   { "name": "End Game",           "angle": 120, "ring": 7, "station": true },
+        "megumi":    { "name": "Megumi",             "angle": 22,  "ring": 7, "station": true }
+      }
+    },
+
+    "Nyx": {
+      "config": { "ring_scale": 34, "edge_scale": 43, "maxRing": 4 },
+      "zones": {
+        "levski": { "angle": 234, "ring": 3, "station": true }
+      },
+      "gates": {
+        "pyro":    { "name": "Pyro Gateway",    "angle": 320, "ring": 4, "to": "Pyro" },
+        "stanton": { "name": "Stanton Gateway", "angle": 223, "ring": 4, "to": "Stanton" }
+      },
+      "belts": {
+        "glaciem": { "name": "Glaciem Ring", "ring": 3 },
+        "keeger":  { "name": "Keeger Belt",  "belt_radius": 5.9 }
+      },
+      "landmarks": {
+        "psa": { "name": "People Service Alpha",   "angle": 254, "edge": true, "station": true },
+        "psd": { "name": "People Service Delta",   "angle": 184, "edge": true, "station": true },
+        "pst": { "name": "People Service Tango",   "angle": 125, "edge": true, "station": true },
+        "psl": { "name": "People Service Lima",    "angle": 50,  "edge": true, "station": true }
+      }
+    }
+  }
+}

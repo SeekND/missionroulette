@@ -1,0 +1,177 @@
+{
+  "_meta": {
+    "purpose": "Org-authored production projects — the campaign's mid-tier missions. Every gate and grant is a BOARD-ONLY campaign effect on this page; costs are paid from the org chest (materials + ORG funds, campaign fiction — never real money or cargo).",
+    "updated": "2026-08-06",
+    "gates": "site = a commission site the org must hold (capital = the Orison Shipyards at Crusader; tech = the Fab Labs at microTech). needsOres = the org must hold at least one zone bearing each named ore — ores are keys, not cargo. after = prerequisite project.",
+    "flagship": "The tier-3 chain is the season spine: complete Fit Out & Commission to win the season. Naming the actual census hull arrives with the fleet update."
+  },
+  "projects": {
+    "signal-uplink": {
+      "name": "Signal Uplink",
+      "tier": 1,
+      "cost": {
+        "funds": 250000,
+        "intel": 3
+      },
+      "grant": {
+        "text": "+1 intel to the HQ stores every day.",
+        "effect": {
+          "income": {
+            "intel": 1
+          }
+        }
+      }
+    },
+    "convoy-charter": {
+      "name": "Convoy Charter",
+      "tier": 1,
+      "cost": {
+        "funds": 500000,
+        "supplies": 8
+      },
+      "grant": {
+        "text": "Hauling contracts count +10% more control.",
+        "effect": {
+          "gainMult": {
+            "bucket": "supply",
+            "scope": "org",
+            "mult": 1.1
+          }
+        }
+      }
+    },
+    "munitions-stockpile": {
+      "name": "Munitions Stockpile",
+      "tier": 1,
+      "cost": {
+        "funds": 500000,
+        "metals": 8
+      },
+      "grant": {
+        "text": "Combat contracts count +10% more control.",
+        "effect": {
+          "gainMult": {
+            "bucket": "combat",
+            "scope": "org",
+            "mult": 1.1
+          }
+        }
+      }
+    },
+    "armored-convoys": {
+      "name": "Armored Convoys",
+      "tier": 2,
+      "needsOres": [
+        "Ouratite"
+      ],
+      "cost": {
+        "funds": 1000000,
+        "metals": 10,
+        "supplies": 10
+      },
+      "grant": {
+        "text": "Raids land softer everywhere — control losses reduced 25%.",
+        "effect": {
+          "raidPenaltyMult": 0.75
+        }
+      }
+    },
+    "fabrication-line": {
+      "name": "Fabrication Line",
+      "tier": 2,
+      "site": "tech",
+      "needsOres": [
+        "Hephaestanite"
+      ],
+      "cost": {
+        "funds": 2000000,
+        "metals": 15,
+        "components": 10
+      },
+      "grant": {
+        "text": "+1 components to the HQ stores every day.",
+        "effect": {
+          "income": {
+            "components": 1
+          }
+        }
+      }
+    },
+    "sensor-lattice": {
+      "name": "Sensor Lattice",
+      "tier": 2,
+      "site": "tech",
+      "needsOres": [
+        "Aslarite"
+      ],
+      "cost": {
+        "funds": 1500000,
+        "components": 8,
+        "intel": 5
+      },
+      "grant": {
+        "text": "Tomorrow's Director move is always shown.",
+        "effect": {
+          "telegraphFree": true
+        }
+      }
+    },
+    "flagship-keel": {
+      "name": "Flagship — Lay the Keel",
+      "tier": 3,
+      "site": "capital",
+      "cost": {
+        "funds": 5000000,
+        "metals": 25
+      },
+      "grant": {
+        "text": "The keel is laid in the Orison yards. The org has a hull to finish."
+      }
+    },
+    "flagship-drive": {
+      "name": "Flagship — Light the Drive",
+      "tier": 3,
+      "site": "capital",
+      "after": "flagship-keel",
+      "needsOres": [
+        "Quantanium"
+      ],
+      "cost": {
+        "funds": 5000000,
+        "metals": 15,
+        "supplies": 10
+      },
+      "grant": {
+        "text": "A Quantanium heart beats in the hull."
+      }
+    },
+    "flagship-armor": {
+      "name": "Flagship — Plate the Armor",
+      "tier": 3,
+      "site": "capital",
+      "after": "flagship-drive",
+      "cost": {
+        "funds": 5000000,
+        "metals": 30
+      },
+      "grant": {
+        "text": "The hull is plated. She can take a hit."
+      }
+    },
+    "flagship-commission": {
+      "name": "Flagship — Fit Out & Commission",
+      "tier": 3,
+      "site": "capital",
+      "after": "flagship-armor",
+      "cost": {
+        "funds": 10000000,
+        "components": 20,
+        "supplies": 15
+      },
+      "grant": {
+        "text": "The flagship is commissioned. The season is won.",
+        "victory": true
+      }
+    }
+  }
+}

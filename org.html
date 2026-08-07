@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Org Campaign — Mission Roulette</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="org-style.css?v=29">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚑</text></svg>">
+</head>
+<body>
+  <a class="org-home" href="index.html">← Mission Roulette</a>
+
+  <header class="org-head" id="org-head" style="display:none">
+    <div class="oh-left">
+      <h1 id="oh-name">Campaign</h1>
+      <span class="sys-chip" id="oh-sys">Stanton</span>
+      <span class="sys-chip tier-chip" id="oh-tier"></span>
+      <nav class="oh-tabs">
+        <button data-info="members">Members</button>
+        <button data-info="fleet">Fleet</button>
+        <button data-info="projects">Projects</button>
+        <button data-info="chronicle">War log</button>
+        <button data-info="admin" style="display:none">Admin</button>
+        <button data-info="help" title="How to play">?</button>
+      </nav>
+    </div>
+    <div class="oh-right">
+      <span class="sys-chip net-chip" id="oh-net" style="display:none"></span>
+      <span class="oh-stat" id="oh-tick">Day 1</span>
+      <span class="oh-chest" id="oh-chest"></span>
+      <span class="oh-callsign" id="oh-callsign"></span>
+    </div>
+  </header>
+
+  <main class="org-main" id="org-main" style="display:none">
+    <section class="org-map-wrap">
+      <svg id="org-map" viewBox="0 0 1000 1000" role="img" aria-label="Campaign map"></svg>
+      <div class="side-card map-panel" id="panel" style="display:none"></div>
+    </section>
+
+    <aside class="org-side">
+      <div class="side-card ride-card" id="ride-card" style="display:none"></div>
+      <div class="side-card my-contract" id="my-contract" style="display:none"></div>
+      <div class="side-card" id="offers-card" style="display:none"></div>
+      <div class="side-card" id="pushes-card"></div>
+      <div class="side-actions">
+        <button class="btn btn-primary" id="btn-log">✓ Log a completed contract</button>
+      </div>
+      <div class="side-tools">
+        <button class="linklike" id="btn-export">export log</button>
+        <label class="linklike" for="import-file">import</label>
+        <input type="file" id="import-file" accept=".json" style="display:none">
+        <button class="linklike danger" id="btn-reset">reset demo</button>
+        <button class="linklike danger" id="btn-leave" style="display:none">leave campaign</button>
+      </div>
+    </aside>
+  </main>
+
+  <div id="modal-root"></div>
+
+  <footer class="org-disclaimer">Unofficial fan tool. Star Citizen® is a registered trademark of Cloud Imperium Games. Not affiliated with or endorsed by CIG.</footer>
+
+  <script src="org-state.js?v=28"></script>
+  <script src="org-net.js?v=3"></script>
+  <script src="org-board.js?v=45"></script>
+</body>
+</html>
