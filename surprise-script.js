@@ -217,6 +217,7 @@
           <li>Travel to <b>${esc(loc)}</b> in <b>${esc(sys)}</b> System <span class="dim">· (${restockTxt})</span>.</li>
           <li>Open the Contracts Manager and pick up ${art(p.name)} <b>${esc(p.name)}</b> job${catClause}.</li>
         </ol>
+        <p class="mnote">If that exact contract isn't listed, take the closest one in the same category — boards rotate.</p>
         ${p.note && (!p.noteSys || p.noteSys.includes(sys)) ? `<p class="mnote">${esc(p.note)}</p>` : ''}
         ${action}
         <button id="done" class="mcard-complete">✓ Mission complete</button>

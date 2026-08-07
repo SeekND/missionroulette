@@ -284,7 +284,13 @@
     return (t && t[loc]) || loc;
   }
 
-  // roll a beat from the REAL provider data (same source as Surprise Me), gated by calling + path + pacifist
+  // system reach ramps with rank — ease players in: R0–R1 stay in your STARTING system, then widen outward (Pyro added last). Only widen early if the calling has no local content.
+  const SYS_ADD_ORDER = { Stanton: ['Stanton','Nyx','Pyro'], Nyx: ['Nyx','Stanton','Pyro'] };
+  const SYS_REACH = { 0:1, 1:1, 2:2, 3:3, 4:3 };
+  const startSystem = () => /nyx|levski/i.test(String((run && run.startLoc) || '')) ? 'Nyx' : 'Stanton';
+  const allowedSystems = rank => (SYS_ADD_ORDER[startSystem()] || SYS_ADD_ORDER.Stanton).slice(0, SYS_REACH[rank] ?? 3);
+
+  // roll a beat from the REAL provider data (same source as Surprise Me), gated by calling + path + pacifist + system reach
   function rollBeat() {
     const c = run.cfg;
     if (run.rank === 4) return { hero: true };
@@ -305,6 +311,9 @@
     if (!pairs.length && c.path === 'outlaw') pairs = gather('legal');   // outlaw with no illegal offer for this calling → clean work
     if (!pairs.length) { types = ['hauling']; pairs = gather('legal'); }  // ultimate fallback — hauling always has legal providers, so the story never dead-ends
     if (!pairs.length) return { empty: true };
+    const reach = new Set(allowedSystems(run.rank));                       // stay near your start early; travel more as you rank up
+    const inReach = pairs.filter(x => reach.has(x.sys));
+    if (inReach.length) pairs = inReach;                                   // only widen early if the calling has nothing in reach (e.g. investigation is Stanton-only)
     if (pairs.length > 1 && run.lastProv) { const nx = pairs.filter(x => x.p.name !== run.lastProv); if (nx.length) pairs = nx; }
     const pick = rand(pairs);
     run.lastProv = pick.p.name;
@@ -395,6 +404,7 @@
           <li>Travel to <b>${esc(b.loc)}</b> in <b>${esc(b.sys)}</b> System <span class="dim">· (${restockTxt})</span>.</li>
           <li>Open the Contracts Manager and take ${art} <b>${esc(b.provider)}</b> ${typeWord}contract${cat}.</li>
         </ol>
+        <p class="beat-note">If that exact contract isn't listed, take the closest one in the same category — boards rotate.</p>
         ${diff ? `<p class="beat-diff">🎯 ${diff}</p>` : ''}
         ${b.note?`<p class="beat-note">${esc(b.note)}</p>`:''}
         <div class="beat-ship">🚀 Fly your <b>${esc(run.ship)}</b> <span class="dim">— your R${run.rank} rental</span>.</div>`;
