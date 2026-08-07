@@ -776,13 +776,16 @@
         `(current rules block, webhook how-to, fresh codes)</div>` +
         sect('📡 Battle reports') +
         (state.report
-          ? `<div class="panel-hint" style="font-size:12.5px">✓ Wired to Discord — each day's digest posts when the first member ` +
-            `opens the board after the day rolls. A silent channel means nobody's playing.</div>` +
+          ? `<div class="panel-hint" style="font-size:12.5px">✓ Wired to Discord (a confirmation was posted to the channel when it connected). ` +
+            `Each day's digest posts when the first member opens the board after the day rolls — a silent channel means nobody's playing.</div>` +
+            `<button class="linklike" id="adm-report-test">send a test post</button> ` +
             `<button class="linklike danger" id="adm-report-off">disconnect reports</button>`
           : `<div class="panel-hint" style="font-size:12.5px">Post a daily digest to your org's Discord: channel settings → Integrations → ` +
-            `Webhooks → New Webhook → copy its URL and paste it here. Visible to code-holders only, never the public web.</div>` +
+            `Webhooks → New Webhook → copy its URL and paste it here. Wiring sends a confirmation post to the channel — ` +
+            `if Discord refuses the URL, nothing is saved. Visible to code-holders only, never the public web.</div>` +
             `<div class="pl-row" style="margin-top:6px"><input class="f-input" id="adm-report-url" placeholder="https://discord.com/api/webhooks/…">` +
-            `<button class="btn btn-mini" id="adm-report-on">wire it</button></div>`)
+            `<button class="btn btn-mini" id="adm-report-on">wire it</button></div>` +
+            `<div class="f-note" id="adm-report-note"></div>`)
       : sect('🔗 Multiplayer') +
         `<div class="panel-hint" style="font-size:12.5px">This is the local demo — one browser only. ` +
         `<a class="linklike" href="org-setup.html">Set up your org's shared campaign →</a></div>`;
@@ -799,12 +802,33 @@
     const repOn = el.querySelector('#adm-report-on');
     if (repOn) repOn.addEventListener('click', () => {
       const url = $('adm-report-url').value.trim();
+      const note = $('adm-report-note');
       if (!/^https:\/\/(discord\.com|discordapp\.com)\/api\/webhooks\//.test(url)) {
-        $('adm-report-url').value = '';
-        $('adm-report-url').placeholder = '⚠ that is not a Discord webhook URL';
+        note.textContent = '⚠ That is not a Discord webhook URL — it starts with https://discord.com/api/webhooks/…';
         return;
       }
-      store.append(OrgState.newEvent('report.config', callsign(), { webhook: url }));
+      // prove the pipe before saving anything: Discord must accept a post first
+      repOn.disabled = true;
+      repOn.textContent = 'testing…';
+      note.textContent = '';
+      postToDiscord(url,
+        `📡 **${state.config.name || 'Org Campaign'}** — battle reports are now wired to this channel. ` +
+        `Daily digests land here as each campaign day closes. (Connection test — it worked.)`)
+        .then(() => {
+          store.append(OrgState.newEvent('report.config', callsign(), { webhook: url }));
+        })
+        .catch(() => {
+          repOn.disabled = false;
+          repOn.textContent = 'wire it';
+          note.textContent = '⚠ Discord refused that webhook — check the URL, or the webhook may have been deleted. Nothing was saved.';
+        });
+    });
+    const repTest = el.querySelector('#adm-report-test');
+    if (repTest) repTest.addEventListener('click', () => {
+      repTest.textContent = 'sending…';
+      postToDiscord(state.report.webhook, `📡 Test post — battle reports are wired to this channel and working.`)
+        .then(() => { repTest.textContent = '✓ posted — check the channel'; })
+        .catch(() => { repTest.textContent = '⚠ failed — the webhook may be deleted; reconnect it'; });
     });
     const repOff = el.querySelector('#adm-report-off');
     if (repOff) repOff.addEventListener('click', (e) => armConfirm(e.currentTarget, () =>
@@ -1376,7 +1400,8 @@
   }
   function postToDiscord(webhook, content) {
     // form-encoded payload_json avoids a CORS preflight — Discord accepts it
-    return fetch(webhook, { method: 'POST', body: new URLSearchParams({ payload_json: JSON.stringify({ content }) }) });
+    return fetch(webhook, { method: 'POST', body: new URLSearchParams({ payload_json: JSON.stringify({ content }) }) })
+      .then(r => { if (!r.ok) throw new Error('Discord answered ' + r.status); return r; });
   }
   function maybeSendReport() {
     if (!netMode || !state || !state.report || !store.claimOnce) return;
