@@ -146,14 +146,14 @@
     if (h) { h.textContent = aspSel.length ? `${ASP_LABEL[aspSel[0]]} chosen` : 'tap your main calling, then up to 2 more'; h.classList.remove('warn'); }
     updateMods();
   }
-  // Pacifist can't pair with a combat main (Fighter Pilot / Mercenary) — the calling AND its finale are combat, which would dead-end
-  const COMBAT_MAIN = new Set(['bounty','merc']);
+  // Pacifist can't pair with a combat calling (Fighter Pilot / Mercenary) in ANY slot — main OR secondary. Those beats/finales are combat, which a pacifist can't do; the old check only looked at the main, so a combat secondary slipped through.
+  const COMBAT_ASP = new Set(['bounty','merc']);
   function updateMods() {
     const pac = $('#mods-row [data-mod="pacifist"]'); if (!pac) return;
-    const combatMain = COMBAT_MAIN.has(aspSel[0]);
-    pac.classList.toggle('disabled', combatMain);
-    if (combatMain) pac.classList.remove('on');
-    pac.title = combatMain ? "Pacifist doesn't fit a combat calling — choose a peaceful main" : '';
+    const hasCombat = aspSel.some(a => COMBAT_ASP.has(a));   // any combat calling picked, not just the main
+    pac.classList.toggle('disabled', hasCombat);
+    if (hasCombat) pac.classList.remove('on');
+    pac.title = hasCombat ? "Pacifist doesn't fit a combat calling — drop Fighter Pilot / Mercenary first" : '';
   }
   function refreshResume(){ const s=loadSaved(); $('#resume-line').hidden = !s; }
 
@@ -163,7 +163,8 @@
     const primary = aspSel[0];
     const secondary = [...new Set(aspSel.slice(1).filter(v => v !== primary))];
     const path = ($('#path-row .seg-opt.on') || {}).dataset?.path || 'lawful';
-    const modifiers = $$('#mods-row .mod-card.on').map(b => b.dataset.mod);
+    let modifiers = $$('#mods-row .mod-card.on').map(b => b.dataset.mod);
+    if ([primary, ...secondary].some(a => COMBAT_ASP.has(a))) modifiers = modifiers.filter(m => m !== 'pacifist');   // safety net: never save Pacifist alongside a combat calling, whatever the UI state
     newRun({ primary, secondary, path, modifiers, home });
     briefing();
   }
