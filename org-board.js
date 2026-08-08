@@ -92,8 +92,16 @@
     state = OrgState.fold(D.regions, events, Date.now(),
       { projects: D.projects, ships: D.ships, rentals: D.rentals, ranks: D.ranks, heroes: D.heroes });
     if (!state) { showSetup(); return; }
-    // close open modals only when the newest event is OUR OWN action — in a
-    // shared campaign, someone else's contract must not eat your open dialog
+    // a campaign exists: any setup/create/join-code screen is stale by
+    // definition — close it no matter who acted last (heals boot races and
+    // the two-founders-racing case)
+    if (setupOpen) {
+      setupOpen = false;
+      modalSticky = false;
+      closeModal();
+    }
+    // otherwise close open modals only when the newest event is OUR OWN action —
+    // in a shared campaign, someone else's contract must not eat your open dialog
     const lastMine = !events.length || OrgState.normName(events[events.length - 1].a) === callsign();
     if (lastMine) {
       modalSticky = false;
@@ -1887,9 +1895,11 @@
   }
 
   // ── Startup (no campaign yet): 1 · JOIN with a code, 2 · SET UP a new one ─
+  let setupOpen = false;
   function showSetup() {
     $('org-head').style.display = 'none';
     $('org-main').style.display = 'none';
+    setupOpen = true;
     if (netMode) { showCreate(true); return; } // shared board, path empty → you're first in
     showStart();
   }

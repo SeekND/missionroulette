@@ -96,6 +96,10 @@
       }
     });
     db.ref('.info/connected').on('value', s => note(s.val() ? 'live' : 'offline'));
+    // don't hand the board an empty log while history is still in flight —
+    // once('value') resolves only after every existing child_added has fired,
+    // so the first subscribe callback always carries the real campaign
+    await new Promise((resolve) => ref.once('value', resolve, resolve));
 
     const strip = (e) => {
       const c = Object.assign({}, e);
