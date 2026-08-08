@@ -1911,7 +1911,9 @@
       `<button type="button" class="start-card" id="st-join"><span class="start-n">1</span><span class="start-body">` +
       `<b>Join with your org's code</b><br><span>Organizer or member — paste the join code. If the board is still empty, you set the campaign up; otherwise you enlist.</span></span></button>` +
       `<button type="button" class="start-card" id="st-create"><span class="start-n">2</span><span class="start-body">` +
-      `<b>Try it solo</b><br><span>A demo campaign that lives in this browser — no code, no database. Good for kicking the tires.</span></span></button>`,
+      `<b>Try it solo</b><br><span>A demo campaign that lives in this browser — no code, no database. Good for kicking the tires.</span></span></button>` +
+      `<div class="f-note" style="margin-top:12px">Leading an org and want a board of your own? The ` +
+      `<a class="linklike" href="org-setup.html">ten-minute organizer guide</a> sets up your org's shared campaign and hands you the join code.</div>`,
       true
     );
     $('st-join').addEventListener('click', showJoinCode);
@@ -1956,8 +1958,8 @@
         ? `<h2>You're first in — set up the campaign</h2>` +
           `<div class="m-sub">This board is shared: everyone with the join code lands here. Six quick steps and the war room opens for the whole org.</div>`
         : `<h2>2 · Solo demo campaign</h2>` +
-          `<div class="m-sub">Six quick steps and the war room opens. This demo lives in this browser only — ` +
-          `your org's shared campaign is joined through door 1, with a code from your organizer.</div>`) +
+          `<div class="m-sub">Six quick steps and the war room opens. This demo lives in this browser only — to play it with your org, ` +
+          `the <a class="linklike" href="org-setup.html">organizer guide</a> builds you a shared board, then you come back through door 1 with the code.</div>`) +
       `<label class="f-label">1 · Name the campaign</label><input class="f-input" id="su-name" value="The Stanton Campaign">` +
       `<label class="f-label">2 · How many days will it last?</label>` +
       `<div class="seg-row" id="su-days">` +
