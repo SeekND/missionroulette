@@ -224,173 +224,23 @@
   }
 
   // ── Map ─────────────────────────────────────────────────────────────────
-  function lerpColor(a, b, t) {
-    const pa = [1, 3, 5].map(i => parseInt(a.substr(i, 2), 16));
-    const pb = [1, 3, 5].map(i => parseInt(b.substr(i, 2), 16));
-    const m = pa.map((v, i) => Math.round(v + (pb[i] - v) * Math.max(0, Math.min(1, t))));
-    return '#' + m.map(v => v.toString(16).padStart(2, '0')).join('');
-  }
-
-  function mapGeometry() {
-    const cfg = sysB.config;
-    const spacing = 1000 * cfg.ring_scale / 100 / (cfg.maxRing + 0.5);
-    const edgeR = 1000 * cfg.edge_scale / 100;
-    const toXY = (angle, radius) => ({
-      x: 500 + Math.cos((angle - 90) * Math.PI / 180) * radius,
-      y: 500 + Math.sin((angle - 90) * Math.PI / 180) * radius,
-    });
-    const pos = {};
-    for (const [zid, z] of Object.entries(sysB.zones)) {
-      if (z.parent) continue;
-      pos[zid] = toXY(z.angle, z.edge ? edgeR : z.ring * spacing);
-    }
-    for (const [zid, z] of Object.entries(sysB.zones)) {
-      if (!z.parent) continue;
-      const p = pos[z.parent];
-      const off = toXY(z.moonAngle, z.moonDist * spacing);
-      pos[zid] = { x: p.x + (off.x - 500), y: p.y + (off.y - 500), parent: z.parent };
-    }
-    return { spacing, edgeR, toXY, pos };
-  }
-
+  // The map is drawn by org-map.js — shared with the public battle map, so the
+  // two can never drift apart. Here we add the war room's interactivity.
   function renderMap() {
     const svg = $('org-map');
-    const { spacing, edgeR, toXY, pos } = mapGeometry();
-    const cfg = sysB.config;
-    let out = [];
-
-    // orbit rings
-    for (let r = 1; r <= cfg.maxRing; r++) out.push(`<circle class="org-ring" cx="500" cy="500" r="${(r * spacing).toFixed(1)}"/>`);
-    // belts
-    for (const b of Object.values(sysB.belts || {})) {
-      const r = (b.belt_radius != null ? b.belt_radius : b.ring) * spacing;
-      out.push(`<circle class="org-belt" cx="500" cy="500" r="${r.toFixed(1)}"/>`);
-    }
-    // star
-    out.push(`<circle cx="500" cy="500" r="7" fill="#d8b56a" opacity=".85"/>`);
-
-    // gates — sealed in the Stanton-only demo season
-    for (const g of Object.values(sysB.gates || {})) {
-      const p = toXY(g.angle, g.edge ? edgeR : g.ring * spacing);
-      out.push(`<g class="org-gate" opacity=".35">` +
-        `<rect x="${p.x - 6}" y="${p.y - 6}" width="12" height="12" transform="rotate(45 ${p.x} ${p.y})"/>` +
-        `<text x="${p.x}" y="${p.y - 12}" text-anchor="middle">${esc(g.name)} · sealed</text></g>`);
-    }
-    // landmarks — labels start below; a measured post-pass moves each to a free side
-    for (const l of Object.values(sysB.landmarks || {})) {
-      const p = toXY(l.angle, l.edge ? edgeR : l.ring * spacing);
-      out.push(`<g class="org-landmark${l.ref ? ' ref' : ''}"><rect x="${p.x - 3}" y="${p.y - 3}" width="6" height="6"/>` +
-        `<text data-px="${p.x}" data-py="${p.y}" x="${p.x}" y="${p.y + 14}" text-anchor="middle">${esc(l.name)}</text></g>`);
-    }
-
-    // satellite tethers under markers
-    for (const [zid, z] of Object.entries(sysB.zones)) {
-      if (!z.parent) continue;
-      const a = pos[z.parent], b = pos[zid];
-      out.push(`<line class="org-tether" x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"/>`);
-    }
-
-    // zones
-    const raided = new Set(((state.director && state.director.active) || [])
-      .filter(m => m.kind === 'raid').map(m => m.zone));
-    for (const [zid, zb] of Object.entries(sysB.zones)) {
-      const zs = state.zones[zid];
-      if (!zs) continue;
-      const def = sysR.regions[zs.region].zones[zid];
-      const p = pos[zid];
-      const isPlanet = !zb.parent && !zb.station;
-      const r = isPlanet ? 20 : (zb.station ? 9 : 11);
-      // the state color language: grey = locked · amber = beachhead (mining open) · green = secured
-      const fill = zs.held ? '#3fb950' : zs.control > 0 ? lerpColor('#4a3a1a', '#ffb454', zs.control / 100) : '#232838';
-      const cls = 'zone' + (zs.held ? ' held' : '') + (selected === zid ? ' selected' : '') + (raided.has(zid) ? ' raided' : '');
-      let marker;
-      if (zb.station) {
-        marker = `<rect class="z-marker" x="${p.x - r}" y="${p.y - r}" width="${r * 2}" height="${r * 2}" fill="${fill}" transform="rotate(45 ${p.x} ${p.y})"/>`;
-      } else {
-        marker = `<circle class="z-marker" cx="${p.x}" cy="${p.y}" r="${r}" fill="${fill}"/>`;
-      }
-      const deco = (zb.hasRing ? `<circle class="z-ring-deco" cx="${p.x}" cy="${p.y}" r="${r + 6}"/>` : '') +
-        (raided.has(zid) ? `<circle class="z-threat" cx="${p.x}" cy="${p.y}" r="${r + 13}"/>` : '');
-      const sel = `<circle class="z-sel" cx="${p.x}" cy="${p.y}" r="${r + 9}"/>`;
-      const pct = zs.held ? 'HELD' : (zs.control > 0 ? Math.round(zs.control) + '%' : '');
-      const target = (state.fronts && state.fronts[zid] ? '<tspan class="tsp-front"> ⚑</tspan>' : '') +
-        (raided.has(zid) ? '<tspan class="tsp-threat"> ⚠</tspan>' : '');
-      // planets label above; satellites label radially away from their parent so families fan out
-      let lx = p.x, ly = p.y - r - 8, anchor = 'middle', labelCls = 'z-label', pctX = p.x, pctY = p.y + r + 16, pctAnchor = 'middle';
-      if (zb.parent) {
-        const pp = pos[zb.parent];
-        const dx = p.x - pp.x, dy = p.y - pp.y, len = Math.hypot(dx, dy) || 1;
-        const ux = dx / len, uy = dy / len;
-        lx = p.x + ux * (r + 13);
-        ly = p.y + uy * (r + 13) + (uy > 0.3 ? 10 : (uy < -0.3 ? -2 : 4));
-        anchor = ux > 0.35 ? 'start' : (ux < -0.35 ? 'end' : 'middle');
-        labelCls = 'z-label sat';
-        pctX = lx; pctY = ly + 13; pctAnchor = anchor;
-      }
-      out.push(`<g class="${cls}" data-zone="${zid}">${deco}${sel}${marker}` +
-        `<text class="${labelCls}" x="${lx}" y="${ly}" text-anchor="${anchor}">${esc(def.name)}${target}</text>` +
-        (pct ? `<text class="z-pct" x="${pctX}" y="${pctY}" text-anchor="${pctAnchor}">${pct}</text>` : '') +
-        `</g>`);
-    }
-
-    // legend — the color language, taught on the map itself
-    out.push(`<g class="map-legend">` +
-      `<circle cx="24" cy="974" r="7" fill="#232838" stroke="#2e3447"/><text x="37" y="978">locked</text>` +
-      `<circle cx="112" cy="974" r="7" fill="#ffb454"/><text x="125" y="978">beachhead — mining open</text>` +
-      `<circle cx="352" cy="974" r="7" fill="#3fb950"/><text x="365" y="978">secured</text></g>`);
-
-    svg.innerHTML = out.join('');
-    placeLandmarkLabels(svg);
+    OrgMap.render(svg, {
+      board: sysB, regions: D.regions, system: state.config.system,
+      zones: state.zones, fronts: state.fronts,
+      raided: ((state.director && state.director.active) || [])
+        .filter(m => m.kind === 'raid').map(m => m.zone),
+      selected,
+    });
     svg.querySelectorAll('.zone').forEach(g =>
       g.addEventListener('click', () => {
         selected = (infoView === 'zone' && selected === g.dataset.zone) ? null : g.dataset.zone;
         infoView = selected ? 'zone' : null;
         renderMap(); renderInfo(); updateTabs();
       }));
-  }
-
-  // Measured label placement: try below / above / right / left of the marker and
-  // keep the first side that doesn't overlap any existing label or marker box.
-  function placeLandmarkLabels(svg) {
-    const overlap = (a, b) =>
-      Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x) > 1 &&
-      Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y) > 1;
-    const obstacles = [];
-    svg.querySelectorAll('.zone text, .zone .z-marker, .org-gate text, .org-landmark rect').forEach(el =>
-      obstacles.push(el.getBBox()));
-    for (const t of svg.querySelectorAll('.org-landmark text')) {
-      const px = parseFloat(t.dataset.px), py = parseFloat(t.dataset.py);
-      const candidates = [
-        { x: px, y: py + 14, a: 'middle' },
-        { x: px, y: py - 8, a: 'middle' },
-        { x: px + 7, y: py + 3.5, a: 'start' },
-        { x: px - 7, y: py + 3.5, a: 'end' },
-        { x: px, y: py + 26, a: 'middle' },
-        { x: px, y: py - 20, a: 'middle' },
-        { x: px + 17, y: py + 3.5, a: 'start' },
-        { x: px - 17, y: py + 3.5, a: 'end' },
-        { x: px + 9, y: py + 15, a: 'start' },
-        { x: px - 9, y: py + 15, a: 'end' },
-        { x: px + 9, y: py - 10, a: 'start' },
-        { x: px - 9, y: py - 10, a: 'end' },
-        { x: px + 9, y: py + 27, a: 'start' },
-        { x: px - 9, y: py + 27, a: 'end' },
-      ];
-      let placed = null, leastBad = null, leastArea = Infinity;
-      for (const c of candidates) {
-        t.setAttribute('x', c.x); t.setAttribute('y', c.y); t.setAttribute('text-anchor', c.a);
-        const box = t.getBBox();
-        let bad = 0;
-        for (const o of obstacles) {
-          if (overlap(box, o)) bad += Math.min(box.x + box.width, o.x + o.width) - Math.max(box.x, o.x);
-        }
-        if (bad === 0) { placed = c; break; }
-        if (bad < leastArea) { leastArea = bad; leastBad = c; }
-      }
-      const c = placed || leastBad;
-      t.setAttribute('x', c.x); t.setAttribute('y', c.y); t.setAttribute('text-anchor', c.a);
-      obstacles.push(t.getBBox());
-    }
   }
 
   // ── Zone panel ──────────────────────────────────────────────────────────
@@ -575,10 +425,18 @@
   function renderChronicleInfo(el, close) {
     const lines = state.chronicle.slice(-40).reverse();
     el.innerHTML = close +
-      `<div class="card-title ct-row">War log <button class="linklike" id="btn-copylog">copy for discord</button></div>` +
+      `<div class="card-title ct-row">War log <span><button class="linklike" id="btn-copymap">copy map link</button> ` +
+      `<button class="linklike" id="btn-copylog">copy for discord</button></span></div>` +
       `<div id="chronicle">` + (lines.map(c =>
         `<div class="chron-line k-${c.kind}"><span class="ct">D${c.tick + 1}</span>${esc(c.text)}</div>`
       ).join('') || '<div class="chron-line">Nothing yet — the war starts with the first contract.</div>') + `</div>`;
+    el.querySelector('#btn-copymap').addEventListener('click', () => {
+      const btn = el.querySelector('#btn-copymap');
+      navigator.clipboard.writeText(buildMapLink()).then(() => {
+        btn.textContent = 'copied ✓ — anyone can open it';
+        setTimeout(() => { if (btn.isConnected) btn.textContent = 'copy map link'; }, 2200);
+      }).catch(() => { btn.textContent = 'copy failed'; });
+    });
     el.querySelector('#btn-copylog').addEventListener('click', () => {
       const btn = el.querySelector('#btn-copylog');
       navigator.clipboard.writeText(buildWarLog()).then(() => {
@@ -1403,9 +1261,17 @@
     const todays = state.chronicle.filter(c => c.tick === day).map(c => `• ${c.text}`);
     lines.push(todays.length ? todays.join('\n') : '• A quiet day — no contracts logged.');
     let out = lines.join('\n');
-    if (out.length > 1900) out = out.slice(0, 1880) + '\n… (full log in the war room)';
-    return out;
+    if (out.length > 1700) out = out.slice(0, 1680) + '\n… (full log in the war room)';
+    return out + `\n🗺 The map right now: <${buildMapLink()}>`;
   }
+  // a public snapshot link: the whole board state rides in the URL, so viewers
+  // need no code, no account and never touch the org's database
+  function buildMapLink() {
+    const base = location.href.replace(/[^/]*$/, '') + 'campaignmap.html';
+    const name = state.config.name ? '&n=' + encodeURIComponent(state.config.name) : '';
+    return `${base}?${OrgMap.encodeState(state)}${name}`;
+  }
+
   function postToDiscord(webhook, content) {
     // form-encoded payload_json avoids a CORS preflight — Discord accepts it
     return fetch(webhook, { method: 'POST', body: new URLSearchParams({ payload_json: JSON.stringify({ content }) }) })
@@ -1424,7 +1290,8 @@
         postToDiscord(state.report.webhook,
           `🚀 **${state.config.name || 'Org Campaign'}** — the season begins! ` +
           `${state.config.seasonDays} days on the clock · ${members} enlisted · ${hulls} hull${hulls === 1 ? '' : 's'} pledged.\n` +
-          `First battle report lands when day 1 closes. Good hunting.`
+          `First battle report lands when day 1 closes. Good hunting.\n` +
+          `🗺 Follow the war, no account needed: <${buildMapLink()}>`
         ).catch(err => console.error('kickoff post failed:', err));
       });
     }
@@ -1482,6 +1349,7 @@
     if (top.length) lines.push(`Season honors: ${top.join(' · ')}`);
     lines.push('────────────────');
     lines.push(ceremonyFor().replace(/<[^>]+>/g, ''));
+    lines.push(`🗺 The final map: <${buildMapLink()}>`);
     return lines.join('\n');
   }
 

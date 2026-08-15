@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Battle map — Org Campaign</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="org-style.css?v=29">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚑</text></svg>">
+  <style>
+    .bm-wrap{max-width:1000px;margin:0 auto;padding:6px 4px 30px}
+    .bm-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+    .bm-head h1{font-size:20px;font-weight:700}
+    .bm-day{font-family:var(--mono);font-size:12px;color:var(--text-dim)}
+    .bm-map{background:var(--bg-elev);border:1px solid var(--border);border-radius:12px;padding:3px}
+    .bm-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+    .bm-card{background:var(--bg-elev);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+    .bm-card h2{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--text-faint);margin-bottom:7px}
+    .bm-list{display:flex;flex-wrap:wrap;gap:5px}
+    .bm-chip{font-size:12px;padding:3px 9px;border-radius:11px;border:1px solid var(--border)}
+    .bm-chip.held{color:#3fb950;border-color:rgba(63,185,80,.5);background:rgba(63,185,80,.07)}
+    .bm-chip.beach{color:#ffb454;border-color:rgba(255,180,84,.45)}
+    .bm-chip.front{color:var(--accent);border-color:rgba(167,139,250,.5)}
+    .bm-chip.raid{color:#f0685a;border-color:rgba(240,104,90,.5)}
+    .bm-none{font-size:12.5px;color:var(--text-faint)}
+    .bm-foot{margin-top:14px;font-size:12.5px;color:var(--text-dim);line-height:1.6;text-align:center}
+    .bm-foot a{color:var(--accent)}
+    .bm-err{background:var(--bg-elev);border:1px solid var(--border);border-radius:12px;padding:22px;text-align:center;color:var(--text-dim)}
+    @media (max-width:640px){ .bm-cols{grid-template-columns:1fr} }
+  </style>
+</head>
+<body>
+  <a class="org-home" href="index.html">← Mission Roulette</a>
+
+  <div class="bm-wrap">
+    <div class="bm-head">
+      <h1 id="bm-name">Battle map</h1>
+      <span class="bm-day" id="bm-day"></span>
+    </div>
+    <div class="bm-map"><svg id="org-map" viewBox="0 0 1000 1000" role="img" aria-label="Campaign battle map"></svg></div>
+    <div class="bm-cols" id="bm-cols" style="display:none">
+      <div class="bm-card"><h2>Held</h2><div class="bm-list" id="bm-held"></div></div>
+      <div class="bm-card"><h2>Contested</h2><div class="bm-list" id="bm-contested"></div></div>
+    </div>
+    <div class="bm-foot" id="bm-foot"></div>
+  </div>
+
+  <footer class="org-disclaimer">Unofficial fan tool. Star Citizen® is a registered trademark of Cloud Imperium Games. Not affiliated with or endorsed by CIG.</footer>
+
+  <script src="org-map.js?v=1"></script>
+  <script>
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+      // ?S12.28-yl100-dm55a&n=Campaign%20name — the bare token is the state
+      const q = location.search.slice(1);
+      let raw = '', name = '';
+      for (const part of q.split('&')) {
+        if (!part) continue;
+        if (part.startsWith('n=')) name = decodeURIComponent(part.slice(2).replace(/\+/g, ' '));
+        else if (part.startsWith('m=')) raw = decodeURIComponent(part.slice(2));
+        else if (!part.includes('=')) raw = decodeURIComponent(part);
+      }
+
+      const fail = (msg) => {
+        document.querySelector('.bm-map').outerHTML =
+          `<div class="bm-err">${msg}</div>`;
+        $('bm-foot').innerHTML = `A battle map is a snapshot link posted by an org — ` +
+          `ask yours for the latest, or <a href="org.html">start your own campaign</a>.`;
+      };
+
+      const state = OrgMap.decodeState(raw);
+      if (!state) {
+        $('bm-day').textContent = '';
+        fail('This link doesn\'t carry a campaign snapshot.');
+        return;
+      }
+
+      Promise.all([
+        fetch('org_board.json', { cache: 'no-store' }).then(r => r.json()),
+        fetch('org_regions.json', { cache: 'no-store' }).then(r => r.json()),
+      ]).then(([board, regions]) => {
+        const sysB = board.systems[state.system];
+        if (!sysB) { fail('Unknown system in this link.'); return; }
+        $('bm-name').textContent = name || (state.system + ' campaign');
+        $('bm-day').textContent = state.day === 0
+          ? `mustering · ${state.days}-day season ahead`
+          : `day ${state.day} of ${state.days} · ${state.system} theater`;
+
+        OrgMap.render($('org-map'), {
+          board: sysB, regions, system: state.system,
+          zones: state.zones, fronts: state.fronts, raided: state.raided,
+        });
+
+        // roll-call under the map, so the story reads without squinting at pixels
+        const defs = OrgMap.zoneDefs(regions, state.system);
+        const nameOf = (z) => (defs[z] && defs[z].name) || z;
+        const held = [], contested = [];
+        for (const [zid, z] of Object.entries(state.zones)) {
+          if (z.held) held.push(`<span class="bm-chip held">${esc(nameOf(zid))}</span>`);
+          else if (z.control > 0) {
+            const marks = (state.fronts[zid] ? ' ⚑' : '') + (state.raided.includes(zid) ? ' ⚠' : '');
+            contested.push(`<span class="bm-chip beach">${esc(nameOf(zid))} ${Math.round(z.control)}%${marks}</span>`);
+          }
+        }
+        for (const zid of state.raided) {
+          if (state.zones[zid] && state.zones[zid].held) {
+            contested.push(`<span class="bm-chip raid">${esc(nameOf(zid))} ⚠ under attack</span>`);
+          }
+        }
+        $('bm-cols').style.display = '';
+        $('bm-held').innerHTML = held.join('') || '<span class="bm-none">nothing secured yet</span>';
+        $('bm-contested').innerHTML = contested.join('') || '<span class="bm-none">no active fronts</span>';
+
+        $('bm-foot').innerHTML =
+          `⚑ front line · ⚠ under attack. This is a snapshot from the day it was posted — the org's board keeps moving.<br>` +
+          `Want a campaign like this for your org? <a href="org.html">Start here</a>.`;
+      }).catch(() => fail('Could not load the map data.'));
+    })();
+  </script>
+</body>
+</html>
