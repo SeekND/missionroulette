@@ -1404,8 +1404,13 @@
   }
 
   // ── Event construction ──────────────────────────────────────────────────
+  // Undefined values are dropped, not carried: JSON.stringify silently discards
+  // them (so the local demo never noticed), but Firebase REJECTS a write that
+  // contains one — which would strand the event and hang the UI waiting for it.
   function newEvent(kind, actor, payload, t) {
-    return { t: t == null ? Date.now() : t, a: actor, k: kind, p: payload || {} };
+    const p = {};
+    for (const [k, v] of Object.entries(payload || {})) if (v !== undefined) p[k] = v;
+    return { t: t == null ? Date.now() : t, a: actor, k: kind, p };
   }
 
   // ── Demo store (localStorage) — same surface the Firebase adapter will have

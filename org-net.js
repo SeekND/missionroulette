@@ -101,14 +101,38 @@
     // so the first subscribe callback always carries the real campaign
     await new Promise((resolve) => ref.once('value', resolve, resolve));
 
+    // Firebase refuses any payload containing `undefined`, so scrub before the
+    // write — a rejected push would leave the board waiting on an event that
+    // never arrives (the local demo tolerates it, this does not)
+    const clean = (v) => {
+      if (Array.isArray(v)) return v.filter(x => x !== undefined).map(clean);
+      if (v && typeof v === 'object') {
+        const o = {};
+        for (const [k, val] of Object.entries(v)) if (val !== undefined) o[k] = clean(val);
+        return o;
+      }
+      return v;
+    };
     const strip = (e) => {
-      const c = Object.assign({}, e);
+      const c = clean(Object.assign({}, e));
       delete c._k;
       return c;
     };
     return {
       net: true,
-      append(ev) { ref.push(strip(ev)); return ev; },
+      append(ev) {
+        // a rejected write used to fail silently — say so instead
+        try {
+          const w = ref.push(strip(ev));
+          if (w && typeof w.catch === 'function') {
+            w.catch(err => { console.error('campaign write failed:', err); note('⚠ write failed — retry'); });
+          }
+        } catch (err) {
+          console.error('campaign write failed:', err);
+          note('⚠ write failed — retry');
+        }
+        return ev;
+      },
       // first-writer-wins on a write-once node (rules: write iff !data.exists) —
       // the client that lands the claim is the one that sends the day's report
       claimOnce(key, val) {
