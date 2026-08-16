@@ -565,8 +565,11 @@
       sec('🚀', 'Your ships',
         p(`You never need to buy anything. <b>Ships assigned to you</b> (top right) lists everything you can use — ` +
           `rent at the named city for the shown price, fly, done.`) +
-        p(`Promotions are automatic: the more contracts of a type you fly, the better the ship the org offers you for that line. ` +
-          `Fees come from ORG funds — the big ones need an approver's nod.`) +
+        p(`Promotions are automatic and you can see them coming: <b>Ships assigned to you</b> shows a <b>Working toward</b> ` +
+          `bar for each trade you've started — "4 more mining → the org offers you a Prospector". It takes ` +
+          `<b>${T.RIDE_THRESHOLD} contracts of that trade per step</b> (${T.RIDE_THRESHOLD}, then ${T.RIDE_THRESHOLD * 2}, ` +
+          `then ${T.RIDE_THRESHOLD * 3}); your starting calling begins one step ahead. Fees come from ORG funds — ` +
+          `the big ones need an approver's nod.`) +
         p(`<b>Missing a capability?</b> Nobody should watch a contract they can't fly. Fleet → <b>Requisition a ship</b> ` +
           `buys the <b>entry hull of any trade</b> from ORG funds — cargo space, a mining head, a salvage beam, whatever the org ` +
           `is short of. It's yours for the season, like any assigned ship; anything better still comes from flying the work.`) +
@@ -801,8 +804,21 @@
         `<button class="linklike danger" data-lost="${h.fleetId}">report destroyed</button></div>`
       : `<div class="ride-cur">🚀 <b>${esc(h.name)}</b>${h.city ? ` — rent ~${fmtDay(h.price)} aUEC/day at ${esc(h.city)}` : ''}</div>`
     ).join('');
+    // what you're working toward, so a promotion is never a surprise
+    const fmtF = n => n >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : Math.round(n / 1000) + 'k';
+    const typeWords = { 'ship-combat': 'ship combat', 'ground-combat': 'ground combat',
+      hauling: 'hauling', mining: 'mining', salvage: 'salvage', investigation: 'investigation' };
+    const next = (me.nextRides || []).slice(0, 2).map(n => {
+      const what = n.types.map(t => typeWords[t] || t).join(' or ');
+      const art = /^[AEIOU8]/i.test(n.ride.name) ? 'an' : 'a';
+      return `<div class="next-ride"><div class="nr-top">` +
+        `<b>${n.left} more ${esc(what)}</b> → the org offers you ${art} <b>${esc(n.ride.name)}</b></div>` +
+        `<div class="m-bar nr-bar"><div class="m-fill" style="width:${Math.round(n.have / n.need * 100)}%"></div></div>` +
+        `<div class="nr-sub">${n.have} / ${n.need} ${esc(n.lineName)} contracts · unlock fee ${fmtF(n.fee)} ORG funds</div></div>`;
+    }).join('');
     el.innerHTML = `<div class="card-title ct-row">Ships assigned to you <button class="linklike" id="ride-swap">swap ships</button></div>` +
-      (rows || `<div class="ride-cur">No ships yet — promotions will assign them.</div>`);
+      (rows || `<div class="ride-cur">No ships yet — promotions will assign them.</div>`) +
+      (next ? `<div class="card-title" style="margin-top:10px">Working toward</div>` + next : '');
     $('ride-swap').addEventListener('click', () => setInfo('fleet'));
     el.querySelectorAll('[data-lost]').forEach(b => b.addEventListener('click', () =>
       armConfirm(b, () => store.append(OrgState.newEvent('fleet.lost', callsign(), { fleetId: +b.dataset.lost })),

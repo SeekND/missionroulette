@@ -1300,6 +1300,27 @@
           tier: next, ride, fee, needsApproval: fee > TUNING.APPROVAL_LIMIT,
         });
       }
+      // how close the next ship is, per line the member has actually started —
+      // so nobody has to guess when the org will hand them something better
+      m3.nextRides = [];
+      for (const line of Object.keys(LINE_TYPES)) {
+        const tier = m3.lineTiers[line] || 0;
+        const next = tier + 1;
+        if (next > 4) continue;
+        const have = lineCount(m3, line);
+        if (!have && line !== m3.calling) continue;   // lines you've never touched stay quiet
+        const need = rideNeeded(m3, line, next);
+        if (have >= need) continue;                   // already earned — it's in offers
+        const ride = rideFor(name, line, next);
+        const fee = rideFee(ride);
+        if (!ride || fee == null) continue;
+        m3.nextRides.push({
+          line, lineName: (ranks && ranks.tracks && ranks.tracks[line] && ranks.tracks[line].name) || line,
+          tier: next, have, need, left: need - have, ride, fee,
+          types: LINE_TYPES[line],
+        });
+      }
+      m3.nextRides.sort((a, b) => a.left - b.left);
       // entry hulls this member could requisition — every trade they can't fly
       // yet, priced at whichever opened hub stocks it
       m3.requisitions = [];

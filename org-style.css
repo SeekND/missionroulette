@@ -108,6 +108,10 @@ body.spectator #btn-newseason,body.spectator #btn-newseason-net,body.spectator #
 .od-head{font-weight:700;font-size:12.5px;letter-spacing:.05em;color:var(--accent);margin-bottom:4px}
 .od-line{font-size:13px;line-height:1.5}
 .od-bar{margin-top:6px}
+.next-ride{margin-top:7px}
+.nr-top{font-size:12.5px;line-height:1.45}
+.nr-bar{margin:4px 0 3px}
+.nr-sub{font-family:var(--mono);font-size:10.5px;color:var(--text-faint)}
 .tg-head{font-weight:600;font-size:12.5px;margin-bottom:5px}
 .tg-plan{margin-top:6px;padding:7px 9px;border-radius:8px;border:1px solid rgba(240,104,90,.4);background:rgba(240,104,90,.07);font-size:12.5px;line-height:1.5}
 .scout-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:3px 0;font-size:12.5px}
