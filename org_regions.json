@@ -189,12 +189,12 @@
               "why": "Quiet, remote, and mineral-rich — a supply line worth guarding.",
               "power": {
                 "name": "Deep Anchorage",
-                "text": "Salvage contracts count +50% more control.",
+                "text": "Salvage contracts count +25% more control, anywhere in the system.",
                 "effect": {
                   "gainMult": {
                     "type": "salvage",
                     "scope": "org",
-                    "mult": 1.5
+                    "mult": 1.25
                   }
                 }
               }
@@ -398,11 +398,11 @@
               "why": "One of Stanton's richest rocks — Quantanium runs shorten dramatically with Lyria secured.",
               "power": {
                 "name": "Quantanium Claim",
-                "text": "+1 metals and +100,000 ORG funds to the treasury every day — the good rock pays.",
+                "text": "+1 metals and +50,000 ORG funds to the treasury every day — the good rock pays.",
                 "effect": {
                   "income": {
                     "metals": 1,
-                    "funds": 100000
+                    "funds": 50000
                   }
                 }
               }
@@ -490,9 +490,12 @@
               "why": "Ice-moon veins that feed the refineries — cold, quiet, profitable.",
               "power": {
                 "name": "Cold Storage",
-                "text": "Ignored relief calls no longer drain the HQ stores.",
+                "text": "+1 supplies every day, and ignored relief calls no longer drain the HQ stores.",
                 "effect": {
-                  "distractImmune": true
+                  "distractImmune": true,
+                  "income": {
+                    "supplies": 1
+                  }
                 }
               }
             },
@@ -543,7 +546,7 @@
           },
           "regionPower": {
             "name": "microTech Secured",
-            "text": "All projects need 25% less materials.",
+            "text": "Every project costs 25% less — materials and funds alike. Stacks with the Crusader sweep on shipyard work.",
             "effect": {
               "projectDiscount": {
                 "site": "any",
