@@ -285,12 +285,11 @@
   // the board never promises a cargo run to one specific rock exists.
   const haulDirFor = (rid) => `any run that starts or ends inside ${regionSpace(rid)}`;
   const typeWordOf = (t) => (D.providers.types[t] || {}).name || String(t).replace('-', ' ');
-  // the three shares of a zone's control, in the order they fill the bar.
-  // jobs = what the bucket is actually DONE with, for plain-language copy
+  // the three shares of a zone's control, in the order they are shown
   const BUCKETS = [
-    { key: 'combat', label: 'combat', jobs: 'fighting' },
-    { key: 'supply', label: 'supply', jobs: 'hauling' },
-    { key: 'industry', label: 'industry', jobs: 'mining and salvage' },
+    { key: 'combat', label: 'Combat' },
+    { key: 'supply', label: 'Supply' },
+    { key: 'industry', label: 'Industry' },
   ];
 
   // ── Zone panel ──────────────────────────────────────────────────────────
@@ -305,14 +304,12 @@
     const capFull = !fr && Object.keys(state.fronts).length >= OrgState.TUNING.FRONT_CAP;
     const zonePushes = (state.pushes || []).filter(p2 => p2.zone === zid);
 
-    // ── How the zone is won ───────────────────────────────────────────────
-    // ONE bar, three slots whose WIDTHS are the recipe caps. The caps always
-    // sum to 100, so the slot sizes teach the recipe without a word: on a
-    // Resource Moon you can see industry is half the bar before reading it.
-    // Every number carries a %, because the three of them add up to Control —
-    // true all along, invisible while they read as bare counts ("15 / 20" in a
-    // game about missions reads as fifteen of twenty missions, which is what a
-    // player reported on day one).
+    // ── Control and its three shares ──────────────────────────────────────
+    // One bar per share, each in its own colour — accent purple belongs to the
+    // day's objectives and nothing else. Every number carries a %, because the
+    // three shares add up to the Control figure above them: true all along, and
+    // invisible while they read as bare counts ("15 / 20" in a game about
+    // missions reads as fifteen of twenty missions — reported on day one).
     const controlBar = (() => {
       const segs = BUCKETS.map(b => {
         const cap = arch.recipe[b.key] || 0;
@@ -321,26 +318,22 @@
       });
       const pen = Math.round(zs.penalty || 0);
       const earned = segs.reduce((n, s) => n + s.have, 0);
-      const slots = segs.map(s =>
-        `<div class="cb-slot cb-${s.b.key}${s.full ? ' full' : ''}" style="flex:${s.cap}">` +
-        `<div class="cb-fill" style="width:${s.cap ? (s.have / s.cap) * 100 : 0}%"></div></div>`).join('');
-      // the legend WRAPS rather than aligning to the slots: the smallest slot is
-      // 20% of a narrow panel, which will never hold the words "industry 16% of
-      // 20%". The colour dot carries the link instead.
-      const keys = segs.map(s =>
-        `<span class="cb-key cb-${s.b.key}${s.full ? ' full' : ''}">` +
-        `<span class="cb-dot"></span>${esc(s.b.label)} ` +
-        `<b>${Math.round(s.have)}% of ${s.cap}%</b></span>`).join('');
-      return `<div class="meter m-total"><div class="m-row"><span>How ${esc(zoneLabel(zs.region, zid))} is won</span>` +
-        `<b>${Math.round(zs.control)}%</b></div>` +
-        `<div class="cb-track">${slots}</div>` +
-        `<div class="cb-keys">${keys}</div>` +
+      const bars = segs.map(s =>
+        `<div class="meter cb-${s.b.key}${s.full ? ' full' : ''}">` +
+        `<div class="m-row"><span>${esc(s.b.label)}</span>` +
+        `<b>${Math.round(s.have)}% of ${s.cap}%</b></div>` +
+        `<div class="m-bar"><div class="m-fill cb-fill" style="width:${s.cap ? (s.have / s.cap) * 100 : 0}%"></div></div>` +
+        `</div>`).join('');
+      return `<div class="meter m-total"><div class="m-row">` +
+        `<span>${esc(def.name)} control</span><b>${Math.round(zs.control)}%</b></div>` +
+        `<div class="m-bar"><div class="m-fill" style="width:${zs.control}%"></div></div></div>` +
+        bars +
         (pen > 0
           ? `<div class="cb-pen">⚠ −${pen}% raid damage · ${Math.round(earned)}% earned, ${Math.round(zs.control)}% held</div>`
           : '') +
-        `<div class="cb-help">The three add up to Control. Each contract here is worth ` +
-        `${OrgState.TUNING.BASE_GAIN}% to its own share — ` +
-        `${OrgState.TUNING.BASE_GAIN * OrgState.TUNING.ONSITE_MULT}% if you were on site.</div></div>`;
+        `<div class="cb-help">The three shares add up to control. A contract here is worth ` +
+        `${OrgState.TUNING.BASE_GAIN}% to its share — ` +
+        `${OrgState.TUNING.BASE_GAIN * OrgState.TUNING.ONSITE_MULT}% if you were on site.</div>`;
     })();
     const avail = Object.entries(region.availability)
       .map(([t, lv]) => `<span class="avail-chip ${lv}">${esc(t)}${lv === 'rare' ? ' ×1.5' : ''}</span>`)
