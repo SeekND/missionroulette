@@ -362,10 +362,15 @@
       `<div class="pz-kicker"><span>${esc(def.kind)}</span>·<span>${esc(region.name)} region</span>·<span>${esc(arch.name)}</span></div>` +
       `<div class="pz-name">${esc(def.name)}${zs.held ? ' <span class="badge-held">HELD</span>' : ''}</div>` +
       `<div class="card-title cd-first">Resources</div>` +
+      // the body's own description belongs with what the body IS, not down in
+      // the control section where it read as a note about the meters. A body
+      // with no ore and no note of its own falls back to the generic line;
+      // where it has one, that one says more, so it stands alone.
       (def.ores
         ? `<div class="ore-chips">${def.ores.map(o => `<span class="ore-chip">${esc(o)}</span>`).join('')}</div>` +
+          (def.note ? `<div class="pz-note">${esc(def.note)}</div>` : '') +
           (zs.control <= 0 ? `<div class="pz-gate">This planet is grey — locked to mining until a beachhead is established. Combat or supply work here turns it amber and opens it. (Salvage counts anywhere.)</div>` : '')
-        : `<div class="pz-note" style="margin:4px 0 10px">No mineable rock — its value is position and services.</div>`) +
+        : `<div class="pz-note">${esc(def.note || 'No mineable rock — its value is position and services.')}</div>`) +
       (() => {
         let out = '';
         const pw = def.power, rpw = region.regionPower;
@@ -378,7 +383,6 @@
         return out;
       })() +
       controlBar +
-      (def.note ? `<div class="pz-note">${esc(def.note)}</div>` : '') +
       ((() => {
         const h = heroFor(region.setPiece);
         if (!h) return '';
