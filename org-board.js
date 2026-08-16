@@ -527,9 +527,10 @@
         p(`<b>Missing a capability?</b> Nobody should watch a contract they can't fly. Fleet → <b>Requisition a ship</b> ` +
           `buys the <b>entry hull of any trade</b> from ORG funds — cargo space, a mining head, a salvage beam, whatever the org ` +
           `is short of. It's yours for the season, like any assigned ship; anything better still comes from flying the work.`) +
-        p(`The catch: a rental hub only serves you while the org is <b>fighting in its region</b> — Lorville needs a beachhead ` +
-          `in Hurston space, Area 18 in ArcCorp's, Orison in Crusader's, New Babbage in microTech's. Spread across Stanton and ` +
-          `the motor pool widens; stay in one corner and you fly what that corner stocks.`) +
+        p(`The catch: a rental hub only serves you while the org is <b>fighting in its region</b> — anywhere in Hurston space ` +
+          `opens Lorville, ArcCorp space opens Area 18, Crusader space opens Orison, microTech space opens New Babbage ` +
+          `(a moon counts — it's the whole region, not just the planet). Spread across Stanton and the motor pool widens; ` +
+          `stay in one corner and you fly what that corner stocks.`) +
         p(`See a ship you'd like on another member? Open Fleet and click it — offer a <b>swap</b>, one of yours for it. They decide.`)) +
 
       sec('🛠', 'The fleet',
@@ -1680,7 +1681,7 @@
         // every hub that stocks it sits on ground the org hasn't touched yet
         const planets = r.where.map(rid => (sysR.regions[rid] && sysR.regions[rid].name) || rid);
         act = `<span class="proj-locks">🔒 locked</span>`;
-        where = `${esc(r.ship)} · needs a beachhead at ${planets.map(esc).join(', ').replace(/, ([^,]*)$/, ' or $1')}`;
+        where = `${esc(r.ship)} · needs a beachhead in ${planets.map(esc).join(', ').replace(/, ([^,]*)$/, ' or $1')} space`;
       } else {
         where = `${esc(r.ride.name)} · rent at ${esc(r.ride.city)}`;
         act = state.chest.funds < r.fee
