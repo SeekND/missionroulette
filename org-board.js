@@ -1677,9 +1677,10 @@
       if (r.have) { act = `<span class="fleet-ready">✓ you fly this</span>`; where = r.ship ? esc(r.ship) : esc(r.lineName); }
       else if (!r.ship) { act = `<span class="proj-locks">nothing rentable</span>`; where = esc(r.lineName); }
       else if (!r.ride) {
-        // the hub that stocks it sits in region we haven't touched yet
-        act = `<span class="proj-locks">🔒 no open hub stocks it</span>`;
-        where = `${esc(r.ship)} · needs a beachhead near ${r.where.map(esc).join(' or ')}`;
+        // every hub that stocks it sits on ground the org hasn't touched yet
+        const planets = r.where.map(rid => (sysR.regions[rid] && sysR.regions[rid].name) || rid);
+        act = `<span class="proj-locks">🔒 locked</span>`;
+        where = `${esc(r.ship)} · needs a beachhead at ${planets.map(esc).join(', ').replace(/, ([^,]*)$/, ' or $1')}`;
       } else {
         where = `${esc(r.ride.name)} · rent at ${esc(r.ride.city)}`;
         act = state.chest.funds < r.fee

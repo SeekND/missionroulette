@@ -253,11 +253,13 @@
       if (!ride) return null;
       const open = rentAt(ride.name, openCities());
       const anywhere = rentAt(ride.name, STANTON_RENT_CITIES);
-      return {
-        ship: ride.name,
-        ride: open, fee: open ? rideFee(open) : null,
-        where: anywhere ? Object.keys(rentByName(ride.name).byLocation || {}).filter(c => STANTON_RENT_CITIES.includes(c)) : [],
-      };
+      // where it can be reached FROM: the planets whose beachhead opens a hub
+      // that stocks this hull (the city is an implementation detail of the planet)
+      const regions4 = anywhere
+        ? [...new Set(Object.keys(rentByName(ride.name).byLocation || {})
+          .filter(c => STANTON_RENT_CITIES.includes(c)).map(c => CITY_REGION[c]).filter(Boolean))]
+        : [];
+      return { ship: ride.name, ride: open, fee: open ? rideFee(open) : null, where: regions4 };
     };
     // one identity per person across every device: names fold to a normalized
     // key (Carlit0 = carlit0 = CARLIT0); the first-typed spelling is kept for display
