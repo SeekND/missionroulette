@@ -1444,7 +1444,7 @@
       const left = OrgState.TUNING.CLAIM_TTL_MS - ms;
       $('mc-ttl').textContent = left > 0
         ? `Auto-returns to the pool in ${Math.ceil(left / 60000)}m if not submitted.`
-        : 'Timed out — it may be back in the pool, but signing off still counts.';
+        : 'Timed out — it may be back in the pool, but submitting it still counts.';
     };
     tick();
     mcTimerHandle = setInterval(tick, 1000);
