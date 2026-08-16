@@ -976,7 +976,10 @@
           const mult = availabilityMult(regions, config.system, p.region, p.ctype);
           if (mult === 0) { state.skipped++; break; }
 
-          const onSiteOk = !!p.onSite && zoneOnSiteTypes(regions, config.system, p.region, p.zone).includes(p.ctype);
+          // the on-site bonus is a player's word, not a lookup: if they say the
+          // contract happened at the planet they're crediting, it counts. (The
+          // old eligibility table vetoed it invisibly and confused everyone.)
+          const onSiteOk = !!p.onSite;
           // mining follows the front: control credit only at contested zones.
           // salvage is exempt — it lives at Lagrange points nobody controls.
           const industryGated = p.ctype === 'mining' && hit.control <= 0;

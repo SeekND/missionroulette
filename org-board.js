@@ -273,7 +273,6 @@
     const region = sysR.regions[zs.region];
     const def = region.zones[zid];
     const arch = D.regions.archetypes[def.archetype];
-    const onSite = OrgState.helpers.zoneOnSiteTypes(D.regions, state.config.system, zs.region, zid);
     const fr = state.fronts[zid];
     const frSameDay = fr && Math.floor((fr.at - state.config.startedAt) / 86400000) === state.tick;
     const canRemove = fr && (fr.by === callsign() || !frSameDay || zs.held);
@@ -339,7 +338,7 @@
         }
         return `<div class="pz-hero">🌟 Region set-piece: <b>${esc(h.name)}</b> — ${body}</div>`;
       })()) +
-      `<div class="pz-onsite">On-site counts for: <b>${onSite.length ? onSite.map(esc).join(' · ') : 'nothing (economy only)'}</b></div>` +
+      `<div class="pz-onsite">Work done <b>here</b> counts +50% — tick the box when you submit it.</div>` +
       (zonePushes.length
         ? `<div class="card-title">Missions here</div>` + zonePushes.map(buildPushRow).join('')
         : (fr ? `<div class="pz-note">All of today's work here is claimed or done — more tomorrow.</div>` : '')) +
@@ -518,9 +517,9 @@
           `or return it. If you forget, it quietly returns itself.`) +
         p(`Claiming is optional. Anything you flew <b>without</b> claiming goes in through <b>＋ Submit other work</b> ` +
           `under the objectives — same credit, you just pick the region and planet yourself.`) +
-        p(`<b>The on-site bonus:</b> when the contract actually happened at the planet you're crediting, tick the box ` +
-          `before submitting — it's worth +50%. If the board doesn't offer the tick, that type can't be on-site there ` +
-          `(salvage never is — it counts system-wide), so you're not missing anything.`)) +
+        p(`<b>The on-site bonus:</b> if the contract actually happened at the planet you're crediting, tick the box ` +
+          `before submitting — it's worth +50%. The board always asks and always takes your word for it; only tick it ` +
+          `when it's true.`)) +
 
       sec('⛏', 'Mining',
         p(`Mining materials for your contract can only be gathered at <b style="color:#ffb454">amber</b> or ` +
@@ -810,7 +809,8 @@
     const prov = provs.length ? provs[Math.floor(rand() * provs.length)] : null;
     const hub = sysR.regions[p.region].name;
     const restock = (D.providers.restockStations[state.config.system] || {})[hub];
-    const haulDir = rand() < 0.5 ? `a run departing ${hub}` : `a run bound for ${hub}`;
+    // either direction counts — the board never promises a specific cargo run exists
+    const haulDir = `a run departing or arriving at ${hub}`;
     // ship-combat difficulty follows the ORG TIER (collective performance):
     // BHG asks name the risk rank; Gilly rolls a tier, 7/8 = org ops at the top
     let rank = null, gillyTier = null;
@@ -1090,7 +1090,6 @@
     const region = sysR.regions[c.region];
     const zoneName = region && region.zones[c.zone] ? region.zones[c.zone].name : c.zone;
     const roll = c.roll || {};
-    const onSiteOk = OrgState.helpers.zoneOnSiteTypes(D.regions, state.config.system, c.region, c.zone).includes(c.ctype);
     const rcLike = { prov: roll.prov ? { name: roll.prov, tab: roll.tab } : null, tab: roll.tab, typeName: roll.typeName, ctype: c.ctype, type: c.ctype, haulDir: roll.dir, rank: roll.rank, gillyTier: roll.gillyTier };
     const steps =
       `1 — Travel to <b>${esc(roll.hub || (region ? region.name : ''))}</b>${roll.restock ? ` <span class="pr-restock">(restock &amp; rearm at ${esc(roll.restock)})</span>` : ''}<br>` +
@@ -1101,12 +1100,8 @@
       `<div class="pr-steps">${steps}</div>` +
       repNote(rcLike) +
       (c.ctype === 'mining' ? `<div class="mine-warn">⛏ Mining materials for your contract can only be gathered at <b>amber</b> or <b>green</b> planets.</div>` : '') +
-      (onSiteOk
-        ? `<div class="onsite-ask"><label class="f-check" style="margin:0"><input type="checkbox" id="mc-onsite">` +
-          `<span>Tick if the contract itself was <b>at ${esc(zoneName)}</b> — worth +50%.</span></label></div>`
-        : `<div class="f-note" style="margin:10px 0 2px">${c.ctype === 'salvage'
-            ? 'Salvage never counts as on-site — it counts system-wide, so there is no location bonus to claim.'
-            : `${esc(roll.typeName || c.ctype)} never posts at ${esc(zoneName)}, so there is no on-site bonus for this one.`}</div>`) +
+      `<div class="onsite-ask"><label class="f-check" style="margin:0"><input type="checkbox" id="mc-onsite">` +
+      `<span>Tick if the contract itself happened <b>at ${esc(zoneName)}</b> — worth +50%.</span></label></div>` +
       `<div class="mc-actions"><button class="btn btn-primary" id="mc-done">✓ Submit this contract</button>` +
       `<button class="btn btn-ghost" id="mc-return">↩ Return to pool</button></div>` +
       `<div class="f-note" id="mc-ttl"></div>`;
@@ -1125,7 +1120,7 @@
     $('mc-done').addEventListener('click', () => {
       store.append(OrgState.newEvent('contract.done', callsign(), {
         region: c.region, zone: c.zone, ctype: c.ctype,
-        onSite: (onSiteOk && $('mc-onsite') && $('mc-onsite').checked) || undefined,
+        onSite: ($('mc-onsite') && $('mc-onsite').checked) || undefined,
         pushId: c.pushId || undefined, claimId: cid,
       }));
     });
@@ -1209,14 +1204,12 @@
       const note = t === 'investigation' && sysR.regions[rid].investigationNote;
       invNote.textContent = note || '';
       invNote.style.display = note ? '' : 'none';
-      const ok = OrgState.helpers.zoneOnSiteTypes(D.regions, state.config.system, rid, zid).includes(t);
+      // always ask — the player knows where they were, the board doesn't
       const wrap = $('lc-onsite-wrap'), box = $('lc-onsite');
-      wrap.classList.toggle('disabled', !ok);
-      box.disabled = !ok;
-      if (!ok) box.checked = false;
-      $('lc-onsite-label').textContent = ok
-        ? `The contract itself was at ${sysR.regions[rid].zones[zid].name} (+50%)`
-        : (t === 'salvage' ? 'Salvage is never on-site — it counts system-wide.' : `This type never posts at ${sysR.regions[rid].zones[zid].name}.`);
+      wrap.classList.remove('disabled');
+      box.disabled = false;
+      $('lc-onsite-label').textContent =
+        `The contract itself happened at ${sysR.regions[rid].zones[zid].name} (+50%)`;
     };
     selRegion.addEventListener('change', sync);
     selType.addEventListener('change', sync);
