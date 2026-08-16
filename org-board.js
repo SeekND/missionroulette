@@ -357,11 +357,11 @@
     })();
 
     el.innerHTML =
-      `<div class="${zs.held ? 'held' : ''}">` +
+      `<div class="zone-panel${zs.held ? ' held' : ''}">` +
       close +
       `<div class="pz-kicker"><span>${esc(def.kind)}</span>·<span>${esc(region.name)} region</span>·<span>${esc(arch.name)}</span></div>` +
       `<div class="pz-name">${esc(def.name)}${zs.held ? ' <span class="badge-held">HELD</span>' : ''}</div>` +
-      `<div class="card-title" style="margin-top:10px">Resources</div>` +
+      `<div class="card-title cd-first">Resources</div>` +
       (def.ores
         ? `<div class="ore-chips">${def.ores.map(o => `<span class="ore-chip">${esc(o)}</span>`).join('')}</div>` +
           (zs.control <= 0 ? `<div class="pz-gate">This planet is grey — locked to mining until a beachhead is established. Combat or supply work here turns it amber and opens it. (Salvage counts anywhere.)</div>` : '')
@@ -369,7 +369,7 @@
       (() => {
         let out = '';
         const pw = def.power, rpw = region.regionPower;
-        if (pw || rpw) out += `<div class="card-title" style="margin-top:6px">Captured grants</div>`;
+        if (pw || rpw) out += `<div class="card-title">Captured grants</div>`;
         if (pw) out += `<div class="grant${zs.held ? ' on' : ''}"><b>${esc(pw.name)}</b>${zs.held ? ' <span class="grant-on">ACTIVE</span>' : ''}<div class="grant-text">${esc(pw.text)}</div></div>`;
         if (rpw) {
           const swept = Object.keys(region.zones).every(z => state.zones[z] && state.zones[z].held);

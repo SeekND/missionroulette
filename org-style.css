@@ -229,7 +229,19 @@ button.hangar-chip.swap:hover{border-color:var(--accent);color:var(--accent)}
 .held .cb-fill{background:var(--held)}
 .pz-note{font-size:13px;color:var(--text-faint);border-left:2px solid var(--border-strong);padding-left:9px;margin:10px 0;line-height:1.5}
 .pz-hero{font-size:13px;color:var(--hero,#ffb454);margin:8px 0}
-.pz-onsite{font-family:var(--mono);font-size:12px;color:var(--text-faint);margin:8px 0 12px}
+.pz-onsite{font-family:var(--mono);font-size:12px;color:var(--text-faint);margin:6px 0 12px}
+
+/* ── Zone panel rhythm ──
+   Every section opens with a hairline and real air above it. Without this the
+   panel reads as one unbroken column and the eye can't find where a section
+   starts. .cd-first opens the body directly under the zone name, which is
+   separator enough on its own. */
+.zone-panel .card-title,
+.zone-panel .m-total{margin-top:20px;padding-top:15px;border-top:1px solid var(--border)}
+.zone-panel .card-title.cd-first{margin-top:14px;padding-top:0;border-top:none}
+.zone-panel .pz-note,
+.zone-panel .pz-hero{margin:14px 0}
+.zone-panel .btn{margin-top:16px}
 .pz-onsite b{color:var(--text-dim);font-weight:600}
 .avail-grid{display:flex;flex-wrap:wrap;gap:5px;margin:4px 0 12px}
 .avail-chip{font-family:var(--mono);font-size:12px;padding:3px 8px;border-radius:5px;border:1px solid var(--border);color:var(--text-dim)}
