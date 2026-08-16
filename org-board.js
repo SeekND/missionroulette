@@ -88,6 +88,7 @@
     bindChrome();
   }
 
+  let lastLogLen = -1;
   function refold() {
     state = OrgState.fold(D.regions, events, Date.now(),
       { projects: D.projects, ships: D.ships, rentals: D.rentals, ranks: D.ranks, heroes: D.heroes });
@@ -101,9 +102,13 @@
       closeModal();
     }
     // otherwise close open modals only when the newest event is OUR OWN action —
-    // in a shared campaign, someone else's contract must not eat your open dialog
+    // in a shared campaign, someone else's contract must not eat your open dialog.
+    // And only when the log actually GREW: this runs on a 60s clock tick too,
+    // which used to swallow a half-filled dialog mid-edit.
+    const grew = events.length !== lastLogLen;
+    lastLogLen = events.length;
     const lastMine = !events.length || OrgState.normName(events[events.length - 1].a) === callsign();
-    if (lastMine) {
+    if (grew && lastMine) {
       modalSticky = false;
       closeModal();
     }
@@ -279,6 +284,7 @@
   // Either direction counts, and a bare "Crusader" reads as the gas giant —
   // the board never promises a cargo run to one specific rock exists.
   const haulDirFor = (rid) => `any run that starts or ends inside ${regionSpace(rid)}`;
+  const typeWordOf = (t) => (D.providers.types[t] || {}).name || String(t).replace('-', ' ');
 
   // ── Zone panel ──────────────────────────────────────────────────────────
   function renderZoneInfo(el, close) {
@@ -405,6 +411,81 @@
     const call = $('od-call');
     if (call) call.addEventListener('click', () => {
       store.append(OrgState.newEvent('orgday.declare', callsign(), { region: regionId, day: +$('od-day').value }));
+    });
+  }
+
+  // ── Re-file a mis-logged contract (approvers only) ──────────────────────
+  // Nothing is deleted: a correction is a new event pointing back at the old
+  // one, and the whole board recomputes from the corrected log.
+  const PUSH_KIND_FOR = { combat: 'take', supply: 'supply', industry: 'industry' };
+  const pushIdFor = (tick, region, zone, ctype) => {
+    const kind = PUSH_KIND_FOR[D.regions.typeBuckets[ctype]];
+    return kind ? `p${tick}:${region}:${kind}:${zone}` : null;
+  };
+
+  function showFixModal(f) {
+    const typeOf = (rid) => Object.entries(sysR.regions[rid].availability)
+      .filter(([, lv]) => lv !== 'none').map(([t]) => t);
+    openModal(
+      `<h2>✎ Re-file this contract</h2>` +
+      `<div class="m-sub"><b>${esc(disp(f.by))}</b> filed it on <b>day ${f.tick + 1}</b>` +
+      `${f.crew > 1 ? ` with ${f.crew - 1} more aboard` : ''}. Put it where it actually happened — ` +
+      `the meters, the war chest and everyone's record are recomputed from the fix. The credit stays theirs.</div>` +
+      `<label class="f-label">Contract type</label><select class="f-select" id="fx-type"></select>` +
+      `<label class="f-label">Region it was worked in</label><select class="f-select" id="fx-region">${
+        Object.keys(sysR.regions).map(rid =>
+          `<option value="${rid}" ${rid === f.region ? 'selected' : ''}>${esc(regionSpace(rid))}</option>`).join('')
+      }</select>` +
+      `<label class="f-label">Apply the gains to</label><select class="f-select" id="fx-zone"></select>` +
+      `<div class="f-note" id="fx-warn" style="display:none"></div>` +
+      `<div class="f-check"><input type="checkbox" id="fx-onsite" ${f.onSite ? 'checked' : ''}>` +
+      `<span id="fx-onsite-label">The contract itself happened at the zone (+50%)</span></div>` +
+      `<div class="modal-actions"><button class="btn btn-ghost" id="fx-cancel">Cancel</button>` +
+      `<button class="linklike danger" id="fx-strike">strike it from the record</button>` +
+      `<button class="btn btn-primary" id="fx-save">✓ Re-file it</button></div>`
+    );
+    const selType = $('fx-type'), selRegion = $('fx-region'), selZone = $('fx-zone');
+    const sync = () => {
+      const rid = selRegion.value, keep = selType.value || f.ctype, zkeep = selZone.value || f.zone;
+      selType.innerHTML = typeOf(rid).map(t =>
+        `<option value="${t}">${esc(typeWordOf(t))}</option>`).join('');
+      if ([...selType.options].some(o => o.value === keep)) selType.value = keep;
+      selZone.innerHTML = Object.keys(sysR.regions[rid].zones).map(zid =>
+        `<option value="${zid}">${esc(zoneLabel(rid, zid))}</option>`).join('');
+      if ([...selZone.options].some(o => o.value === zkeep)) selZone.value = zkeep;
+      detail();
+    };
+    const detail = () => {
+      const rid = selRegion.value, zid = selZone.value, t = selType.value;
+      const isInv = t === 'investigation';
+      const gated = t === 'mining' && state.zones[zid] && state.zones[zid].control <= 0;
+      const warn = $('fx-warn');
+      warn.innerHTML = isInv
+        ? 'Investigation pays intel into the org stores — the zone is only for the record, and there is no on-site bonus.'
+        : gated
+          ? `⚠ ${esc(zoneLabel(rid, zid))} has no beachhead, so mining credited there counts for nothing. Pick a planet the org has already touched.`
+          : '';
+      warn.style.display = warn.innerHTML ? '' : 'none';
+      $('fx-onsite').parentElement.style.display = isInv ? 'none' : '';
+      $('fx-onsite-label').textContent = `The contract itself happened at ${zoneLabel(rid, zid)} (+50%)`;
+    };
+    selRegion.addEventListener('change', sync);
+    selType.addEventListener('change', detail);
+    selZone.addEventListener('change', detail);
+    sync();
+    $('fx-cancel').addEventListener('click', closeModal);
+    $('fx-strike').addEventListener('click', (e) => armConfirm(e.currentTarget,
+      () => store.append(OrgState.newEvent('contract.amend', callsign(), { ref: f.ref, void: true })),
+      'strike it — sure?'));
+    $('fx-save').addEventListener('click', () => {
+      const region = selRegion.value, zone = selZone.value, ctype = selType.value;
+      store.append(OrgState.newEvent('contract.amend', callsign(), {
+        ref: f.ref, region, zone, ctype,
+        onSite: ctype !== 'investigation' && $('fx-onsite').checked,
+        // the old objective tag cannot survive a move; re-point it at the one
+        // this work actually belongs to, or clear it
+        pushId: pushIdFor(f.tick, region, zone, ctype),
+      }));
     });
   }
 
@@ -693,6 +774,21 @@
           : `<span class="proj-locks">locked today</span>`) + `</div>`;
     }).join('') || `<div class="panel-hint">No front lines set.</div>`;
 
+    // — Corrections: the log is append-only, so a mis-filed contract is fixed
+    //   by re-filing it, never by deleting anything —
+    const fileRows = (state.filed || []).slice().reverse().slice(0, 12).map(f => {
+      const what = `${typeWordOf(f.ctype)} · ${zoneLabel(f.region, f.zone)}`;
+      const tags = [`day ${f.tick + 1}`];
+      if (f.onSite) tags.push('on-site');
+      if (f.crew > 1) tags.push(`${f.crew} aboard`);
+      if (f.fixed) tags.push('corrected');
+      return `<div class="req-row"><span>${f.struck ? '<s>' : ''}${esc(disp(f.by))} — ${esc(what)}${f.struck ? '</s>' : ''} ` +
+        `<span class="proj-locks">${esc(tags.join(' · '))}${f.struck ? ' · struck' : ''}</span></span>` +
+        `<span class="req-act">${f.struck
+          ? `<button class="linklike" data-unstrike="${esc(f.ref)}">put it back</button>`
+          : `<button class="linklike" data-fix="${esc(f.ref)}">re-file</button>`}</span></div>`;
+    }).join('') || `<div class="panel-hint">No contracts filed yet.</div>`;
+
     const admCode = (() => {
       const raw = localStorage.getItem(NET_KEY) || '';
       try { const d = OrgNet.readCode(raw); return OrgNet.makeCode(d.cfg, d.path); } catch (e) { return raw; }
@@ -728,7 +824,11 @@
       sect('🌟 Set-pieces') + spRows + voyageRow +
       sect('★ Approvers') + appRows + grantForm +
       approvalsHtml() +
-      sect('⚑ Front lines') + frontRows;
+      sect('⚑ Front lines') + frontRows +
+      sect('✎ Filed contracts') +
+      `<div class="panel-hint" style="font-size:12.5px">Someone logged the wrong thing? Re-file it. ` +
+      `The meters, the war chest and their record all recompute — the credit stays with whoever flew it, on the day they flew it.</div>` +
+      fileRows;
 
     const repOn = el.querySelector('#adm-report-on');
     if (repOn) repOn.addEventListener('click', () => {
@@ -791,6 +891,12 @@
     bindApprovalButtons(el);
     el.querySelectorAll('[data-front-pull]').forEach(b => b.addEventListener('click', () =>
       store.append(OrgState.newEvent('front.remove', callsign(), { zone: b.dataset.frontPull }))));
+    el.querySelectorAll('[data-fix]').forEach(b => b.addEventListener('click', () => {
+      const f = (state.filed || []).find(x => x.ref === b.dataset.fix);
+      if (f) showFixModal(f);
+    }));
+    el.querySelectorAll('[data-unstrike]').forEach(b => b.addEventListener('click', () =>
+      store.append(OrgState.newEvent('contract.amend', callsign(), { ref: b.dataset.unstrike, void: false }))));
   }
 
   // ── Ships live OUTSIDE contracts — the Your Ship card + Fleet tab carry them
@@ -880,10 +986,15 @@
   // randomise across a REGION, so that is the whole ask; the zone is only where
   // the credit lands. Read the zone as the requirement and you go hunting for a
   // contract that names the moon, find none, and conclude the day is stalled.
-  function creditNote(rid, zid, submitting) {
+  function creditNote(rid, zid, submitting, ctype) {
+    // salvage is the one trade with nothing to travel to: wrecks and panels turn
+    // up where they turn up, so pointing a salvager at a moon is the same false
+    // promise the region wording was fixed to stop making
+    const bonus = ctype === 'salvage'
+      ? ` Wrecks drift where they fall — the +50% is there if you happened to work it at the body, but don't go hunting for one.`
+      : ` Work that happens there is worth +50%.`;
     return `<div class="pr-credit">★ Anywhere in <b>${esc(regionSpace(rid))}</b> counts — the credit lands on ` +
-      `<b>${esc(zoneLabel(rid, zid))}</b> either way.` +
-      (submitting ? '' : ` Work that happens there is worth +50%.`) + `</div>`;
+      `<b>${esc(zoneLabel(rid, zid))}</b> either way.` + (submitting ? '' : bonus) + `</div>`;
   }
 
   // ── Today's objectives (derived pushes) ─────────────────────────────────
@@ -909,7 +1020,7 @@
         `2 — ${step2Text(rc)}</div>` +
         repNote(rc) +
         (rc.type === 'mining' ? `<div class="mine-warn">⛏ Mining materials for your contract can only be gathered at <b>amber</b> or <b>green</b> planets.</div>` : '') +
-        creditNote(p.region, p.zone) +
+        creditNote(p.region, p.zone, false, rc.type) +
         `</div>`;
     }
     return `<div class="push-row k-${p.kind}${p.completed ? ' done' : ''}">` +
@@ -1175,7 +1286,7 @@
       `<div class="pr-steps">${steps}</div>` +
       repNote(rcLike) +
       (c.ctype === 'mining' ? `<div class="mine-warn">⛏ Mining materials for your contract can only be gathered at <b>amber</b> or <b>green</b> planets.</div>` : '') +
-      creditNote(c.region, c.zone, true) +
+      creditNote(c.region, c.zone, true, c.ctype) +
       `<div class="onsite-ask"><label class="f-check" style="margin:0"><input type="checkbox" id="mc-onsite">` +
       `<span>Tick if the contract itself happened <b>at ${esc(zoneName)}</b> — worth +50%.</span></label></div>` +
       crewPickerHtml('mc-crew') +
@@ -1225,7 +1336,7 @@
       `<label class="f-label">Region you worked in</label><select class="f-select" id="lc-region" ${push ? 'disabled' : ''}>${regionOpts}</select>` +
       `<label class="f-label">Contract type</label><select class="f-select" id="lc-type"></select>` +
       `<div class="f-note" id="lc-scarce" style="display:none">Scarce work in this region — worth ×1.5.</div>` +
-      `<label class="f-label">Apply the gains to</label><select class="f-select" id="lc-zone"></select>` +
+      `<label class="f-label" id="lc-zone-label">Apply the gains to</label><select class="f-select" id="lc-zone"></select>` +
       `<div class="f-note" id="lc-mine-help" style="display:none"></div>` +
       `<div class="f-note" id="lc-inv-note" style="display:none"></div>` +
       `<div id="lc-deep-wrap" style="display:none"><label class="f-label">Which kind?</label>` +
@@ -1279,12 +1390,22 @@
       const rid = selRegion.value, t = selType.value, zid = selZone.value;
       $('lc-scarce').style.display = sysR.regions[rid].availability[t] === 'rare' ? '' : 'none';
       $('lc-deep-wrap').style.display = t === 'investigation' ? '' : 'none';
+      const isInv = t === 'investigation';
       const invNote = $('lc-inv-note');
-      const note = t === 'investigation' && sysR.regions[rid].investigationNote;
-      invNote.textContent = note || '';
+      const note = isInv
+        ? `Investigation pays intel into the org stores — there is no zone bonus, and the planet below is only for the record. ` +
+          (sysR.regions[rid].investigationNote || '')
+        : '';
+      invNote.textContent = note;
       invNote.style.display = note ? '' : 'none';
-      // always ask — the player knows where they were, the board doesn't
+      $('lc-zone-label').textContent = isInv ? 'Where you were working' : 'Apply the gains to';
+      // always ask — the player knows where they were, the board doesn't.
+      // Except for investigation: its yield is flat intel, so the fold never
+      // applies the on-site multiplier and offering the tick promised +50%
+      // that was never paid.
       const wrap = $('lc-onsite-wrap'), box = $('lc-onsite');
+      wrap.style.display = isInv ? 'none' : '';
+      if (isInv) box.checked = false;
       wrap.classList.remove('disabled');
       box.disabled = false;
       $('lc-onsite-label').textContent =

@@ -180,6 +180,13 @@
   const dispName = (s) => String(s == null ? '' : s).trim().replace(/\s+/g, ' ');
   const normName = (s) => dispName(s).toLowerCase();
 
+  // A stable handle for one logged event, so a later correction can point back
+  // at it. Net logs carry the RTDB push key; the local demo has none, and a
+  // second event from the same actor in the same millisecond is not a thing.
+  const eventRef = (e) => e._k || `${e.t}:${normName(e.a)}`;
+  // What a correction is allowed to rewrite — never the actor, never the crew
+  const AMENDABLE = ['region', 'zone', 'ctype', 'onSite', 'deep', 'pushId'];
+
   function fold(regions, events, now, projects, ships, rentals, ranks, heroes) {
     // data-bag call style: fold(regions, events, now, {projects, ships, rentals, ranks, heroes})
     if (projects && (projects.ships || projects.rentals || projects.ranks)) {
@@ -286,6 +293,31 @@
         (a.i - b.i))
       .map(x => x.e);
 
+    // ── Corrections ───────────────────────────────────────────────────────
+    // The log is append-only, so a mis-filed contract is fixed by a LATER event
+    // pointing back at it. Patches resolve BEFORE the main pass so the original
+    // folds in its corrected form: the credit stays with whoever flew it, on the
+    // day they flew it, and every downstream meter recomputes from scratch.
+    // Authority is replayed from the only two events that grant it — the full
+    // approver list does not exist yet this early in the fold.
+    const patches = {};
+    {
+      const auth = [];
+      for (const e of sorted) {
+        if (e.t > now) break;
+        if (e.k === 'campaign.create') {
+          if (!auth.includes(e.a)) auth.push(e.a);
+        } else if (e.k === 'role.approver' && auth.includes(e.a) && e.p.callsign) {
+          if (e.p.grant === false) {
+            const ix = e.p.callsign === auth[0] ? -1 : auth.indexOf(e.p.callsign);
+            if (ix > -1) auth.splice(ix, 1);
+          } else if (!auth.includes(e.p.callsign)) auth.push(e.p.callsign);
+        } else if (e.k === 'contract.amend' && e.p.ref && auth.includes(e.a)) {
+          patches[e.p.ref] = Object.assign({}, patches[e.p.ref], e.p);
+        }
+      }
+    }
+
     const create = sorted.find(e => e.k === 'campaign.create');
     if (!create) return null;
     const config = Object.assign({ system: 'Stanton', seasonDays: 28 }, create.p, { startedAt: create.t });
@@ -307,6 +339,7 @@
       projectsDone: {},    // projectId → {at, by}
       victory: null,       // {at, project} once the season is won
       claims: {},          // claimId → {by, at, pushId, ctype, region, zone, roll, status}
+      filed: [],           // recent contract.done, POST-correction — what the admin console edits
       approvers: [],       // callsigns who may approve big spends (creator is first)
       requests: {},        // reqId → {by, at, kind, payload, status}
       proposals: {},       // reqId → {from, to, give, take, status} — member↔member ship swaps
@@ -696,7 +729,21 @@
       if (config.startedAt == null && !MUSTER_OK[ev.k]) { state.skipped++; continue; }
       // spectators watch — nothing they do folds (defense in depth behind the UI)
       if (state.spectators[ev.a] && ev.k !== 'member.join') { state.skipped++; continue; }
-      const p = ev.p || {};
+      let p = ev.p || {};
+      // a correction rewrites its target in place, here, before anything reads it
+      const fix = ev.k === 'contract.done' ? patches[eventRef(ev)] : null;
+      if (fix) {
+        // patch first, then decide: a struck row must still show its latest
+        // corrected identity, not the original mis-filing
+        p = Object.assign({}, p);
+        for (const f of AMENDABLE) if (fix[f] !== undefined) p[f] = fix[f];
+        if (fix.void) {
+          // still listed, so a mis-struck contract can be put back
+          state.filed.push({ ref: eventRef(ev), t: ev.t, tick: tickOf(ev.t), by: ev.a,
+            region: p.region, zone: p.zone, ctype: p.ctype, struck: true });
+          state.skipped++; continue;
+        }
+      }
 
       switch (ev.k) {
         case 'campaign.create':
@@ -1069,6 +1116,9 @@
             state.claims[p.claimId].status = 'done';
             state.claims[p.claimId].doneAt = ev.t;
           }
+          state.filed.push({ ref: eventRef(ev), t: ev.t, tick: tickOf(ev.t), by: ev.a,
+            region: p.region, zone: p.zone, ctype: p.ctype,
+            onSite: !!p.onSite, deep: !!p.deep, crew: crew.length, fixed: !!fix });
           // everyone who flew counts as turnout — the Director answers real numbers
           const act = (activeSets[tickOf(ev.t)] = activeSets[tickOf(ev.t)] || new Set());
           for (const who of crew) act.add(who);
@@ -1156,6 +1206,16 @@
           if (!f || f.status !== 'ready') { state.skipped++; break; }
           f.status = 'lost';
           chron(ev.t, 'fleet', `${dispR(f.by)}'s ${f.ship} is lost${p.note ? ' — ' + p.note : ''}. Clearance suspended until recommissioned.`);
+          break;
+        }
+
+        // the correction itself does no work — the patch already landed above.
+        // It folds only so the war log shows that the record was touched.
+        case 'contract.amend': {
+          if (!state.approvers.includes(ev.a) || !p.ref) { state.skipped++; break; }
+          chron(ev.t, 'join', p.void
+            ? `${dispR(ev.a)} struck a mis-filed contract from the record.`
+            : `${dispR(ev.a)} re-filed a mis-logged contract — the meters were corrected.`);
           break;
         }
 
@@ -1249,6 +1309,9 @@
         stake: m.kind === 'raid' ? `−${TUNING.RAID_PENALTY}% control if ignored` : 'the war chest bleeds if ignored',
       };
     });
+    // the console only ever shows a recent tail — a full-season log would be
+    // both unusable and unbounded
+    if (state.filed.length > 60) state.filed = state.filed.slice(-60);
     const mustering = config.startedAt == null;
     const seasonOver = !mustering && (now >= seasonEndMs || !!state.victory);
     state.pushes = seasonOver || mustering ? [] : threatPushes.concat(derivePushes(regions, sys, config, state, state.tick, pushTally));
@@ -1524,7 +1587,7 @@
   }
 
   const OrgState = {
-    TUNING, fold, newEvent, createDemoStore, rng, normName, dispName,
+    TUNING, fold, newEvent, createDemoStore, rng, normName, dispName, eventRef,
     LINE_TYPES, TYPE_LINE,
     helpers: { zoneOnSiteTypes, availabilityMult, findZone },
   };
