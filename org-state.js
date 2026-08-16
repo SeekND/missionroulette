@@ -613,17 +613,22 @@
       }
       return out;
     };
-    const applyRideUnlock = (name, line, tier, t) => {
+    const applyRideUnlock = (name, line, tier, t, requisition) => {
       const m0 = state.members[name];
       if (!m0 || !LINE_TYPES[line]) return false;
       if (tier !== (m0.lineTiers[line] || 0) + 1 || tier > 4) return false;
-      if (lineCount(m0, line) < rideNeeded(m0, line, tier)) return false;
+      // a requisition buys the ENTRY hull of a trade the org can't otherwise
+      // fly — it skips the contract threshold, never the bill, and never
+      // reaches past tier 1 (the promotion ladder above it is untouched)
+      if (requisition ? tier !== 1 : lineCount(m0, line) < rideNeeded(m0, line, tier)) return false;
       const ride = rideFor(name, line, tier);
       const fee = rideFee(ride);
       if (!ride || fee == null || state.chest.funds < fee) return false;
       state.chest.funds -= fee;
       m0.lineTiers[line] = tier;
-      chron(t, 'fleet', `${dispR(name)} is issued a ${ride.name} — collect it at ${ride.city}.`);
+      chron(t, 'fleet', requisition
+        ? `${dispR(name)} requisitions a ${ride.name} — collect it at ${ride.city}.`
+        : `${dispR(name)} is issued a ${ride.name} — collect it at ${ride.city}.`);
       return true;
     };
 
@@ -731,6 +736,15 @@
           const fee = rideFee(ride);
           if (fee != null && fee > TUNING.APPROVAL_LIMIT && !state.approvers.includes(ev.a)) { state.skipped++; break; }
           if (!applyRideUnlock(ev.a, p.line, p.tier, ev.t)) state.skipped++;
+          break;
+        }
+
+        case 'ride.requisition': {
+          // any member, any trade's entry hull, paid from ORG funds. No capture
+          // gate and no contract threshold: this is the floor that stops an org
+          // stalling because nobody owns a cargo hold or a mining head.
+          if (!state.members[ev.a]) { state.skipped++; break; }
+          if (!applyRideUnlock(ev.a, p.line, 1, ev.t, true)) state.skipped++;
           break;
         }
 
@@ -1207,6 +1221,17 @@
         m3.offers.push({
           line, lineName: (ranks && ranks.tracks && ranks.tracks[line] && ranks.tracks[line].name) || line,
           tier: next, ride, fee, needsApproval: fee > TUNING.APPROVAL_LIMIT,
+        });
+      }
+      // entry hulls this member could requisition — every trade they can't fly yet
+      m3.requisitions = [];
+      for (const line of Object.keys(LINE_TYPES)) {
+        const have = m3.lineTiers[line] || 0;
+        const ride = have ? null : rideFor(name, line, 1);
+        const fee = rideFee(ride);
+        m3.requisitions.push({
+          line, lineName: (ranks && ranks.tracks && ranks.tracks[line] && ranks.tracks[line].name) || line,
+          have: have > 0, ride, fee,
         });
       }
       // the hangar: every ship this member can use right now

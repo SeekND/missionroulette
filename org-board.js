@@ -469,9 +469,11 @@
 
       sec('📅', 'How a day works',
         p(`<b>1.</b> Check the right column — the Director's demands and the front-line objectives.`) +
-        p(`<b>2.</b> Claim a contract, and use one of the ships you've been assigned to complete it.`) +
-        p(`<b>3.</b> Run it in the game, as normal.`) +
-        p(`<b>4.</b> Come back and <b>sign off</b>. The board updates for everyone. At midnight the day rolls and the Director moves.`)) +
+        p(`<b>2.</b> Click a planet that's being contested — the ⚑ marks.`) +
+        p(`<b>3.</b> Claim a contract on the left panel, and use one of the ships you've been assigned to complete it.`) +
+        p(`<b>4.</b> Run it in the game, as normal.`) +
+        p(`<b>5.</b> Come back and <b>sign off</b>. The board updates for everyone.`) +
+        p(`The day rolls one full day after the season started — same time of day, every day — and that's when the Director moves.`)) +
 
       sec('🗺', 'The map',
         p(`Every planet has a control meter, 0–100%. <b>Grey</b> planets are locked. ` +
@@ -522,21 +524,32 @@
           `rent at the named city for the shown price, fly, done.`) +
         p(`Promotions are automatic: the more contracts of a type you fly, the better the ship the org offers you for that line. ` +
           `Fees come from ORG funds — the big ones need an approver's nod.`) +
+        p(`<b>Missing a capability?</b> Nobody should watch a contract they can't fly. Fleet → <b>Requisition a ship</b> ` +
+          `buys the <b>entry hull of any trade</b> from ORG funds — cargo space, a mining head, a salvage beam, whatever the org ` +
+          `is short of. No captured ground needed, no waiting: it's yours for the season like any assigned ship. ` +
+          `Anything better than the entry hull still comes from flying the work.`) +
         p(`See a ship you'd like on another member? Open Fleet and click it — offer a <b>swap</b>, one of yours for it. They decide.`)) +
 
       sec('🛠', 'The fleet',
-        p(`Own a hull you'd lend to the cause? <b>Pledge</b> it — free. The org can then <b>commission</b> it into service at its ` +
-          `real price in ORG funds, and assign it to a member.`) +
+        p(`Own a hull you'd lend to the cause? Fleet → <b>add my ships</b> and tap every one you own — pledging is free. ` +
+          `The org can then <b>commission</b> a pledged hull into service at its real price in ORG funds, and assign it to a member.`) +
+        p(`It stays your ship: tap it again any time to take it back. Withdrawing one that's already in service pulls it from the ` +
+          `fleet (the org's commissioning spend is gone), so it's a two-tap confirm.`) +
         p(`If a commissioned hull dies on ops, report it destroyed — the owner recovers it in-game via insurance as normal; ` +
           `the org pays a recommission bill. Salvage your own wreck and the bill halves.`)) +
 
       sec('💰', 'ORG funds',
         p(`Campaign money — not real aUEC, and your wallet is never touched. Every signed-off contract pays the HQ stores, ` +
-          `objectives pay a bonus, and every held planet pays daily. It's spent on promotions, commissions and projects.`)) +
+          `objectives pay a bonus, and every held planet pays daily. It's spent on promotions, requisitions, commissions and projects.`)) +
 
       sec('🏗', 'Projects & victory',
         p(`Projects are org-authored goals with real gates — funds, materials, and captured ground ("needs a planet with Quantanium"). ` +
-          `Each grants the org a lasting board power. The final chain — Keel, Drive, Armor, <b>Commission the Flagship</b> — wins the season.`)) +
+          `Each grants the org a lasting board power. The final chain is Keel, Drive, Armor, <b>Commission the Flagship</b> — ` +
+          `and then the whole org flies its <b>maiden voyage</b> together. That last flight is what wins the season.`)) +
+
+      sec('📡', 'Sharing the war',
+        p(`The war log copies to Discord in one click, and <b>copy map link</b> hands out a live picture of the map that anyone can ` +
+          `open — no code, no account. If your organizer wired the channel up, the board posts each day's report there by itself.`)) +
 
       sec('🎖', 'Org tier',
         p(`Held planets raise the whole org's tier, I → VI. Higher tiers unlock harder contract asks — bounty ranks climb ` +
@@ -1592,10 +1605,12 @@
       `<div class="card-title" style="margin-top:10px">Commissioned hulls</div>` +
       (readyRows || `<div class="panel-hint" style="font-size:13.5px">No commissioned hulls yet — members fly their issued ships, listed above.</div>`) +
       (lostRows ? `<div class="card-title" style="margin-top:10px">Destroyed</div>` + lostRows : '') +
-      `<div class="mc-actions" style="margin-top:12px"><button class="btn btn-primary" id="btn-commission">Commission a ship${pledgedCount ? ` — ${pledgedCount} in the census` : ''}</button></div>` +
+      `<div class="mc-actions" style="margin-top:12px"><button class="btn btn-primary" id="btn-commission">Commission a ship${pledgedCount ? ` — ${pledgedCount} in the census` : ''}</button>` +
+      `<button class="btn" id="btn-requisition">Requisition a ship</button></div>` +
       approvalsHtml();
     el.querySelector('#btn-pledge').addEventListener('click', () => { pledgeFilter = ''; setInfo('pledge'); });
     el.querySelector('#btn-commission').addEventListener('click', showCommissionModal);
+    el.querySelector('#btn-requisition').addEventListener('click', showRequisitionModal);
     el.querySelectorAll('[data-swap-with]').forEach(b => b.addEventListener('click', () =>
       showSwapModal(b.dataset.swapWith, b.dataset.swapTake)));
     el.querySelectorAll('[data-swap-ok]').forEach(b => b.addEventListener('click', () =>
@@ -1643,6 +1658,40 @@
       store.append(OrgState.newEvent('request.approve', callsign(), { reqId: b.dataset.reqOk }))));
     el.querySelectorAll('[data-req-no]').forEach(b => b.addEventListener('click', () =>
       store.append(OrgState.newEvent('request.deny', callsign(), { reqId: b.dataset.reqNo }))));
+  }
+
+  // Requisition — the entry hull of any trade, so an org is never stranded
+  // without cargo space, a mining head or a salvage beam. Starters only.
+  const TRADE_NEED = {
+    bounty: '⚔ Ship combat', merc: '🚑 Medical &amp; ground support', hauler: '📦 Cargo space',
+    miner: '⛏ Ship mining', salvager: '🔩 Salvage', explorer: '🛰 Exploration &amp; intel',
+  };
+  function showRequisitionModal() {
+    const me = state.members[callsign()];
+    const list = (me && me.requisitions) || [];
+    const fmtF = n => n >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : Math.round(n / 1000) + 'k';
+    const rows = list.map(r => {
+      let act;
+      if (r.have) act = `<span class="fleet-ready">✓ you fly this</span>`;
+      else if (!r.ride || r.fee == null) act = `<span class="proj-locks">nothing rentable</span>`;
+      else if (state.chest.funds < r.fee) act = `<span class="proj-locks">short ${fmtF(r.fee - state.chest.funds)} ORG funds</span>`;
+      else act = `<button class="btn btn-mini" data-req-line="${esc(r.line)}">Requisition — ${fmtF(r.fee)}</button>`;
+      return `<div class="fleet-row${r.have ? ' done' : ''}"><div class="fr-top">` +
+        `<span class="fr-ship">${TRADE_NEED[r.line] || esc(r.lineName)}</span>` +
+        `<span class="fr-owner">${r.ride ? esc(r.ride.name) + (r.ride.city ? ` · rent at ${esc(r.ride.city)}` : '') : esc(r.lineName)}</span></div>` +
+        `<div class="fr-action">${act}</div></div>`;
+    }).join('');
+    openModal(
+      `<h2>Requisition a ship</h2>` +
+      `<div class="m-sub">The org's motor pool — the <b>entry hull of any trade</b>, so no one is stuck watching a contract they ` +
+      `can't fly. Paid from ORG funds; it stays yours for the season, like any assigned ship. ` +
+      `Better hulls than these come from promotions — fly the work and the org offers them.</div>` +
+      (rows || `<div class="panel-hint">Join the campaign first.</div>`) +
+      `<div class="modal-actions"><button class="btn btn-ghost" id="rq-close">Close</button></div>`
+    );
+    $('rq-close').addEventListener('click', closeModal);
+    document.querySelectorAll('#modal-root [data-req-line]').forEach(b => b.addEventListener('click', () =>
+      store.append(OrgState.newEvent('ride.requisition', callsign(), { line: b.dataset.reqLine }))));
   }
 
   function showCommissionModal() {
