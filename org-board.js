@@ -324,9 +324,11 @@
         `<b>${Math.round(s.have)}% of ${s.cap}%</b></div>` +
         `<div class="m-bar"><div class="m-fill cb-fill" style="width:${s.cap ? (s.have / s.cap) * 100 : 0}%"></div></div>` +
         `</div>`).join('');
+      // the total is a NUMBER, not a fourth bar. A bar for the sum sitting on
+      // top of bars for its parts is what made all four read as one list of
+      // goals — the shares are the only thing anyone can act on.
       return `<div class="meter m-total"><div class="m-row">` +
-        `<span>${esc(def.name)} control</span><b>${Math.round(zs.control)}%</b></div>` +
-        `<div class="m-bar"><div class="m-fill" style="width:${zs.control}%"></div></div></div>` +
+        `<span>${esc(def.name)} control</span><b>${Math.round(zs.control)}%</b></div></div>` +
         bars +
         (pen > 0
           ? `<div class="cb-pen">⚠ −${pen}% raid damage · ${Math.round(earned)}% earned, ${Math.round(zs.control)}% held</div>`

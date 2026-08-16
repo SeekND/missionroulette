@@ -211,9 +211,11 @@ button.hangar-chip.swap:hover{border-color:var(--accent);color:var(--accent)}
 .meter .m-row b{color:var(--text)}
 .m-bar{height:9px;background:var(--bg-elev);border:1px solid var(--border);border-radius:6px;overflow:hidden;position:relative}
 .m-fill{height:100%;background:var(--accent);border-radius:5px;transition:width .35s}
-.m-total .m-bar{height:13px}
-.m-total .m-fill{background:linear-gradient(90deg,#7c6bd4,var(--accent))}
-.held .m-total .m-fill{background:var(--held)}
+/* the zone total is a headline number, not a bar — see renderZoneInfo */
+.m-total{margin-bottom:11px}
+.m-total .m-row{font-size:14px;color:var(--text)}
+.m-total .m-row b{font-size:16px}
+.held .m-total .m-row b{color:var(--held)}
 
 /* ── The three shares of control ──
    Accent purple is reserved for today's objectives; each share gets its own
