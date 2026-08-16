@@ -209,11 +209,35 @@
         : `Day ${state.tick + 1} / ${len}`;
     const c = state.chest;
     const fmtFunds = (n) => n >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : n >= 1000 ? Math.round(n / 1000) + 'k' : String(n);
+    // hovering the stores explains what each one is, where it comes from, what it buys
+    const TIP = {
+      funds: 'ORG FUNDS — the campaign treasury. Not real aUEC: your own wallet is never touched.\n' +
+        `Earned: ${OrgState.TUNING.FUNDS_PER_CONTRACT / 1000}k per signed-off contract, ` +
+        `${OrgState.TUNING.PUSH_FUNDS_BONUS / 1000}k for completing an objective, ` +
+        `${OrgState.TUNING.HELD_FUNDS_PER_TICK / 1000}k a day from every planet the org holds.\n` +
+        'Spent on: promotions, requisitions, commissioning hulls, and projects.',
+      metals: 'METALS — ore hauled out of the belt and the rock.\n' +
+        'Earned: 1 per mining contract you sign off (mining needs an amber or green planet).\n' +
+        'Spent on: projects — the flagship chain eats metals.',
+      components: 'COMPONENTS — parts stripped off wrecks.\n' +
+        'Earned: 1 per salvage contract you sign off (salvage counts anywhere — no beachhead needed).\n' +
+        'Spent on: projects.',
+      supplies: 'SUPPLIES — cargo, fuel and provisions moved by the haulers.\n' +
+        'Earned: 1 per hauling contract you sign off. Answering a Director relief call pays ' +
+        `${OrgState.TUNING.DISTRACT_REWARD.supplies} more; ignoring one costs ${OrgState.TUNING.DISTRACT_COST.supplies}.\n` +
+        'Spent on: projects.',
+      intel: 'INTEL — what the org learns by looking.\n' +
+        'Earned: 1 per investigation contract you sign off. Investigations are never assigned — ' +
+        'run them on your own and log them.\n' +
+        `Spent on: projects — and at ${OrgState.TUNING.INTEL_TELEGRAPH} in the stores the Director's next move is revealed in advance.`,
+    };
     $('oh-chest').innerHTML =
-      `<span class="mat treasury">ORG FUNDS<b>${fmtFunds(c.funds)}</b></span>` +
-      `<span class="mat">MET<b>${c.metals}</b></span><span class="mat">CMP<b>${c.components}</b></span>` +
-      `<span class="mat">SUP<b>${c.supplies}</b></span><span class="mat">INT<b>${c.intel}</b></span>` +
-      (state.canConvert ? `<button class="mat convert-btn" id="btn-convert" title="War Market — swap materials 1:1">⇄</button>` : '');
+      `<span class="mat treasury" title="${esc(TIP.funds)}">ORG FUNDS<b>${fmtFunds(c.funds)}</b></span>` +
+      `<span class="mat" title="${esc(TIP.metals)}">MET<b>${c.metals}</b></span>` +
+      `<span class="mat" title="${esc(TIP.components)}">CMP<b>${c.components}</b></span>` +
+      `<span class="mat" title="${esc(TIP.supplies)}">SUP<b>${c.supplies}</b></span>` +
+      `<span class="mat" title="${esc(TIP.intel)}">INT<b>${c.intel}</b></span>` +
+      (state.canConvert ? `<button class="mat convert-btn" id="btn-convert" title="War Market — swap any material for another, 1:1">⇄</button>` : '');
     const cv = $('btn-convert');
     if (cv) cv.addEventListener('click', showConvertModal);
     const meRec2 = state.members[callsign()];
