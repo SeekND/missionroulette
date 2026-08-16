@@ -514,8 +514,13 @@
 
       sec('📋', 'Claims',
         p(`<b>Claim</b> a mission to reserve it — it leaves the pool for ${claimMin} minutes so nobody doubles up. ` +
-          `Submit it when it's done, or return it. If you forget, it quietly returns itself.`) +
-        p(`Claiming is optional — freeform work logs just fine with the big button below the objectives.`)) +
+          `It then sits in <b>Your contract</b> on the right; finish it in game and press <b>✓ Submit this contract</b> there, ` +
+          `or return it. If you forget, it quietly returns itself.`) +
+        p(`Claiming is optional. Anything you flew <b>without</b> claiming goes in through <b>＋ Submit other work</b> ` +
+          `under the objectives — same credit, you just pick the region and planet yourself.`) +
+        p(`<b>The on-site bonus:</b> when the contract actually happened at the planet you're crediting, tick the box ` +
+          `before submitting — it's worth +50%. If the board doesn't offer the tick, that type can't be on-site there ` +
+          `(salvage never is — it counts system-wide), so you're not missing anything.`)) +
 
       sec('⛏', 'Mining',
         p(`Mining materials for your contract can only be gathered at <b style="color:#ffb454">amber</b> or ` +
@@ -1096,8 +1101,13 @@
       `<div class="pr-steps">${steps}</div>` +
       repNote(rcLike) +
       (c.ctype === 'mining' ? `<div class="mine-warn">⛏ Mining materials for your contract can only be gathered at <b>amber</b> or <b>green</b> planets.</div>` : '') +
-      (onSiteOk ? `<div class="f-check" style="margin:10px 0 2px"><input type="checkbox" id="mc-onsite"><span>The contract itself was at ${esc(zoneName)} (+50%)</span></div>` : '') +
-      `<div class="mc-actions"><button class="btn btn-primary" id="mc-done">✓ Submit</button>` +
+      (onSiteOk
+        ? `<div class="onsite-ask"><label class="f-check" style="margin:0"><input type="checkbox" id="mc-onsite">` +
+          `<span>Tick if the contract itself was <b>at ${esc(zoneName)}</b> — worth +50%.</span></label></div>`
+        : `<div class="f-note" style="margin:10px 0 2px">${c.ctype === 'salvage'
+            ? 'Salvage never counts as on-site — it counts system-wide, so there is no location bonus to claim.'
+            : `${esc(roll.typeName || c.ctype)} never posts at ${esc(zoneName)}, so there is no on-site bonus for this one.`}</div>`) +
+      `<div class="mc-actions"><button class="btn btn-primary" id="mc-done">✓ Submit this contract</button>` +
       `<button class="btn btn-ghost" id="mc-return">↩ Return to pool</button></div>` +
       `<div class="f-note" id="mc-ttl"></div>`;
     const tick = () => {
@@ -1107,7 +1117,7 @@
       t.textContent = `${Math.floor(ms / 60000)}:${String(Math.floor((ms % 60000) / 1000)).padStart(2, '0')}`;
       const left = OrgState.TUNING.CLAIM_TTL_MS - ms;
       $('mc-ttl').textContent = left > 0
-        ? `Auto-returns to the pool in ${Math.ceil(left / 60000)}m if not signed off.`
+        ? `Auto-returns to the pool in ${Math.ceil(left / 60000)}m if not submitted.`
         : 'Timed out — it may be back in the pool, but signing off still counts.';
     };
     tick();
@@ -1136,8 +1146,8 @@
         `</div>`
       : '';
     openModal(
-      `<h2>Submit a completed contract</h2>` +
-      `<div class="m-sub">You ran a real contract in-game — log it for the war effort. Work is asked per region; you choose where the gains land.</div>` +
+      `<h2>Submit other work</h2>` +
+      `<div class="m-sub">For work you did <b>without claiming it here</b> — anything you flew on your own. (A contract you claimed is submitted from the <b>Your contract</b> card instead.) Work is asked per region; you choose where the gains land.</div>` +
       banner +
       `<label class="f-label">Region you worked in</label><select class="f-select" id="lc-region" ${push ? 'disabled' : ''}>${regionOpts}</select>` +
       `<label class="f-label">Contract type</label><select class="f-select" id="lc-type"></select>` +
