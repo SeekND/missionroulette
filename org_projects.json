@@ -10,8 +10,8 @@
       "name": "Signal Uplink",
       "tier": 1,
       "cost": {
-        "funds": 250000,
-        "intel": 3
+        "funds": 750000,
+        "intel": 5
       },
       "grant": {
         "text": "+1 intel to the HQ stores every day.",
