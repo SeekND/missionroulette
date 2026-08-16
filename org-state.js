@@ -45,6 +45,9 @@
     PUSH_FUNDS_BONUS: 100000,    // treasury bonus when a push completes
     HELD_FUNDS_PER_TICK: 25000,  // every held zone funds the treasury daily
     HEAT_RAID_MULT: 3,           // mining a contested zone triples next-day raid weight on it
+    DIRECTOR_PER_RAID: 4,        // one raid per this many active players yesterday…
+    DIRECTOR_RAID_CAP: 5,        // …to this ceiling, so a huge org is pressed but not buried
+    DIRECTOR_PER_RELIEF: 12,     // an extra relief call per this many actives (max 3)
     CLAIM_TTL_MS: 90 * 60000,    // a claimed contract auto-returns to the pool after this
     RECOMMISSION_FRAC: 0.25,     // recommission a lost hull at this fraction of its price
     RIDE_THRESHOLD: 10,          // contracts in a line's types per promotion tier (10, then 20, then 30)
@@ -482,36 +485,49 @@
     // pure planner — used for the real move and for the intel telegraph preview
     function planDirector(k, actives) {
       if (!actives) return [];
-      const ap = actives >= 8 ? 3 : actives >= 4 ? 2 : 1;
+      // pressure tracks TURNOUT, so a thirty-strong org is hunted as hard as a
+      // four-strong one — the old fixed ceiling of two raids made the Director
+      // a rounding error at scale
+      const raidsWanted = Math.max(1, Math.min(TUNING.DIRECTOR_RAID_CAP,
+        Math.floor(actives / TUNING.DIRECTOR_PER_RAID)));
       const rand = rng(config.seed, k, 'director');
       const plans = [];
-      // raid pool: anywhere the org has presence; held zones draw the most heat
-      const pool = Object.entries(state.zones)
-        .filter(([, z]) => z.control > 0)
-        .flatMap(([zid, z]) => {
-          let w = z.held ? 3 : z.control >= 50 ? 2 : 1;
-          if (!z.held && heatSets[k - 1] && heatSets[k - 1].has(zid)) w *= TUNING.HEAT_RAID_MULT;
-          return Array(w).fill(zid);
-        });
-      const raids = Math.min(ap === 3 ? 2 : 1, pool.length ? ap : 0);
-      const hit = new Set();
+      // raid weight: the contested FRONT draws the most heat. Defending there
+      // breaks the raid AND builds toward capture; hammering held ground is a
+      // pure tax that just churns capture → lose → recapture.
+      const weightOf = (zid, z) => {
+        let w = z.held ? 2 : z.control >= 50 ? 3 : 1;
+        if (!z.held && heatSets[k - 1] && heatSets[k - 1].has(zid)) w *= TUNING.HEAT_RAID_MULT;
+        return w;
+      };
+      // draw WITHOUT replacement: a repeat used to be silently dropped, so the
+      // Director quietly attacked fewer places than it had planned
+      const candidates = Object.entries(state.zones).filter(([, z]) => z.control > 0);
+      const remaining = candidates.map(([zid, z]) => ({ zid, w: weightOf(zid, z) }));
+      const raids = Math.min(raidsWanted, remaining.length);
       for (let i = 0; i < raids; i++) {
-        const zid = pool[Math.floor(rand() * pool.length)];
-        if (hit.has(zid)) continue;
-        hit.add(zid);
+        const total = remaining.reduce((n, c) => n + c.w, 0);
+        let roll = rand() * total, pick = remaining.length - 1;
+        for (let j = 0; j < remaining.length; j++) {
+          roll -= remaining[j].w;
+          if (roll <= 0) { pick = j; break; }
+        }
+        const { zid } = remaining.splice(pick, 1)[0];
         plans.push({ kind: 'raid', region: state.zones[zid].region, zone: zid });
       }
-      // distraction: a relief call away from the org's focus regions
-      if (ap >= 2 || plans.length === 0) {
-        const focusRegions = new Set(Object.keys(state.fronts)
-          .map(z => state.zones[z] && state.zones[z].region).filter(Boolean));
-        let away = Object.keys(sys.regions).filter(rid =>
-          !focusRegions.has(rid) && sys.regions[rid].availability.hauling !== 'none');
-        if (!away.length) away = Object.keys(sys.regions).filter(rid => sys.regions[rid].availability.hauling !== 'none');
-        if (away.length) {
-          const rid = away[Math.floor(rand() * away.length)];
-          plans.push({ kind: 'distract', region: rid, zone: sys.regions[rid].anchor });
-        }
+      // relief calls scale too, so a big org's haulers have something to answer
+      const reliefs = actives >= TUNING.DIRECTOR_PER_RAID
+        ? Math.max(1, Math.min(3, 1 + Math.floor(actives / TUNING.DIRECTOR_PER_RELIEF)))
+        : (plans.length ? 0 : 1);
+      const focusRegions = new Set(Object.keys(state.fronts)
+        .map(z => state.zones[z] && state.zones[z].region).filter(Boolean));
+      const haulable = (rid) => sys.regions[rid].availability.hauling !== 'none';
+      let away = Object.keys(sys.regions).filter(rid => !focusRegions.has(rid) && haulable(rid));
+      if (!away.length) away = Object.keys(sys.regions).filter(haulable);
+      // one call per region at most — two in the same place would share a push id
+      for (let i = 0; i < Math.min(reliefs, away.length); i++) {
+        const rid = away.splice(Math.floor(rand() * away.length), 1)[0];
+        plans.push({ kind: 'distract', region: rid, zone: sys.regions[rid].anchor });
       }
       return plans;
     }
