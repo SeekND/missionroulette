@@ -36,7 +36,8 @@
     RAID_PENALTY: 10,        // control lost when a raid goes unanswered
     DISTRACT_REWARD: { supplies: 4, intel: 1 },  // answering a relief call
     DISTRACT_COST: { supplies: 3 },              // ignoring one (floored at 0)
-    INTEL_TELEGRAPH: 3,      // chest intel needed to preview tomorrow's move
+    INTEL_READ_COST: 2,      // intel SPENT to read tomorrow's move (free once the Sensor Lattice is built)
+    INTEL_DEEP_YIELD: 3,     // a deep investigation (ASD site, research) pays this; a quick case pays MATERIAL_PER_CONTRACT
     CAPTURE: 100,            // control needed to hold a zone
     DAY_MS: 86400000,        // one campaign tick
     MATERIAL_PER_CONTRACT: 1,
@@ -328,6 +329,7 @@
     const pushTally = {};   // pushId → qualifying completions
     const heatSets = {};    // tick → Set of contested zones that took industry work
     const orgDayByTick = {}; // tick → {region, by, at, count, unlocked} — the day's rally
+    const intelRead = {};    // tick → who paid to read the Director that day
 
     // ── Powers (board-only effects of held zones / swept regions) ─────────
     function activeEffects() {
@@ -767,6 +769,18 @@
           break;
         }
 
+        case 'intel.read': {
+          // buy a look at tomorrow's move. Once per day, spent from the stores —
+          // the Sensor Lattice makes it free forever, which is what it's for.
+          const tk2 = tickOf(ev.t);
+          if (!state.members[ev.a] || intelRead[tk2] || hasFx('telegraphFree')) { state.skipped++; break; }
+          if (state.chest.intel < TUNING.INTEL_READ_COST) { state.skipped++; break; }
+          state.chest.intel -= TUNING.INTEL_READ_COST;
+          intelRead[tk2] = { by: ev.a, at: ev.t };
+          chron(ev.t, 'threat', `🛰 ${dispR(ev.a)} reads the intel — the Director's next move is on the board.`);
+          break;
+        }
+
         case 'ride.requisition': {
           // any member, any trade's entry hull, paid from ORG funds — but only
           // from a hub the org has opened. No contract threshold: this is the
@@ -978,7 +992,8 @@
             : TUNING.OFF_FRONT_GAIN;
 
           if (bucket === 'intel') {
-            state.chest.intel += TUNING.MATERIAL_PER_CONTRACT;
+            // a long delving run is worth more than a quick missing-person case
+            state.chest.intel += p.deep ? TUNING.INTEL_DEEP_YIELD : TUNING.MATERIAL_PER_CONTRACT;
           } else if (!industryGated) {
             hit.cats[bucket] += gain;
             // mining hot ground draws tomorrow's raids
@@ -1335,7 +1350,11 @@
     state.director = {
       faction,
       active: activeMoves.map(m => ({ kind: m.kind, region: m.region, zone: m.zone, pushId: m.pushId, deadline: m.deadline })),
-      telegraph: (state.chest.intel >= TUNING.INTEL_TELEGRAPH || hasFx('telegraphFree'))
+      readCost: TUNING.INTEL_READ_COST,
+      readFree: hasFx('telegraphFree'),
+      readToday: !!intelRead[state.tick],
+      canRead: !hasFx('telegraphFree') && !intelRead[state.tick] && state.chest.intel >= TUNING.INTEL_READ_COST,
+      telegraph: (intelRead[state.tick] || hasFx('telegraphFree'))
         ? planDirector(state.tick + 1, Math.max(
             (activeSets[state.tick] && activeSets[state.tick].size) || 0,
             (activeSets[state.tick - 1] && activeSets[state.tick - 1].size) || 0))

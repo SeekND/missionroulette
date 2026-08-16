@@ -8,6 +8,7 @@
     "recipes": "Each zone archetype declares the mix that fills its control meter. A category's contribution CAPS at its share — no single playstyle can take a zone alone. Buckets: combat (ship+ground), supply (hauling), industry (mining+salvage). Investigation feeds intel, not meters.",
     "strataCodes": "zone.strata = the body/location code in Strata's data (Mining repo). Map join: planets/map_positions. Ore-yield join: location_ores — only where the body is mineable (city planets and gas giants like ARC/CRU/PY5 have no ore table by design; stations never do). null = not in Strata data at all (e.g. Grim Hex).",
     "onSite": "zone.onSite = mission types that can actually occur AT that zone (gates the on-site bonus and push flavor). Absent = any type the region offers. Salvage is never on-site anywhere — it is Lagrange-random and credited system-wide as economy. Belts belong to their parent zone (work turns up in them sometimes); Lagrange stations are not zones.",
+    "investigationNote": "region.investigationNote = what KIND of investigation work actually posts there, reported by players in game (quick missing-person cases vs long ASD/research investigations). Shown in the log modal so people know what to expect. Only fill this in from confirmed sightings — leave it out when unknown.",
     "heroes": "region.setPiece = a hero_adventures id — the region's one set-piece op, visible from day 1. Logged once per season (setpiece.done) for a control surge on the region's front + medals. Crusader=Siege of Orison, Hurston=Hathor, microTech=Yormandi, ArcCorp=Hyperion.",
     "factionVoice": "Antagonist factions are attribution flavor ONLY — say 'the Headhunters are likely behind this', never claim an in-game event that does not exist ('Headhunters are attacking Everus Harbor' will never be on a mission board). Objective text stays provider-accurate; the faction lives in the fiction line.",
     "_redline": [
@@ -235,6 +236,7 @@
           "name": "Crusader",
           "anchor": "crusader",
           "setPiece": "hero-siege-of-orison",
+          "investigationNote": "Missing-person cases post here — quick searches, not ASD delving.",
           "availability": {
             "ship-combat": "common",
             "ground-combat": "common",

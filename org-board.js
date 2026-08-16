@@ -212,24 +212,24 @@
     // hovering the stores explains what each one is, where it comes from, what it buys
     const TIP = {
       funds: 'ORG FUNDS — the campaign treasury. Not real aUEC: your own wallet is never touched.\n' +
-        `Earned: ${OrgState.TUNING.FUNDS_PER_CONTRACT / 1000}k per signed-off contract, ` +
+        `Earned: ${OrgState.TUNING.FUNDS_PER_CONTRACT / 1000}k per submitted contract, ` +
         `${OrgState.TUNING.PUSH_FUNDS_BONUS / 1000}k for completing an objective, ` +
         `${OrgState.TUNING.HELD_FUNDS_PER_TICK / 1000}k a day from every planet the org holds.\n` +
         'Spent on: promotions, requisitions, commissioning hulls, and projects.',
       metals: 'METALS — ore hauled out of the belt and the rock.\n' +
-        'Earned: 1 per mining contract you sign off (mining needs an amber or green planet).\n' +
+        'Earned: 1 per mining contract you submit (mining needs an amber or green planet).\n' +
         'Spent on: projects — the flagship chain eats metals.',
       components: 'COMPONENTS — parts stripped off wrecks.\n' +
-        'Earned: 1 per salvage contract you sign off (salvage counts anywhere — no beachhead needed).\n' +
+        'Earned: 1 per salvage contract you submit (salvage counts anywhere — no beachhead needed).\n' +
         'Spent on: projects.',
       supplies: 'SUPPLIES — cargo, fuel and provisions moved by the haulers.\n' +
-        'Earned: 1 per hauling contract you sign off. Answering a Director relief call pays ' +
+        'Earned: 1 per hauling contract you submit. Answering a Director relief call pays ' +
         `${OrgState.TUNING.DISTRACT_REWARD.supplies} more; ignoring one costs ${OrgState.TUNING.DISTRACT_COST.supplies}.\n` +
         'Spent on: projects.',
       intel: 'INTEL — what the org learns by looking.\n' +
-        'Earned: 1 per investigation contract you sign off. Investigations are never assigned — ' +
-        'run them on your own and log them.\n' +
-        `Spent on: projects — and at ${OrgState.TUNING.INTEL_TELEGRAPH} in the stores the Director's next move is revealed in advance.`,
+        `Earned: 1 per quick investigation you submit (missing person, short search), ${OrgState.TUNING.INTEL_DEEP_YIELD} for a long one ` +
+        '(ASD site, research). Investigations are never assigned — run them on your own and log them.\n' +
+        `Spent on: reading the Director's next move (${OrgState.TUNING.INTEL_READ_COST} a look, free once the Sensor Lattice is built), and on projects.`,
     };
     $('oh-chest').innerHTML =
       `<span class="mat treasury" title="${esc(TIP.funds)}">ORG FUNDS<b>${fmtFunds(c.funds)}</b></span>` +
@@ -496,7 +496,7 @@
         p(`<b>2.</b> Click a planet that's being contested — the ⚑ marks.`) +
         p(`<b>3.</b> Claim a contract on the left panel, and use one of the ships you've been assigned to complete it.`) +
         p(`<b>4.</b> Run it in the game, as normal.`) +
-        p(`<b>5.</b> Come back and <b>sign off</b>. The board updates for everyone.`) +
+        p(`<b>5.</b> Come back and <b>submit it</b>. The board updates for everyone.`) +
         p(`The day rolls one full day after the season started — same time of day, every day — and that's when the Director moves.`)) +
 
       sec('🗺', 'The map',
@@ -514,7 +514,7 @@
 
       sec('📋', 'Claims',
         p(`<b>Claim</b> a mission to reserve it — it leaves the pool for ${claimMin} minutes so nobody doubles up. ` +
-          `Sign off when it's done, or return it. If you forget, it quietly returns itself.`) +
+          `Submit it when it's done, or return it. If you forget, it quietly returns itself.`) +
         p(`Claiming is optional — freeform work logs just fine with the big button below the objectives.`)) +
 
       sec('⛏', 'Mining',
@@ -526,7 +526,10 @@
         p(`At every day roll the system strikes back — raids on your ground, relief calls, feints. Answer a raid's Defend ` +
           `contracts or the planet's meter slips ${T.RAID_PENALTY}%. It scales with how many of us played yesterday; quiet days, it rests.`) +
         p(`<b>Intel:</b> investigation contracts are never assigned — run them on your own and log them. ` +
-          `${T.INTEL_TELEGRAPH} intel in the stores and tomorrow's move is revealed in advance.`)) +
+          `A quick case (missing person, a short search) pays 1 intel; a long one (ASD site, research) pays ` +
+          `${T.INTEL_DEEP_YIELD}. Say which when you log it.`) +
+        p(`Spend <b>${T.INTEL_READ_COST} intel</b> to read tomorrow's move before it lands — once a day, from the objectives ` +
+          `column. Build the <b>Sensor Lattice</b> project and reading is free from then on.`)) +
 
       sec('🌟', 'Set-pieces & Org Days',
         p(`Every region carries one <b>set-piece op</b> from the Hero Adventures codex: Siege of Orison at Crusader, ` +
@@ -566,7 +569,7 @@
           `the org pays a recommission bill. Salvage your own wreck and the bill halves.`)) +
 
       sec('💰', 'ORG funds',
-        p(`Campaign money — not real aUEC, and your wallet is never touched. Every signed-off contract pays the HQ stores, ` +
+        p(`Campaign money — not real aUEC, and your wallet is never touched. Every submitted contract pays the HQ stores, ` +
           `objectives pay a bonus, and every held planet pays daily. It's spent on promotions, requisitions, commissions and projects.`)) +
 
       sec('🏗', 'Projects & victory',
@@ -874,7 +877,7 @@
         : slotsLeft <= 0
           ? '<span class="pr-taken">all claimed — in progress</span>'
           : myClaim
-            ? '<span class="pr-taken" title="Sign off or return your active contract first">you have an active contract</span>'
+            ? '<span class="pr-taken" title="Submit or return your active contract first">you have an active contract</span>'
             : `<button class="btn btn-mini" data-claim="${p.id}">Claim contract</button>`}</div>` +
       `</div>`;
   }
@@ -1024,19 +1027,30 @@
       body = urgent.map(buildPushRow).join('') +
         (frontSum ? `<div class="card-title" style="margin-top:${urgent.length ? '12px' : '0'}">Front lines</div>${frontSum}` : '');
     }
-    const tg = state.director && state.director.telegraph;
+    const dir = state.director;
+    const tg = dir && dir.telegraph;
     if (tg) {
       const what = tg.length
         ? tg.map(m => m.kind === 'raid'
           ? `a strike near ${esc(sysR.regions[m.region].zones[m.zone].name)}`
           : `trouble out in ${esc(sysR.regions[m.region].name)} space`).join(', and ')
         : 'a quiet day';
-      body += `<div class="telegraph">🛰 Intel whispers: ${what} tomorrow.</div>`;
-    } else if (state.director) {
-      body += `<div class="telegraph">🛰 No intel coverage — investigation contracts are never assigned; run them on your own and log them. At 3 intel in the HQ stores, tomorrow's Director move is revealed.</div>`;
+      body += `<div class="telegraph">🛰 Intel whispers: ${what} tomorrow.` +
+        (dir.readFree ? ` <span class="proj-locks">Sensor Lattice — reading is free.</span>` : '') + `</div>`;
+    } else if (dir) {
+      // foresight is bought, not banked: intel is spent for a look
+      body += `<div class="telegraph">🛰 The Director's next move is dark. ` +
+        (dir.canRead
+          ? `Spend <b>${dir.readCost} intel</b> to read it. <button class="btn btn-mini" id="btn-read-intel">Read the intel</button>`
+          : `Reading it costs <b>${dir.readCost} intel</b> — the stores hold ${state.chest.intel}. ` +
+            `Investigation contracts are never assigned: run them on your own and log them.`) +
+        `</div>`;
     }
     el.innerHTML = odBlock + `<div class="card-title">Today's objectives</div>${body}`;
     bindClaimButtons(el);
+    const readBtn = el.querySelector('#btn-read-intel');
+    if (readBtn) readBtn.addEventListener('click', () =>
+      store.append(OrgState.newEvent('intel.read', callsign(), {})));
     const rollBtn = el.querySelector('#od-roll');
     if (rollBtn) rollBtn.addEventListener('click', () => {
       const eligible = Object.keys(sysR.regions).filter(rid => sysR.regions[rid].setPiece &&
@@ -1083,7 +1097,7 @@
       repNote(rcLike) +
       (c.ctype === 'mining' ? `<div class="mine-warn">⛏ Mining materials for your contract can only be gathered at <b>amber</b> or <b>green</b> planets.</div>` : '') +
       (onSiteOk ? `<div class="f-check" style="margin:10px 0 2px"><input type="checkbox" id="mc-onsite"><span>The contract itself was at ${esc(zoneName)} (+50%)</span></div>` : '') +
-      `<div class="mc-actions"><button class="btn btn-primary" id="mc-done">✓ Sign off</button>` +
+      `<div class="mc-actions"><button class="btn btn-primary" id="mc-done">✓ Submit</button>` +
       `<button class="btn btn-ghost" id="mc-return">↩ Return to pool</button></div>` +
       `<div class="f-note" id="mc-ttl"></div>`;
     const tick = () => {
@@ -1122,7 +1136,7 @@
         `</div>`
       : '';
     openModal(
-      `<h2>Log a completed contract</h2>` +
+      `<h2>Submit a completed contract</h2>` +
       `<div class="m-sub">You ran a real contract in-game — log it for the war effort. Work is asked per region; you choose where the gains land.</div>` +
       banner +
       `<label class="f-label">Region you worked in</label><select class="f-select" id="lc-region" ${push ? 'disabled' : ''}>${regionOpts}</select>` +
@@ -1130,10 +1144,16 @@
       `<div class="f-note" id="lc-scarce" style="display:none">Scarce work in this region — worth ×1.5.</div>` +
       `<label class="f-label">Apply the gains to</label><select class="f-select" id="lc-zone"></select>` +
       `<div class="f-note" id="lc-mine-help" style="display:none"></div>` +
+      `<div class="f-note" id="lc-inv-note" style="display:none"></div>` +
+      `<div id="lc-deep-wrap" style="display:none"><label class="f-label">Which kind?</label>` +
+      `<select class="f-select" id="lc-deep">` +
+      `<option value="">Missing person, quick search — 1 intel</option>` +
+      `<option value="1">ASD site, research, long investigation — ${OrgState.TUNING.INTEL_DEEP_YIELD} intel</option>` +
+      `</select></div>` +
       `<div class="f-check" id="lc-onsite-wrap"><input type="checkbox" id="lc-onsite">` +
       `<span id="lc-onsite-label">The contract itself was at this zone (+50%)</span></div>` +
       `<div class="modal-actions"><button class="btn btn-ghost" id="lc-cancel">Cancel</button>` +
-      `<button class="btn btn-primary" id="lc-save">✓ Log it</button></div>`
+      `<button class="btn btn-primary" id="lc-save">✓ Submit it</button></div>`
     );
 
     const selRegion = $('lc-region'), selType = $('lc-type'), selZone = $('lc-zone');
@@ -1174,6 +1194,11 @@
     const syncDetail = () => {
       const rid = selRegion.value, t = selType.value, zid = selZone.value;
       $('lc-scarce').style.display = sysR.regions[rid].availability[t] === 'rare' ? '' : 'none';
+      $('lc-deep-wrap').style.display = t === 'investigation' ? '' : 'none';
+      const invNote = $('lc-inv-note');
+      const note = t === 'investigation' && sysR.regions[rid].investigationNote;
+      invNote.textContent = note || '';
+      invNote.style.display = note ? '' : 'none';
       const ok = OrgState.helpers.zoneOnSiteTypes(D.regions, state.config.system, rid, zid).includes(t);
       const wrap = $('lc-onsite-wrap'), box = $('lc-onsite');
       wrap.classList.toggle('disabled', !ok);
@@ -1194,6 +1219,7 @@
         region: selRegion.value, zone: selZone.value, ctype: selType.value,
         onSite: $('lc-onsite').checked || undefined,
         pushId: push ? push.id : undefined,
+        deep: (selType.value === 'investigation' && $('lc-deep').value) ? true : undefined,
       }));
       selected = selZone.value;
     });
@@ -1834,7 +1860,7 @@
       (hangar.length ? `<div class="ride-cur" style="margin-bottom:12px">🚀 Ships assigned to you: <b>${hangar.map(esc).join('</b> · <b>')}</b>.</div>` : '') +
       `<div class="wl-list">` +
       `<div>🗺 <b>The map</b> — grey planets are locked, <b style="color:#ffb454">amber</b> have a beachhead (mining open), <b style="color:#3fb950">green</b> are secured. ⚑ marks the front lines.</div>` +
-      `<div>📋 <b>Contracts</b> — click a ⚑ front-line planet to see and claim its missions, run them in-game, sign off. Work outside the front lines counts, but only a little.</div>` +
+      `<div>📋 <b>Contracts</b> — click a ⚑ front-line planet to see and claim its missions, run them in-game, submit them. Work outside the front lines counts, but only a little.</div>` +
       `<div>🎖 <b>Promotions</b> — the more you do of a thing, the better ships the org offers you, automatically.</div>` +
       `<div>🛰 <b>Intel</b> — investigation contracts are never assigned; run them on your own and log them. Enough intel reveals the Director's next move.</div>` +
       `<div>ℹ <b>Information</b> — Members, Fleet, Projects and the War log live in the buttons up top. Click any planet for its details.</div>` +
