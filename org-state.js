@@ -13,7 +13,8 @@
  *   campaign.create { name, system, seed, mode, seasonDays }
  *   member.join     { callsign }
  *   target.set      { region, zone }
- *   contract.done   { region, zone, ctype, onSite?, pushId? }
+ *   contract.done   { region, zone, ctype, onSite?, cmat?, rmc?, deep?, crew?, pushId? }
+ *   contract.amend  { ref, void? | region?, zone?, ctype?, onSite?, cmat?, rmc?, deep?, pushId? }
  *   fleet.pledge       { ship }
  *   fleet.commission   { fleetId }
  *   fleet.lost         { fleetId, note? }
@@ -41,6 +42,7 @@
     CAPTURE: 100,            // control needed to hold a zone
     DAY_MS: 86400000,        // one campaign tick
     MATERIAL_PER_CONTRACT: 1,
+    RMC_COMPONENTS: 1,       // extra components for a salvage run that brought RMC back, not just CMAT
     FUNDS_PER_CONTRACT: 50000,   // ORG funds (campaign fiction) per banked contract
     PUSH_FUNDS_BONUS: 100000,    // treasury bonus when a push completes
     HELD_FUNDS_PER_TICK: 25000,  // every held zone funds the treasury daily
@@ -185,7 +187,7 @@
   // second event from the same actor in the same millisecond is not a thing.
   const eventRef = (e) => e._k || `${e.t}:${normName(e.a)}`;
   // What a correction is allowed to rewrite — never the actor, never the crew
-  const AMENDABLE = ['region', 'zone', 'ctype', 'onSite', 'deep', 'pushId'];
+  const AMENDABLE = ['region', 'zone', 'ctype', 'onSite', 'deep', 'cmat', 'rmc', 'pushId'];
 
   function fold(regions, events, now, projects, ships, rentals, ranks, heroes) {
     // data-bag call style: fold(regions, events, now, {projects, ships, rentals, ranks, heroes})
@@ -1057,7 +1059,14 @@
           // the on-site bonus is a player's word, not a lookup: if they say the
           // contract happened at the planet they're crediting, it counts. (The
           // old eligibility table vetoed it invisibly and confused everyone.)
-          const onSiteOk = !!p.onSite;
+          //
+          // Salvage is the exception, and always was: wrecks and panels turn up
+          // where they turn up, so there is no "at" to be at. What separates a
+          // hard run from an easy one is the HAUL — RMC takes far longer to fill
+          // than CMAT — so RMC takes the bonus the zone can never give it.
+          const isSalvage = p.ctype === 'salvage';
+          const rmcOk = isSalvage && !!p.rmc;
+          const onSiteOk = !isSalvage && !!p.onSite;
           // mining follows the front: control credit only at contested zones.
           // salvage is exempt — it lives at Lagrange points nobody controls.
           const industryGated = p.ctype === 'mining' && hit.control <= 0;
@@ -1069,7 +1078,7 @@
           const directorWork = pmValid && !PUSH_KIND[pm[3]].org;
           const onFront = !!state.fronts[p.zone] || directorWork;
           const gain = onFront
-            ? TUNING.BASE_GAIN * mult * (onSiteOk ? TUNING.ONSITE_MULT : 1) * gainMultFor(p.ctype, bucket, p.region)
+            ? TUNING.BASE_GAIN * mult * (onSiteOk || rmcOk ? TUNING.ONSITE_MULT : 1) * gainMultFor(p.ctype, bucket, p.region)
             : TUNING.OFF_FRONT_GAIN;
 
           if (bucket === 'intel') {
@@ -1096,7 +1105,8 @@
             }
           }
           if (CHEST_BUCKET[p.ctype] && bucket !== 'intel') {
-            state.chest[CHEST_BUCKET[p.ctype]] += TUNING.MATERIAL_PER_CONTRACT;
+            state.chest[CHEST_BUCKET[p.ctype]] +=
+              TUNING.MATERIAL_PER_CONTRACT + (rmcOk ? TUNING.RMC_COMPONENTS : 0);
           }
 
           // the war banks ONE contract however many flew it — but everyone who
@@ -1117,8 +1127,8 @@
             state.claims[p.claimId].doneAt = ev.t;
           }
           state.filed.push({ ref: eventRef(ev), t: ev.t, tick: tickOf(ev.t), by: ev.a,
-            region: p.region, zone: p.zone, ctype: p.ctype,
-            onSite: !!p.onSite, deep: !!p.deep, crew: crew.length, fixed: !!fix });
+            region: p.region, zone: p.zone, ctype: p.ctype, onSite: onSiteOk, deep: !!p.deep,
+            cmat: !!p.cmat, rmc: rmcOk, crew: crew.length, fixed: !!fix });
           // everyone who flew counts as turnout — the Director answers real numbers
           const act = (activeSets[tickOf(ev.t)] = activeSets[tickOf(ev.t)] || new Set());
           for (const who of crew) act.add(who);

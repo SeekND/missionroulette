@@ -438,8 +438,9 @@
       }</select>` +
       `<label class="f-label">Apply the gains to</label><select class="f-select" id="fx-zone"></select>` +
       `<div class="f-note" id="fx-warn" style="display:none"></div>` +
-      `<div class="f-check"><input type="checkbox" id="fx-onsite" ${f.onSite ? 'checked' : ''}>` +
+      `<div class="f-check" id="fx-onsite-wrap"><input type="checkbox" id="fx-onsite" ${f.onSite ? 'checked' : ''}>` +
       `<span id="fx-onsite-label">The contract itself happened at the zone (+50%)</span></div>` +
+      `<div id="fx-haul-wrap" style="display:none">${haulPickerHtml('fx', f)}</div>` +
       `<div class="modal-actions"><button class="btn btn-ghost" id="fx-cancel">Cancel</button>` +
       `<button class="linklike danger" id="fx-strike">strike it from the record</button>` +
       `<button class="btn btn-primary" id="fx-save">✓ Re-file it</button></div>`
@@ -457,7 +458,7 @@
     };
     const detail = () => {
       const rid = selRegion.value, zid = selZone.value, t = selType.value;
-      const isInv = t === 'investigation';
+      const isInv = t === 'investigation', isSalv = t === 'salvage';
       const gated = t === 'mining' && state.zones[zid] && state.zones[zid].control <= 0;
       const warn = $('fx-warn');
       warn.innerHTML = isInv
@@ -466,7 +467,8 @@
           ? `⚠ ${esc(zoneLabel(rid, zid))} has no beachhead, so mining credited there counts for nothing. Pick a planet the org has already touched.`
           : '';
       warn.style.display = warn.innerHTML ? '' : 'none';
-      $('fx-onsite').parentElement.style.display = isInv ? 'none' : '';
+      $('fx-onsite-wrap').style.display = isInv || isSalv ? 'none' : '';
+      $('fx-haul-wrap').style.display = isSalv ? '' : 'none';
       $('fx-onsite-label').textContent = `The contract itself happened at ${zoneLabel(rid, zid)} (+50%)`;
     };
     selRegion.addEventListener('change', sync);
@@ -479,9 +481,12 @@
       'strike it — sure?'));
     $('fx-save').addEventListener('click', () => {
       const region = selRegion.value, zone = selZone.value, ctype = selType.value;
+      const salv = ctype === 'salvage';
       store.append(OrgState.newEvent('contract.amend', callsign(), {
         ref: f.ref, region, zone, ctype,
-        onSite: ctype !== 'investigation' && $('fx-onsite').checked,
+        onSite: !salv && ctype !== 'investigation' && $('fx-onsite').checked,
+        cmat: salv && $('fx-cmat').checked,
+        rmc: salv && $('fx-rmc').checked,
         // the old objective tag cannot survive a move; re-point it at the one
         // this work actually belongs to, or clear it
         pushId: pushIdFor(f.tick, region, zone, ctype),
@@ -780,6 +785,8 @@
       const what = `${typeWordOf(f.ctype)} · ${zoneLabel(f.region, f.zone)}`;
       const tags = [`day ${f.tick + 1}`];
       if (f.onSite) tags.push('on-site');
+      if (f.rmc) tags.push('RMC');
+      if (f.cmat) tags.push('CMAT');
       if (f.crew > 1) tags.push(`${f.crew} aboard`);
       if (f.fixed) tags.push('corrected');
       return `<div class="req-row"><span>${f.struck ? '<s>' : ''}${esc(disp(f.by))} — ${esc(what)}${f.struck ? '</s>' : ''} ` +
@@ -988,14 +995,30 @@
   // contract that names the moon, find none, and conclude the day is stalled.
   function creditNote(rid, zid, submitting, ctype) {
     // salvage is the one trade with nothing to travel to: wrecks and panels turn
-    // up where they turn up, so pointing a salvager at a moon is the same false
-    // promise the region wording was fixed to stop making
+    // up where they turn up. Its bonus rides on the HAUL instead of the place.
     const bonus = ctype === 'salvage'
-      ? ` Wrecks drift where they fall — the +50% is there if you happened to work it at the body, but don't go hunting for one.`
+      ? ` Wrecks drift where they fall, so there is nothing to fly to — what pays extra is what you bring back.`
       : ` Work that happens there is worth +50%.`;
     return `<div class="pr-credit">★ Anywhere in <b>${esc(regionSpace(rid))}</b> counts — the credit lands on ` +
       `<b>${esc(zoneLabel(rid, zid))}</b> either way.` + (submitting ? '' : bonus) + `</div>`;
   }
+
+  // Salvage asks what you brought back, never where you were. CMAT fills fast;
+  // RMC is the long haul, so it takes the bonus — a flat one, because there is
+  // no honest way to ask how many SCU came home.
+  function haulPickerHtml(prefix, cur) {
+    const on = (k) => (cur && cur[k] ? ' checked' : '');
+    return `<div class="onsite-ask"><div class="oa-q">What did you bring back?</div>` +
+      `<label class="f-check" style="margin:6px 0 0"><input type="checkbox" id="${prefix}-cmat"${on('cmat')}>` +
+      `<span><b>CMAT</b> — the quick fill</span></label>` +
+      `<label class="f-check" style="margin:6px 0 0"><input type="checkbox" id="${prefix}-rmc"${on('rmc')}>` +
+      `<span><b>RMC</b> — the long haul, worth <b>+50% control</b> and an extra component</span></label>` +
+      `<div class="f-note">Tick both if you filled up on both. Neither still banks the contract.</div></div>`;
+  }
+  const haulFrom = (prefix) => ({
+    cmat: !!($(prefix + '-cmat') && $(prefix + '-cmat').checked) || undefined,
+    rmc: !!($(prefix + '-rmc') && $(prefix + '-rmc').checked) || undefined,
+  });
 
   // ── Today's objectives (derived pushes) ─────────────────────────────────
   function fmtLeft(ms) {
@@ -1287,8 +1310,10 @@
       repNote(rcLike) +
       (c.ctype === 'mining' ? `<div class="mine-warn">⛏ Mining materials for your contract can only be gathered at <b>amber</b> or <b>green</b> planets.</div>` : '') +
       creditNote(c.region, c.zone, true, c.ctype) +
-      `<div class="onsite-ask"><label class="f-check" style="margin:0"><input type="checkbox" id="mc-onsite">` +
-      `<span>Tick if the contract itself happened <b>at ${esc(zoneName)}</b> — worth +50%.</span></label></div>` +
+      (c.ctype === 'salvage'
+        ? haulPickerHtml('mc')
+        : `<div class="onsite-ask"><label class="f-check" style="margin:0"><input type="checkbox" id="mc-onsite">` +
+          `<span>Tick if the contract itself happened <b>at ${esc(zoneName)}</b> — worth +50%.</span></label></div>`) +
       crewPickerHtml('mc-crew') +
       `<div class="mc-actions"><button class="btn btn-primary" id="mc-done">✓ Submit this contract</button>` +
       `<button class="btn btn-ghost" id="mc-return">↩ Return to pool</button></div>` +
@@ -1306,9 +1331,11 @@
     tick();
     mcTimerHandle = setInterval(tick, 1000);
     $('mc-done').addEventListener('click', () => {
+      const haul = c.ctype === 'salvage' ? haulFrom('mc') : {};
       store.append(OrgState.newEvent('contract.done', callsign(), {
         region: c.region, zone: c.zone, ctype: c.ctype,
         onSite: ($('mc-onsite') && $('mc-onsite').checked) || undefined,
+        cmat: haul.cmat, rmc: haul.rmc,
         crew: crewFrom($('my-contract')).length ? crewFrom($('my-contract')) : undefined,
         pushId: c.pushId || undefined, claimId: cid,
       }));
@@ -1346,6 +1373,7 @@
       `</select></div>` +
       `<div class="f-check" id="lc-onsite-wrap"><input type="checkbox" id="lc-onsite">` +
       `<span id="lc-onsite-label">The contract itself was at this zone (+50%)</span></div>` +
+      `<div id="lc-haul-wrap" style="display:none">${haulPickerHtml('lc')}</div>` +
       crewPickerHtml('lc-crew') +
       `<div class="modal-actions"><button class="btn btn-ghost" id="lc-cancel">Cancel</button>` +
       `<button class="btn btn-primary" id="lc-save">✓ Submit it</button></div>`
@@ -1390,7 +1418,7 @@
       const rid = selRegion.value, t = selType.value, zid = selZone.value;
       $('lc-scarce').style.display = sysR.regions[rid].availability[t] === 'rare' ? '' : 'none';
       $('lc-deep-wrap').style.display = t === 'investigation' ? '' : 'none';
-      const isInv = t === 'investigation';
+      const isInv = t === 'investigation', isSalv = t === 'salvage';
       const invNote = $('lc-inv-note');
       const note = isInv
         ? `Investigation pays intel into the org stores — there is no zone bonus, and the planet below is only for the record. ` +
@@ -1400,12 +1428,13 @@
       invNote.style.display = note ? '' : 'none';
       $('lc-zone-label').textContent = isInv ? 'Where you were working' : 'Apply the gains to';
       // always ask — the player knows where they were, the board doesn't.
-      // Except for investigation: its yield is flat intel, so the fold never
-      // applies the on-site multiplier and offering the tick promised +50%
-      // that was never paid.
+      // Two trades are exempt: investigation pays flat intel the fold never
+      // multiplies, and salvage has no place to be, so it is asked about its
+      // haul instead.
       const wrap = $('lc-onsite-wrap'), box = $('lc-onsite');
-      wrap.style.display = isInv ? 'none' : '';
-      if (isInv) box.checked = false;
+      wrap.style.display = isInv || isSalv ? 'none' : '';
+      if (isInv || isSalv) box.checked = false;
+      $('lc-haul-wrap').style.display = isSalv ? '' : 'none';
       wrap.classList.remove('disabled');
       box.disabled = false;
       $('lc-onsite-label').textContent =
@@ -1418,9 +1447,11 @@
 
     $('lc-cancel').addEventListener('click', closeModal);
     $('lc-save').addEventListener('click', () => {
+      const haul = selType.value === 'salvage' ? haulFrom('lc') : {};
       store.append(OrgState.newEvent('contract.done', callsign(), {
         region: selRegion.value, zone: selZone.value, ctype: selType.value,
         onSite: $('lc-onsite').checked || undefined,
+        cmat: haul.cmat, rmc: haul.rmc,
         pushId: push ? push.id : undefined,
         deep: (selType.value === 'investigation' && $('lc-deep').value) ? true : undefined,
         crew: crewFrom($('modal-root')).length ? crewFrom($('modal-root')) : undefined,
