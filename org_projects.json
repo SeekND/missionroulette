@@ -58,6 +58,24 @@
         }
       }
     },
+    "prospecting-rights": {
+      "name": "Prospecting Rights",
+      "tier": 1,
+      "cost": {
+        "funds": 500000,
+        "components": 8
+      },
+      "grant": {
+        "text": "Mining and salvage contracts count +10% more control.",
+        "effect": {
+          "gainMult": {
+            "bucket": "industry",
+            "scope": "org",
+            "mult": 1.1
+          }
+        }
+      }
+    },
     "armored-convoys": {
       "name": "Armored Convoys",
       "tier": 2,
@@ -84,15 +102,15 @@
         "Hephaestanite"
       ],
       "cost": {
-        "funds": 2000000,
-        "metals": 15,
-        "components": 10
+        "funds": 1500000,
+        "metals": 10,
+        "components": 5
       },
       "grant": {
-        "text": "+1 components to the HQ stores every day.",
+        "text": "+2 components to the HQ stores every day.",
         "effect": {
           "income": {
-            "components": 1
+            "components": 2
           }
         }
       }
@@ -138,8 +156,9 @@
       ],
       "cost": {
         "funds": 5000000,
-        "metals": 15,
-        "supplies": 10
+        "metals": 10,
+        "components": 10,
+        "supplies": 5
       },
       "grant": {
         "text": "A Quantanium heart beats in the hull."
@@ -152,7 +171,8 @@
       "after": "flagship-drive",
       "cost": {
         "funds": 5000000,
-        "metals": 30
+        "metals": 20,
+        "supplies": 10
       },
       "grant": {
         "text": "The hull is plated. She can take a hit."
@@ -165,8 +185,8 @@
       "after": "flagship-armor",
       "cost": {
         "funds": 10000000,
-        "components": 20,
-        "supplies": 15
+        "components": 15,
+        "supplies": 20
       },
       "grant": {
         "text": "The flagship is commissioned. The season is won.",
