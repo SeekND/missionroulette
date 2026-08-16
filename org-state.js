@@ -1101,7 +1101,7 @@
             if (n === needed) {
               hit.cats[bucket] += TUNING.PUSH_BONUS;
               state.chest.funds += TUNING.PUSH_FUNDS_BONUS;
-              chron(ev.t, 'push', `Objective complete — ${PUSH_KIND[pm[3]].label} ${sys.regions[p.region].zones[p.zone].name}: +${TUNING.PUSH_BONUS}% ${bucket}.`);
+              chron(ev.t, 'push', `Daily Objective Bonus — ${PUSH_KIND[pm[3]].label} ${sys.regions[p.region].zones[p.zone].name}: +${TUNING.PUSH_BONUS}% ${bucket}.`);
             }
           }
           if (CHEST_BUCKET[p.ctype] && bucket !== 'intel') {

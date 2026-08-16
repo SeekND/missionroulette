@@ -218,7 +218,7 @@
     const TIP = {
       funds: 'ORG FUNDS — the campaign treasury. Not real aUEC: your own wallet is never touched.\n' +
         `Earned: ${OrgState.TUNING.FUNDS_PER_CONTRACT / 1000}k per submitted contract, ` +
-        `${OrgState.TUNING.PUSH_FUNDS_BONUS / 1000}k for completing an objective, ` +
+        `${OrgState.TUNING.PUSH_FUNDS_BONUS / 1000}k for each Daily Objective Bonus, ` +
         `${OrgState.TUNING.HELD_FUNDS_PER_TICK / 1000}k a day from every planet the org holds.\n` +
         'Spent on: promotions, requisitions, commissioning hulls, and projects.',
       metals: 'METALS — ore hauled out of the belt and the rock.\n' +
@@ -285,6 +285,13 @@
   // the board never promises a cargo run to one specific rock exists.
   const haulDirFor = (rid) => `any run that starts or ends inside ${regionSpace(rid)}`;
   const typeWordOf = (t) => (D.providers.types[t] || {}).name || String(t).replace('-', ' ');
+  // the three shares of a zone's control, in the order they fill the bar.
+  // jobs = what the bucket is actually DONE with, for plain-language copy
+  const BUCKETS = [
+    { key: 'combat', label: 'combat', jobs: 'fighting' },
+    { key: 'supply', label: 'supply', jobs: 'hauling' },
+    { key: 'industry', label: 'industry', jobs: 'mining and salvage' },
+  ];
 
   // ── Zone panel ──────────────────────────────────────────────────────────
   function renderZoneInfo(el, close) {
@@ -298,11 +305,43 @@
     const capFull = !fr && Object.keys(state.fronts).length >= OrgState.TUNING.FRONT_CAP;
     const zonePushes = (state.pushes || []).filter(p2 => p2.zone === zid);
 
-    const catBar = (label, key) => {
-      const cap = arch.recipe[key], have = Math.min(zs.cats[key], cap);
-      return `<div class="meter"><div class="m-row"><span>${label}</span><b>${have.toFixed(0)} / ${cap}</b></div>` +
-        `<div class="m-bar"><div class="m-fill" style="width:${cap ? (have / cap) * 100 : 0}%"></div></div></div>`;
-    };
+    // ── How the zone is won ───────────────────────────────────────────────
+    // ONE bar, three slots whose WIDTHS are the recipe caps. The caps always
+    // sum to 100, so the slot sizes teach the recipe without a word: on a
+    // Resource Moon you can see industry is half the bar before reading it.
+    // Every number carries a %, because the three of them add up to Control —
+    // true all along, invisible while they read as bare counts ("15 / 20" in a
+    // game about missions reads as fifteen of twenty missions, which is what a
+    // player reported on day one).
+    const controlBar = (() => {
+      const segs = BUCKETS.map(b => {
+        const cap = arch.recipe[b.key] || 0;
+        const have = Math.min(zs.cats[b.key], cap);
+        return { b, cap, have, full: cap > 0 && have >= cap };
+      });
+      const pen = Math.round(zs.penalty || 0);
+      const earned = segs.reduce((n, s) => n + s.have, 0);
+      const slots = segs.map(s =>
+        `<div class="cb-slot cb-${s.b.key}${s.full ? ' full' : ''}" style="flex:${s.cap}">` +
+        `<div class="cb-fill" style="width:${s.cap ? (s.have / s.cap) * 100 : 0}%"></div></div>`).join('');
+      // the legend WRAPS rather than aligning to the slots: the smallest slot is
+      // 20% of a narrow panel, which will never hold the words "industry 16% of
+      // 20%". The colour dot carries the link instead.
+      const keys = segs.map(s =>
+        `<span class="cb-key cb-${s.b.key}${s.full ? ' full' : ''}">` +
+        `<span class="cb-dot"></span>${esc(s.b.label)} ` +
+        `<b>${Math.round(s.have)}% of ${s.cap}%</b></span>`).join('');
+      return `<div class="meter m-total"><div class="m-row"><span>How ${esc(zoneLabel(zs.region, zid))} is won</span>` +
+        `<b>${Math.round(zs.control)}%</b></div>` +
+        `<div class="cb-track">${slots}</div>` +
+        `<div class="cb-keys">${keys}</div>` +
+        (pen > 0
+          ? `<div class="cb-pen">⚠ −${pen}% raid damage · ${Math.round(earned)}% earned, ${Math.round(zs.control)}% held</div>`
+          : '') +
+        `<div class="cb-help">The three add up to Control. Each contract here is worth ` +
+        `${OrgState.TUNING.BASE_GAIN}% to its own share — ` +
+        `${OrgState.TUNING.BASE_GAIN * OrgState.TUNING.ONSITE_MULT}% if you were on site.</div></div>`;
+    })();
     const avail = Object.entries(region.availability)
       .map(([t, lv]) => `<span class="avail-chip ${lv}">${esc(t)}${lv === 'rare' ? ' ×1.5' : ''}</span>`)
       .join('');
@@ -328,9 +367,7 @@
         }
         return out;
       })() +
-      `<div class="meter m-total"><div class="m-row"><span>Control</span><b>${Math.round(zs.control)}%</b></div>` +
-      `<div class="m-bar"><div class="m-fill" style="width:${zs.control}%"></div></div></div>` +
-      catBar('Combat', 'combat') + catBar('Supply', 'supply') + catBar('Industry', 'industry') +
+      controlBar +
       (def.note ? `<div class="pz-note">${esc(def.note)}</div>` : '') +
       ((() => {
         const h = heroFor(region.setPiece);
@@ -1046,14 +1083,32 @@
         creditNote(p.region, p.zone, false, rc.type) +
         `</div>`;
     }
+    // a finished objective is not a wall. Work credited to a front pays the
+    // same 2% whether or not it carries an objective tag — only the +5% and
+    // the funds bonus ride on the objective — but "✓ Complete" reads as
+    // "closed for the day", and the way to log more is hidden in a side button.
+    // Skipped once the bucket is at its ceiling: there the full bar and the
+    // objective's absence tomorrow already say it.
+    let more = '';
+    if (p.completed && !p.director) {
+      const zSt = state.zones[p.zone];
+      const cap = D.regions.archetypes[region.zones[p.zone].archetype].recipe[p.bucket] || 0;
+      const room = zSt ? Math.round(cap - Math.min(zSt.cats[p.bucket], cap)) : 0;
+      if (room > 0) {
+        more = `<div class="pr-more">Daily Objective Bonus complete — more ${esc(p.bucket)} at ` +
+          `<b>${esc(zoneLabel(p.region, p.zone))}</b> still counts (${room}% to its ceiling). ` +
+          `Log it with <button class="linklike" data-logmore="1">Submit other work</button>.</div>`;
+      }
+    }
     return `<div class="push-row k-${p.kind}${p.completed ? ' done' : ''}">` +
       `<div class="pr-top"><span class="pr-kind">${p.director ? '⚠ ' : ''}${p.label}</span>` +
       `<span class="pr-title">${esc(region.zones[p.zone].name)}</span>` +
       `<span class="pr-region">${esc(region.name)} space${p.carried ? ' · carried' : ''}</span></div>` +
       `<div class="pr-detail">${attribution}${p.scarce ? 'scarce ×1.5 · ' : ''}+${p.bonus}% ${p.bucket} when all ${p.count} land${p.types.includes('mining') && state.zones[p.zone] && !state.zones[p.zone].held ? ' · ⚠ mining hot ground draws raids' : ''} · ${fmtLeft(p.expiresAt - Date.now())}</div>` +
       roll +
+      more +
       `<div class="pr-foot">${pips}${p.completed
-        ? '<span class="pr-done">✓ Complete</span>'
+        ? '<span class="pr-done">✓ Daily Objective Bonus</span>'
         : slotsLeft <= 0
           ? '<span class="pr-taken">all claimed — in progress</span>'
           : myClaim
@@ -1063,6 +1118,8 @@
   }
 
   function bindClaimButtons(container) {
+    container.querySelectorAll('[data-logmore]').forEach(b =>
+      b.addEventListener('click', () => showLogModal()));
     container.querySelectorAll('[data-claim]').forEach(b =>
       b.addEventListener('click', () => {
         const p = (state.pushes || []).find(x => x.id === b.dataset.claim);
