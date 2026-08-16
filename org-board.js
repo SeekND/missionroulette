@@ -974,11 +974,12 @@
     const fmtF = n => n >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : Math.round(n / 1000) + 'k';
     const typeWords = { 'ship-combat': 'ship combat', 'ground-combat': 'ground combat',
       hauling: 'hauling', mining: 'mining', salvage: 'salvage', investigation: 'investigation' };
+    // the hull itself is deliberately NOT named — finding out what the org hands
+    // you is the moment, and printing it days early spends it for nothing
     const next = (me.nextRides || []).slice(0, 2).map(n => {
       const what = n.types.map(t => typeWords[t] || t).join(' or ');
-      const art = /^[AEIOU8]/i.test(n.ride.name) ? 'an' : 'a';
       return `<div class="next-ride"><div class="nr-top">` +
-        `<b>${n.left} more ${esc(what)}</b> → the org offers you ${art} <b>${esc(n.ride.name)}</b></div>` +
+        `<b>${n.left} more ${esc(what)}</b> → until the org hands you a new ship</div>` +
         `<div class="m-bar nr-bar"><div class="m-fill" style="width:${Math.round(n.have / n.need * 100)}%"></div></div>` +
         `<div class="nr-sub">${n.have} / ${n.need} ${esc(n.lineName)} contracts · unlock fee ${fmtF(n.fee)} ORG funds</div></div>`;
     }).join('');
@@ -1623,21 +1624,60 @@
   // boundary claims a write-once marker in the database and posts that day's
   // digest. Nobody opens the board → nothing posts — silence IS the signal.
   const reportTried = {};
+  // The day's digest. Numbers come from the fold's per-day ledger, not from the
+  // chronicle: chronicle lines only exist for NOTABLE events, so a day of solid
+  // work that finished no objective used to post "a quiet day — no contracts
+  // logged" after nine contracts. The chronicle still supplies the narrative.
   function buildDailyReport(day) {
-    const held = state.season.heldZones.map(z => sysR.regions[state.zones[z].region].zones[z].name);
+    const d = (state.days || {})[day] || { contracts: 0, types: {}, flyers: {} };
+    const prev = (state.days || {})[day - 1] || {};
     const fmtF = n => n >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : Math.round(n / 1000) + 'k';
-    const lines = [];
-    lines.push(`⚑ **${state.config.name || 'Org Campaign'}** — day ${day + 1} of ${state.config.seasonDays} closes`);
-    lines.push(`Held: ${held.length ? held.join(' · ') : 'nothing yet'} · HQ stores: ${fmtF(state.chest.funds)} ORG funds`);
-    const todays = state.chronicle.filter(c => c.tick === day).map(c => `• ${c.text}`);
-    lines.push(todays.length ? todays.join('\n') : '• A quiet day — no contracts logged.');
-    // whatever the org scouted goes in the post — that's what tomorrow's plan is made of
-    const tg = (state.director && state.director.telegraph) || [];
-    if (tg.length) {
-      lines.push('🛰 **Scouted for tomorrow:** ' + tg.map(m => m.kind === 'raid'
-        ? `a strike on ${zoneLabel(m.region, m.zone)} — ${OrgState.TUNING.PUSH_COUNT} combat contracts in ${regionSpace(m.region)} breaks it`
-        : `convoys going missing in ${regionSpace(m.region)} — haulers wanted`).join(' · '));
+    const lines = [`⚑ **${state.config.name || 'Org Campaign'}** — day ${day + 1} of ${state.config.seasonDays} closes`];
+
+    // what the org actually flew
+    const turnout = Object.keys(d.flyers).length;
+    const roster = Object.values(state.members).filter(m => !m.spectator).length;
+    const types = Object.entries(d.types).sort((a, b) => b[1] - a[1])
+      .map(([t, n]) => `${n} ${typeWordOf(t).toLowerCase()}`).join(' · ');
+    lines.push(d.contracts
+      ? `**${d.contracts} contract${d.contracts === 1 ? '' : 's'}** flown by ${turnout} of ${roster} — ${types}`
+      : `**Nothing flown.** The board sat idle.`);
+
+    // ground gained or lost, and what it cost the enemy
+    const moved = Object.entries(d.control || {})
+      .map(([zid, c]) => [zid, Math.round(c - ((prev.control || {})[zid] || 0))])
+      .filter(([, n]) => n !== 0).sort((a, b) => b[1] - a[1])
+      .map(([zid, n]) => `${zoneLabel(state.zones[zid].region, zid)} ${n > 0 ? '+' : ''}${n}%`);
+    if (moved.length) lines.push(`🗺 Ground: ${moved.join(' · ')}`);
+
+    // what landed in the stores
+    const mats = ['metals', 'components', 'supplies', 'intel']
+      .map(m => [m, Math.round(((d.chest || {})[m] || 0) - ((prev.chest || {})[m] || 0))])
+      .filter(([, n]) => n > 0).map(([m, n]) => `+${n} ${m}`);
+    const fundsUp = Math.round(((d.chest || {}).funds || 0) - ((prev.chest || {}).funds || 0));
+    if (mats.length || fundsUp) {
+      lines.push(`📦 Stores: ${[fundsUp ? `${fundsUp > 0 ? '+' : ''}${fmtF(fundsUp)} ORG funds` : '', ...mats]
+        .filter(Boolean).join(' · ')} (now ${fmtF(state.chest.funds)} funds)`);
     }
+
+    // the narrative: notable events only, never muster setup or internal plumbing
+    const story = state.chronicle
+      .filter(c => c.tick === day && !c.pre && !c.sys)
+      .map(c => `• ${c.text}`);
+    if (story.length) lines.push(story.join('\n'));
+
+    const held = state.season.heldZones.map(z => zoneLabel(state.zones[z].region, z));
+    lines.push(`⚑ Held: ${held.length ? held.join(' · ') : 'nothing yet'}`);
+
+    // what is on the board RIGHT NOW — the post lands as the new day opens, so
+    // this is the call to action. (The old "scouted for tomorrow" line read the
+    // telegraph, which is always empty at this hour: the report fires on the
+    // first page-open of the day, before anyone has bought a scout.)
+    const facing = ((state.director || {}).active || []).map(m => m.kind === 'raid'
+      ? `a strike on **${zoneLabel(m.region, m.zone)}** — ${OrgState.TUNING.PUSH_COUNT} combat contracts in ${regionSpace(m.region)} breaks it`
+      : `convoys going missing in **${regionSpace(m.region)}** — ${OrgState.TUNING.PUSH_COUNT} hauling runs answer it`);
+    if (facing.length) lines.push(`⚠ **Today:** ${facing.join(' · ')}`);
+
     let out = lines.join('\n');
     if (out.length > 1700) out = out.slice(0, 1680) + '\n… (full log in the war room)';
     return out + `\n🗺 The map right now: <${buildMapLink()}>`;

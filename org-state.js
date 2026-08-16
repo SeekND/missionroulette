@@ -342,6 +342,7 @@
       victory: null,       // {at, project} once the season is won
       claims: {},          // claimId → {by, at, pushId, ctype, region, zone, roll, status}
       filed: [],           // recent contract.done, POST-correction — what the admin console edits
+      days: {},            // tick → {contracts, types, flyers, chest, control} — the numbers behind the daily digest
       approvers: [],       // callsigns who may approve big spends (creator is first)
       requests: {},        // reqId → {by, at, kind, payload, status}
       proposals: {},       // reqId → {from, to, give, take, status} — member↔member ship swaps
@@ -363,7 +364,24 @@
     }
 
     const tickOf = (t) => config.startedAt == null ? 0 : Math.max(0, Math.floor((t - config.startedAt) / TUNING.DAY_MS));
-    const chron = (t, kind, text) => state.chronicle.push({ t, tick: tickOf(t), kind, text });
+    // pre = logged before the starting gun. The muster is setup, not war: those
+    // lines belong to the kickoff post, not to day 1's digest. A join AFTER the
+    // gun is real news and carries no flag, so it reports normally.
+    const chron = (t, kind, text, flags) =>
+      state.chronicle.push(Object.assign({ t, tick: tickOf(t), kind, text },
+        config.startedAt == null ? { pre: true } : null, flags));
+
+    // ── The day's ledger ────────────────────────────────────────────────────
+    // The chronicle carries the story; this carries the numbers. The digest used
+    // to be built from chronicle lines alone, so a busy day that happened not to
+    // finish an objective reported nothing the org had done.
+    const dayRec = (k) => (state.days[k] = state.days[k] || { contracts: 0, types: {}, flyers: {} });
+    const sealDay = (k) => {
+      const rec = dayRec(k);
+      rec.chest = Object.assign({}, state.chest);
+      rec.control = {};
+      for (const [zid, z] of Object.entries(state.zones)) rec.control[zid] = z.control;
+    };
     const activeSets = {};
     const pushTally = {};   // pushId → qualifying completions
     const heatSets = {};    // tick → Set of contested zones that took industry work
@@ -670,6 +688,8 @@
           const e = evalEnding();
           chron(seasonEndMs - 1, 'end', `The season closes. ${e.icon} ${e.title}.`);
         }
+        // the books close on the day AFTER its income and the Director have run
+        sealDay(closing);
         nextBoundary += TUNING.DAY_MS;
       }
     }
@@ -838,13 +858,14 @@
           if (p.clear) {
             if (!state.report) { state.skipped++; break; }
             state.report = null;
-            chron(ev.t, 'start', 'Battle reports disconnected.');
+            chron(ev.t, 'start', 'Battle reports disconnected.', { sys: true });
             break;
           }
           const hook = String(p.webhook || '');
           if (!/^https:\/\/(discord\.com|discordapp\.com)\/api\/webhooks\//.test(hook)) { state.skipped++; break; }
           state.report = { by: ev.a, at: ev.t, webhook: hook };
-          chron(ev.t, 'start', 'Daily battle reports wired to the org\'s Discord.');
+          // internal plumbing — the war room shows it, the channel never does
+          chron(ev.t, 'start', 'Daily battle reports wired to the org\'s Discord.', { sys: true });
           break;
         }
 
@@ -1126,6 +1147,10 @@
           // was there gets the personal credit: tallies, medals, promotions
           const crew = [...new Set([ev.a].concat(Array.isArray(p.crew) ? p.crew : []))]
             .filter(n => n === ev.a || state.members[n]);
+          const rec = dayRec(tickOf(ev.t));
+          rec.contracts++;
+          rec.types[p.ctype] = (rec.types[p.ctype] || 0) + 1;
+          for (const who of crew) rec.flyers[who] = (rec.flyers[who] || 0) + 1;
           for (const who of crew) {
             const mw = member(who, ev.t);
             mw.total++;
