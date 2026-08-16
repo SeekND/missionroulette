@@ -271,6 +271,7 @@
       if (p.callsign != null) p.callsign = normName(p.callsign);
       if (p.to != null) p.to = normName(p.to);
       if (Array.isArray(p.participants)) p.participants = p.participants.map(normName);
+      if (Array.isArray(p.crew)) p.crew = p.crew.map(normName);
       return Object.assign({}, e, { a: normName(e.a), p });
     };
     // net logs carry a push key (_k) — a total, clock-skew-proof tie-break shared
@@ -329,7 +330,7 @@
     const pushTally = {};   // pushId → qualifying completions
     const heatSets = {};    // tick → Set of contested zones that took industry work
     const orgDayByTick = {}; // tick → {region, by, at, count, unlocked} — the day's rally
-    const intelRead = {};    // tick → who paid to read the Director that day
+    const intelRead = {};    // tick → { regionId: {by, at} } — scouting is bought per region
 
     // ── Powers (board-only effects of held zones / swept regions) ─────────
     function activeEffects() {
@@ -371,6 +372,16 @@
       return TUNING.PUSH_COUNT;
     };
     const hasFx = (key) => activeEffects().some(f => f.effect[key]);
+    // what a look at one region costs right now: a held listening post watches
+    // its own back yard for nothing; the Sensor Lattice cuts the price everywhere
+    const scoutCost = (regionId) => {
+      let c = TUNING.INTEL_READ_COST;
+      for (const f of activeEffects()) {
+        if (f.effect.scoutFree === regionId) return 0;
+        if (f.effect.scoutCost != null) c = Math.min(c, f.effect.scoutCost);
+      }
+      return c;
+    };
     const raidPenaltyFor = (regionId) => {
       let p = TUNING.RAID_PENALTY;
       for (const f of activeEffects()) {
@@ -770,14 +781,18 @@
         }
 
         case 'intel.read': {
-          // buy a look at tomorrow's move. Once per day, spent from the stores —
-          // the Sensor Lattice makes it free forever, which is what it's for.
+          // scout ONE region for tomorrow. Bought per region, once a day each,
+          // so intel stays worth earning all season instead of being a one-off unlock.
           const tk2 = tickOf(ev.t);
-          if (!state.members[ev.a] || intelRead[tk2] || hasFx('telegraphFree')) { state.skipped++; break; }
-          if (state.chest.intel < TUNING.INTEL_READ_COST) { state.skipped++; break; }
-          state.chest.intel -= TUNING.INTEL_READ_COST;
-          intelRead[tk2] = { by: ev.a, at: ev.t };
-          chron(ev.t, 'threat', `🛰 ${dispR(ev.a)} reads the intel — the Director's next move is on the board.`);
+          const rid2 = p.region;
+          if (!state.members[ev.a] || !sys.regions[rid2]) { state.skipped++; break; }
+          const day2 = intelRead[tk2] = intelRead[tk2] || {};
+          if (day2[rid2]) { state.skipped++; break; }
+          const cost2 = scoutCost(rid2);
+          if (state.chest.intel < cost2) { state.skipped++; break; }
+          state.chest.intel -= cost2;
+          day2[rid2] = { by: ev.a, at: ev.t };
+          chron(ev.t, 'threat', `🛰 ${dispR(ev.a)} scouts ${sys.regions[rid2].name} space.`);
           break;
         }
 
@@ -1021,17 +1036,26 @@
             state.chest[CHEST_BUCKET[p.ctype]] += TUNING.MATERIAL_PER_CONTRACT;
           }
 
-          const m = member(ev.a, ev.t);
-          m.total++;
-          m.tallies[p.ctype] = (m.tallies[p.ctype] || 0) + 1;
-          if (onSiteOk && onFront) m.onSite++;
-          if (p.pushId) m.pushed++;
+          // the war banks ONE contract however many flew it — but everyone who
+          // was there gets the personal credit: tallies, medals, promotions
+          const crew = [...new Set([ev.a].concat(Array.isArray(p.crew) ? p.crew : []))]
+            .filter(n => n === ev.a || state.members[n]);
+          for (const who of crew) {
+            const mw = member(who, ev.t);
+            mw.total++;
+            mw.tallies[p.ctype] = (mw.tallies[p.ctype] || 0) + 1;
+            if (onSiteOk && onFront) mw.onSite++;
+            if (p.pushId) mw.pushed++;
+          }
+          const m = state.members[ev.a];
           if (p.claimId && state.claims[p.claimId] && state.claims[p.claimId].by === ev.a &&
               state.claims[p.claimId].status === 'active') {
             state.claims[p.claimId].status = 'done';
             state.claims[p.claimId].doneAt = ev.t;
           }
-          (activeSets[tickOf(ev.t)] = activeSets[tickOf(ev.t)] || new Set()).add(ev.a);
+          // everyone who flew counts as turnout — the Director answers real numbers
+          const act = (activeSets[tickOf(ev.t)] = activeSets[tickOf(ev.t)] || new Set());
+          for (const who of crew) act.add(who);
 
           // an Org Day counts every mission flown in its region, whatever the type —
           // and the Director fights the muster: a confrontation extends the path,
@@ -1353,17 +1377,19 @@
     state.director = {
       faction,
       active: activeMoves.map(m => ({ kind: m.kind, region: m.region, zone: m.zone, pushId: m.pushId, deadline: m.deadline })),
-      readCost: TUNING.INTEL_READ_COST,
-      readFree: hasFx('telegraphFree'),
-      readToday: !!intelRead[state.tick],
-      canRead: !hasFx('telegraphFree') && !intelRead[state.tick] && state.chest.intel >= TUNING.INTEL_READ_COST,
-      telegraph: (intelRead[state.tick] || hasFx('telegraphFree'))
-        ? planDirector(state.tick + 1, Math.max(
-            (activeSets[state.tick] && activeSets[state.tick].size) || 0,
-            (activeSets[state.tick - 1] && activeSets[state.tick - 1].size) || 0))
-          .map(pl => ({ kind: pl.kind, region: pl.region, zone: pl.zone }))
-        : null,
+      scoutCosts: Object.fromEntries(Object.keys(sys.regions).map(r => [r, scoutCost(r)])),
+      // a region is visible if someone paid for it today, or if it costs nothing
+      scouted: [...new Set(Object.keys(intelRead[state.tick] || {})
+        .concat(Object.keys(sys.regions).filter(r => scoutCost(r) === 0)))],
+      telegraph: null,
     };
+    state.director.telegraph = state.director.scouted.length
+      ? planDirector(state.tick + 1, Math.max(
+          (activeSets[state.tick] && activeSets[state.tick].size) || 0,
+          (activeSets[state.tick - 1] && activeSets[state.tick - 1].size) || 0))
+        .filter(pl => state.director.scouted.includes(pl.region))
+        .map(pl => ({ kind: pl.kind, region: pl.region, zone: pl.zone }))
+      : null;
     return state;
   }
 

@@ -229,7 +229,7 @@
       intel: 'INTEL — what the org learns by looking.\n' +
         `Earned: 1 per quick investigation you submit (missing person, short search), ${OrgState.TUNING.INTEL_DEEP_YIELD} for a long one ` +
         '(ASD site, research). Investigations are never assigned — run them on your own and log them.\n' +
-        `Spent on: reading the Director's next move (${OrgState.TUNING.INTEL_READ_COST} a look, free once the Sensor Lattice is built), and on projects.`,
+        `Spent on: scouting the Director region by region (${OrgState.TUNING.INTEL_READ_COST} intel each, once a day per region), and on projects.`,
     };
     $('oh-chest').innerHTML =
       `<span class="mat treasury" title="${esc(TIP.funds)}">ORG FUNDS<b>${fmtFunds(c.funds)}</b></span>` +
@@ -529,11 +529,13 @@
       sec('🤖', 'The Director',
         p(`At every day roll the system strikes back — raids on your ground, relief calls, feints. Answer a raid's Defend ` +
           `contracts or the planet's meter slips ${T.RAID_PENALTY}%. It scales with how many of us played yesterday; quiet days, it rests.`) +
-        p(`<b>Intel:</b> investigation contracts are never assigned — run them on your own and log them. ` +
+        p(`<b>Intel:</b> investigation contracts are never assigned — run them on your own and submit them. ` +
           `A quick case (missing person, a short search) pays 1 intel; a long one (ASD site, research) pays ` +
-          `${T.INTEL_DEEP_YIELD}. Say which when you log it.`) +
-        p(`Spend <b>${T.INTEL_READ_COST} intel</b> to read tomorrow's move before it lands — once a day, from the objectives ` +
-          `column. Build the <b>Sensor Lattice</b> project and reading is free from then on.`)) +
+          `${T.INTEL_DEEP_YIELD}. Say which when you submit it.`) +
+        p(`<b>Scouting:</b> spend <b>${T.INTEL_READ_COST} intel</b> to see what's coming in <b>one region</b> tomorrow — ` +
+          `"quiet" is an answer too. Each region is its own look, once a day, so intel keeps its worth all season. ` +
+          `Hold <b>Cellin</b> and Crusader space is watched for free; build the <b>Sensor Lattice</b> and every region ` +
+          `costs 1 instead of 2.`)) +
 
       sec('🌟', 'Set-pieces & Org Days',
         p(`Every region carries one <b>set-piece op</b> from the Hero Adventures codex: Siege of Orison at Crusader, ` +
@@ -1032,30 +1034,36 @@
       body = urgent.map(buildPushRow).join('') +
         (frontSum ? `<div class="card-title" style="margin-top:${urgent.length ? '12px' : '0'}">Front lines</div>${frontSum}` : '');
     }
+    // Scouting: intel buys a look at ONE region's tomorrow, so it stays worth earning
     const dir = state.director;
-    const tg = dir && dir.telegraph;
-    if (tg) {
-      const what = tg.length
-        ? tg.map(m => m.kind === 'raid'
-          ? `a strike near ${esc(sysR.regions[m.region].zones[m.zone].name)}`
-          : `trouble out in ${esc(sysR.regions[m.region].name)} space`).join(', and ')
-        : 'a quiet day';
-      body += `<div class="telegraph">🛰 Intel whispers: ${what} tomorrow.` +
-        (dir.readFree ? ` <span class="proj-locks">Sensor Lattice — reading is free.</span>` : '') + `</div>`;
-    } else if (dir) {
-      // foresight is bought, not banked: intel is spent for a look
-      body += `<div class="telegraph">🛰 The Director's next move is dark. ` +
-        (dir.canRead
-          ? `Spend <b>${dir.readCost} intel</b> to read it. <button class="btn btn-mini" id="btn-read-intel">Read the intel</button>`
-          : `Reading it costs <b>${dir.readCost} intel</b> — the stores hold ${state.chest.intel}. ` +
-            `Investigation contracts are never assigned: run them on your own and log them.`) +
+    if (dir) {
+      const scouted = dir.scouted || [];
+      const rows = Object.entries(sysR.regions).map(([rid, r]) => {
+        const cost = (dir.scoutCosts || {})[rid];
+        if (scouted.includes(rid)) {
+          const here = (dir.telegraph || []).filter(m => m.region === rid);
+          const what = here.length
+            ? here.map(m => m.kind === 'raid'
+              ? `a strike near <b>${esc(sysR.regions[m.region].zones[m.zone].name)}</b>`
+              : `convoy trouble out here`).join(', and ')
+            : 'quiet';
+          return `<div class="scout-row done"><span>${esc(r.name)}</span>` +
+            `<span>${what}${cost === 0 ? ' <span class="proj-locks">· watched free</span>' : ''}</span></div>`;
+        }
+        return `<div class="scout-row"><span>${esc(r.name)}</span>` +
+          (state.chest.intel >= cost
+            ? `<button class="btn btn-mini" data-scout="${rid}">Scout — ${cost} intel</button>`
+            : `<span class="proj-locks">${cost} intel</span>`) + `</div>`;
+      }).join('');
+      body += `<div class="telegraph"><div class="tg-head">🛰 Scout the Director — tomorrow's move, one region at a time</div>` +
+        rows +
+        (scouted.length ? '' : `<div class="f-note" style="margin-top:4px">Intel comes from investigation contracts — never assigned, run them on your own.</div>`) +
         `</div>`;
     }
     el.innerHTML = odBlock + `<div class="card-title">Today's objectives</div>${body}`;
     bindClaimButtons(el);
-    const readBtn = el.querySelector('#btn-read-intel');
-    if (readBtn) readBtn.addEventListener('click', () =>
-      store.append(OrgState.newEvent('intel.read', callsign(), {})));
+    el.querySelectorAll('[data-scout]').forEach(b => b.addEventListener('click', () =>
+      store.append(OrgState.newEvent('intel.read', callsign(), { region: b.dataset.scout }))));
     const rollBtn = el.querySelector('#od-roll');
     if (rollBtn) rollBtn.addEventListener('click', () => {
       const eligible = Object.keys(sysR.regions).filter(rid => sysR.regions[rid].setPiece &&
@@ -1076,6 +1084,18 @@
       renderMap(); renderInfo(); updateTabs();
     }));
   }
+
+  // Who else was on the contract: the war banks it once, but everyone who flew
+  // it gets the personal credit — tallies, medals, promotion progress.
+  function crewPickerHtml(id) {
+    const others = Object.keys(state.members).filter(n => n !== callsign() && !state.members[n].spectator).sort();
+    if (!others.length) return '';
+    return `<label class="f-label">Anyone fly it with you?</label>` +
+      `<div class="sp-parts" id="${id}">` +
+      others.map(n => `<label class="f-check"><input type="checkbox" data-crew="${esc(n)}"> ${esc(disp(n))}</label>`).join('') +
+      `</div><div class="f-note">They each get the contract on their record. The org still banks one contract.</div>`;
+  }
+  const crewFrom = (root) => [...root.querySelectorAll('[data-crew]')].filter(c => c.checked).map(c => c.dataset.crew);
 
   // ── Your contract (the active claim — persistent card, never a modal) ───
   let mcTimerHandle = null;
@@ -1102,6 +1122,7 @@
       (c.ctype === 'mining' ? `<div class="mine-warn">⛏ Mining materials for your contract can only be gathered at <b>amber</b> or <b>green</b> planets.</div>` : '') +
       `<div class="onsite-ask"><label class="f-check" style="margin:0"><input type="checkbox" id="mc-onsite">` +
       `<span>Tick if the contract itself happened <b>at ${esc(zoneName)}</b> — worth +50%.</span></label></div>` +
+      crewPickerHtml('mc-crew') +
       `<div class="mc-actions"><button class="btn btn-primary" id="mc-done">✓ Submit this contract</button>` +
       `<button class="btn btn-ghost" id="mc-return">↩ Return to pool</button></div>` +
       `<div class="f-note" id="mc-ttl"></div>`;
@@ -1121,6 +1142,7 @@
       store.append(OrgState.newEvent('contract.done', callsign(), {
         region: c.region, zone: c.zone, ctype: c.ctype,
         onSite: ($('mc-onsite') && $('mc-onsite').checked) || undefined,
+        crew: crewFrom($('my-contract')).length ? crewFrom($('my-contract')) : undefined,
         pushId: c.pushId || undefined, claimId: cid,
       }));
     });
@@ -1157,6 +1179,7 @@
       `</select></div>` +
       `<div class="f-check" id="lc-onsite-wrap"><input type="checkbox" id="lc-onsite">` +
       `<span id="lc-onsite-label">The contract itself was at this zone (+50%)</span></div>` +
+      crewPickerHtml('lc-crew') +
       `<div class="modal-actions"><button class="btn btn-ghost" id="lc-cancel">Cancel</button>` +
       `<button class="btn btn-primary" id="lc-save">✓ Submit it</button></div>`
     );
@@ -1223,6 +1246,7 @@
         onSite: $('lc-onsite').checked || undefined,
         pushId: push ? push.id : undefined,
         deep: (selType.value === 'investigation' && $('lc-deep').value) ? true : undefined,
+        crew: crewFrom($('modal-root')).length ? crewFrom($('modal-root')) : undefined,
       }));
       selected = selZone.value;
     });

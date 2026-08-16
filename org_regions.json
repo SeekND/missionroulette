@@ -279,9 +279,9 @@
               "why": "Bunker country. Whoever holds Cellin's strongpoints watches every approach to Crusader.",
               "power": {
                 "name": "Early-Warning Net",
-                "text": "Tomorrow's Director move is always shown — no intel needed.",
+                "text": "Scouting Crusader space costs nothing — the net watches its own back yard.",
                 "effect": {
-                  "telegraphFree": true
+                  "scoutFree": "crusader"
                 }
               }
             },

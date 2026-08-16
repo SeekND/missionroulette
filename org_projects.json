@@ -110,9 +110,9 @@
         "intel": 5
       },
       "grant": {
-        "text": "Tomorrow's Director move is always shown.",
+        "text": "Scouting any region costs 1 intel instead of 2.",
         "effect": {
-          "telegraphFree": true
+          "scoutCost": 1
         }
       }
     },
