@@ -267,6 +267,16 @@
       }));
   }
 
+  // Crusader is both a region and the gas giant inside it — never print a bare
+  // name where either could be meant. Regions get "space"; the capital planet
+  // that shares its region's name gets "itself".
+  const regionSpace = (rid) => `${(sysR.regions[rid] || {}).name || rid} space`;
+  const zoneLabel = (rid, zid) => {
+    const r = sysR.regions[rid];
+    const zn = r && r.zones[zid] ? r.zones[zid].name : zid;
+    return (r && zn === r.name) ? `${zn} itself` : zn;
+  };
+
   // ── Zone panel ──────────────────────────────────────────────────────────
   function renderZoneInfo(el, close) {
     const zid = selected, zs = state.zones[zid];
@@ -867,7 +877,7 @@
     if (!p.completed) {
       const rc = rollContract(p, p.done);
       roll = `<div class="pr-roll"><span class="pr-rollnum">Contract ${p.done + 1} of ${p.count}</span> · <b>${esc(rc.typeName)}</b>` +
-        `<div class="pr-steps">1 — Travel to <b>${esc(rc.hub)}</b>${rc.restock ? ` <span class="pr-restock">(restock &amp; rearm at ${esc(rc.restock)})</span>` : ''}<br>` +
+        `<div class="pr-steps">1 — Travel to <b>${esc(rc.hub)} space</b>${rc.restock ? ` <span class="pr-restock">(restock &amp; rearm at ${esc(rc.restock)})</span>` : ''}<br>` +
         `2 — ${step2Text(rc)}</div>` +
         repNote(rc) +
         (rc.type === 'mining' ? `<div class="mine-warn">⛏ Mining materials for your contract can only be gathered at <b>amber</b> or <b>green</b> planets.</div>` : '') +
@@ -1044,19 +1054,33 @@
           const here = (dir.telegraph || []).filter(m => m.region === rid);
           const what = here.length
             ? here.map(m => m.kind === 'raid'
-              ? `a strike near <b>${esc(sysR.regions[m.region].zones[m.zone].name)}</b>`
-              : `convoy trouble out here`).join(', and ')
+              ? `a strike on <b>${esc(zoneLabel(m.region, m.zone))}</b>`
+              : `convoys going missing`).join(', and ')
             : 'quiet';
-          return `<div class="scout-row done"><span>${esc(r.name)}</span>` +
+          return `<div class="scout-row done"><span>${esc(regionSpace(rid))}</span>` +
             `<span>${what}${cost === 0 ? ' <span class="proj-locks">· watched free</span>' : ''}</span></div>`;
         }
-        return `<div class="scout-row"><span>${esc(r.name)}</span>` +
+        return `<div class="scout-row"><span>${esc(regionSpace(rid))}</span>` +
           (state.chest.intel >= cost
             ? `<button class="btn btn-mini" data-scout="${rid}">Scout — ${cost} intel</button>`
             : `<span class="proj-locks">${cost} intel</span>`) + `</div>`;
       }).join('');
+      // scouting has to end in an instruction, or it's just trivia
+      const found = dir.telegraph || [];
+      const raids = found.filter(m => m.kind === 'raid');
       body += `<div class="telegraph"><div class="tg-head">🛰 Scout the Director — tomorrow's move, one region at a time</div>` +
         rows +
+        (found.length
+          ? `<div class="tg-plan">⚔ <b>Tomorrow's orders:</b> ` +
+            (raids.length
+              ? `be in ${raids.map(m => esc(regionSpace(m.region))).join(' and ')} when the day rolls — ` +
+                `${OrgState.TUNING.PUSH_COUNT} combat contracts there breaks the raid before it costs you ` +
+                `${OrgState.TUNING.RAID_PENALTY}% control.`
+              : `haulers wanted — answering the relief call pays the HQ stores instead of draining them.`) +
+            `</div>`
+          : '') +
+        (scouted.length && !found.length
+          ? `<div class="f-note" style="margin-top:4px">Nothing coming where you looked — spend tomorrow taking ground.</div>` : '') +
         (scouted.length ? '' : `<div class="f-note" style="margin-top:4px">Intel comes from investigation contracts — never assigned, run them on your own.</div>`) +
         `</div>`;
     }
@@ -1112,7 +1136,7 @@
     const roll = c.roll || {};
     const rcLike = { prov: roll.prov ? { name: roll.prov, tab: roll.tab } : null, tab: roll.tab, typeName: roll.typeName, ctype: c.ctype, type: c.ctype, haulDir: roll.dir, rank: roll.rank, gillyTier: roll.gillyTier };
     const steps =
-      `1 — Travel to <b>${esc(roll.hub || (region ? region.name : ''))}</b>${roll.restock ? ` <span class="pr-restock">(restock &amp; rearm at ${esc(roll.restock)})</span>` : ''}<br>` +
+      `1 — Travel to <b>${esc((roll.hub || (region ? region.name : '')) + ' space')}</b>${roll.restock ? ` <span class="pr-restock">(restock &amp; rearm at ${esc(roll.restock)})</span>` : ''}<br>` +
       `2 — ${step2Text(rcLike)}`;
     el.innerHTML =
       `<div class="card-title ct-row">Your contract <span class="mc-timer" id="mc-timer"></span></div>` +
@@ -1353,6 +1377,13 @@
     lines.push(`Held: ${held.length ? held.join(' · ') : 'nothing yet'} · HQ stores: ${fmtF(state.chest.funds)} ORG funds`);
     const todays = state.chronicle.filter(c => c.tick === day).map(c => `• ${c.text}`);
     lines.push(todays.length ? todays.join('\n') : '• A quiet day — no contracts logged.');
+    // whatever the org scouted goes in the post — that's what tomorrow's plan is made of
+    const tg = (state.director && state.director.telegraph) || [];
+    if (tg.length) {
+      lines.push('🛰 **Scouted for tomorrow:** ' + tg.map(m => m.kind === 'raid'
+        ? `a strike on ${zoneLabel(m.region, m.zone)} — ${OrgState.TUNING.PUSH_COUNT} combat contracts in ${regionSpace(m.region)} breaks it`
+        : `convoys going missing in ${regionSpace(m.region)} — haulers wanted`).join(' · '));
+    }
     let out = lines.join('\n');
     if (out.length > 1700) out = out.slice(0, 1680) + '\n… (full log in the war room)';
     return out + `\n🗺 The map right now: <${buildMapLink()}>`;
