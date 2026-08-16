@@ -343,6 +343,7 @@
       claims: {},          // claimId → {by, at, pushId, ctype, region, zone, roll, status}
       filed: [],           // recent contract.done, POST-correction — what the admin console edits
       days: {},            // tick → {contracts, types, flyers, chest, control} — the numbers behind the daily digest
+      timings: [],         // {who, ctype, ms, tick} per CLAIMED contract — claim → submit. Admin console only
       approvers: [],       // callsigns who may approve big spends (creator is first)
       requests: {},        // reqId → {by, at, kind, payload, status}
       proposals: {},       // reqId → {from, to, give, take, status} — member↔member ship swaps
@@ -1163,6 +1164,14 @@
               state.claims[p.claimId].status === 'active') {
             state.claims[p.claimId].status = 'done';
             state.claims[p.claimId].doneAt = ev.t;
+            // how long the run took, from claiming it to filing it. Only CLAIMED
+            // work can be timed — freeform submissions have no start. Credited to
+            // the claimant alone: the crew flew it, but this is their clock.
+            const ms = ev.t - state.claims[p.claimId].at;
+            if (ms > 0) {
+              state.timings.push({ who: ev.a, ctype: p.ctype, ms, tick: tickOf(ev.t) });
+              if (state.timings.length > 3000) state.timings.shift();
+            }
           }
           state.filed.push({ ref: eventRef(ev), t: ev.t, tick: tickOf(ev.t), by: ev.a,
             region: p.region, zone: p.zone, ctype: p.ctype, onSite: onSiteOk, deep: !!p.deep,

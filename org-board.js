@@ -285,6 +285,19 @@
   // the board never promises a cargo run to one specific rock exists.
   const haulDirFor = (rid) => `any run that starts or ends inside ${regionSpace(rid)}`;
   const typeWordOf = (t) => (D.providers.types[t] || {}).name || String(t).replace('-', ' ');
+  // ── Time on contract (admin console) ──────────────────────────────────────
+  let timeView = 'org';
+  const fmtDur = (ms) => {
+    if (ms < 60000) return `${Math.max(1, Math.round(ms / 1000))}s`;
+    const m = Math.round(ms / 60000);
+    return m >= 60 ? `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, '0')}m` : `${m}m`;
+  };
+  // median, not mean: a claim someone forgot about over dinner is one number
+  // away from making every average useless
+  const median = (arr) => {
+    const s = arr.slice().sort((a, b) => a - b), mid = s.length >> 1;
+    return s.length % 2 ? s[mid] : Math.round((s[mid - 1] + s[mid]) / 2);
+  };
   // the three shares of a zone's control, in the order they are shown
   const BUCKETS = [
     { key: 'combat', label: 'Combat' },
@@ -829,6 +842,35 @@
           : `<span class="proj-locks">locked today</span>`) + `</div>`;
     }).join('') || `<div class="panel-hint">No front lines set.</div>`;
 
+    // — Time on contract: claim → submit, per type. Leadership only —
+    const tl = state.timings || [];
+    const groupRows = (list) => {
+      const byType = {};
+      for (const r of list) (byType[r.ctype] = byType[r.ctype] || []).push(r.ms);
+      return Object.entries(byType).sort((a, b) => b[1].length - a[1].length).map(([ctype, ms]) =>
+        `<div class="req-row"><span>${esc(typeWordOf(ctype))}</span>` +
+        `<span class="req-act"><b>${ms.length}</b> run${ms.length === 1 ? '' : 's'} · ` +
+        `typical <b>${fmtDur(median(ms))}</b> · best ${fmtDur(Math.min.apply(null, ms))}</span></div>`).join('');
+    };
+    const timeSect = sect('⏱ Time on contract') +
+      `<div class="panel-hint" style="font-size:12.5px">Claim to submit, on contracts taken from the board. ` +
+      `Work filed with <b>Submit other work</b> has no start time, so it is not counted here. ` +
+      `"Typical" is the median — one forgotten claim would drag an average into fiction.</div>` +
+      (tl.length
+        ? `<div class="adm-form" style="margin:8px 0">` +
+          `<button class="btn btn-mini${timeView === 'org' ? ' sel' : ''}" data-timeview="org">whole org</button>` +
+          `<button class="btn btn-mini${timeView === 'who' ? ' sel' : ''}" data-timeview="who">by person</button></div>` +
+          (timeView === 'org'
+            ? groupRows(tl) +
+              `<div class="req-row"><span class="proj-locks">${tl.length} timed run${tl.length === 1 ? '' : 's'}</span>` +
+              `<span class="proj-locks">${fmtDur(tl.reduce((n, r) => n + r.ms, 0))} on contract</span></div>`
+            : Object.entries(tl.reduce((acc, r) => { (acc[r.who] = acc[r.who] || []).push(r); return acc; }, {}))
+              .sort((a, b) => b[1].length - a[1].length)
+              .map(([who, rows]) =>
+                `<div class="card-title" style="margin-top:12px">${esc(disp(who))} · ${rows.length} run${rows.length === 1 ? '' : 's'} · ` +
+                `${fmtDur(rows.reduce((n, r) => n + r.ms, 0))}</div>` + groupRows(rows)).join(''))
+        : `<div class="panel-hint">No timed runs yet — they appear once people claim contracts from the board and submit them.</div>`);
+
     // — Corrections: the log is append-only, so a mis-filed contract is fixed
     //   by re-filing it, never by deleting anything —
     const fileRows = (state.filed || []).slice().reverse().slice(0, 12).map(f => {
@@ -882,6 +924,7 @@
       sect('★ Approvers') + appRows + grantForm +
       approvalsHtml() +
       sect('⚑ Front lines') + frontRows +
+      timeSect +
       sect('✎ Filed contracts') +
       `<div class="panel-hint" style="font-size:12.5px">Someone logged the wrong thing? Re-file it. ` +
       `The meters, the war chest and their record all recompute — the credit stays with whoever flew it, on the day they flew it.</div>` +
@@ -948,6 +991,10 @@
     bindApprovalButtons(el);
     el.querySelectorAll('[data-front-pull]').forEach(b => b.addEventListener('click', () =>
       store.append(OrgState.newEvent('front.remove', callsign(), { zone: b.dataset.frontPull }))));
+    el.querySelectorAll('[data-timeview]').forEach(b => b.addEventListener('click', () => {
+      timeView = b.dataset.timeview;
+      renderInfo();
+    }));
     el.querySelectorAll('[data-fix]').forEach(b => b.addEventListener('click', () => {
       const f = (state.filed || []).find(x => x.ref === b.dataset.fix);
       if (f) showFixModal(f);
