@@ -676,7 +676,20 @@
     // once the season is closed, the board is a monument — gameplay events freeze
     const seasonClosedAt = (t) => seasonEndMs != null && (t >= seasonEndMs || (state.victory && t > state.victory.at));
     // while mustering, only enlistment folds — the war waits for the gun
-    const MUSTER_OK = { 'campaign.create': 1, 'member.join': 1, 'fleet.pledge': 1, 'fleet.unpledge': 1, 'role.approver': 1, 'season.start': 1 };
+    // What may happen BEFORE the starting gun. Everything else is war activity
+    // and is dropped. Getting this list wrong is silent and permanent: the fold
+    // replays from the top, so an event skipped here is skipped forever, even
+    // after the season starts. That bit the battle reports — a webhook wired
+    // during the muster (exactly when the guide says to wire it) never reached
+    // state.report, so no report ever posted, while Discord still showed the
+    // client-side "wired" confirmation. Setup, roster and kit belong here.
+    const MUSTER_OK = {
+      'campaign.create': 1, 'season.start': 1,
+      'member.join': 1, 'role.approver': 1, 'role.spectator': 1,
+      'fleet.pledge': 1, 'fleet.unpledge': 1,
+      'exchange.propose': 1, 'exchange.accept': 1, 'exchange.decline': 1,
+      'report.config': 1,
+    };
 
     const member = (name, t) => {
       if (!state.members[name]) {
