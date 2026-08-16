@@ -276,6 +276,9 @@
     const zn = r && r.zones[zid] ? r.zones[zid].name : zid;
     return (r && zn === r.name) ? `${zn} itself` : zn;
   };
+  // Either direction counts, and a bare "Crusader" reads as the gas giant —
+  // the board never promises a cargo run to one specific rock exists.
+  const haulDirFor = (rid) => `any run that starts or ends inside ${regionSpace(rid)}`;
 
   // ── Zone panel ──────────────────────────────────────────────────────────
   function renderZoneInfo(el, close) {
@@ -635,18 +638,18 @@
     }
     const odRows =
       `<div class="req-row"><span>Today</span><span class="mr-cal">${odNow
-        ? `${esc(sysR.regions[odNow.region].name)} — ${odNow.unlocked ? 'path cleared 🌟' : `${odNow.count} / ${odNow.target}`}`
+        ? `${esc(regionSpace(odNow.region))} — ${odNow.unlocked ? 'path cleared 🌟' : `${odNow.count} / ${odNow.target}`}`
         : 'no Org Day'}</span></div>` +
       planned.map(([d, o]) =>
-        `<div class="req-row"><span>📅 ${esc(dayLabel(d))}</span><span class="req-act">${esc(sysR.regions[o.region].name)} ` +
+        `<div class="req-row"><span>📅 ${esc(dayLabel(d))}</span><span class="req-act">${esc(regionSpace(o.region))} ` +
         `<button class="linklike danger" data-od-cancel="${d}">call off</button></span></div>`).join('') +
       (past.length ? past.map(([d, o]) =>
-        `<div class="req-row"><span class="proj-locks">day ${d + 1} · ${esc(sysR.regions[o.region].name)}</span>` +
+        `<div class="req-row"><span class="proj-locks">day ${d + 1} · ${esc(regionSpace(o.region))}</span>` +
         `<span class="proj-locks">${o.unlocked ? 'unlocked 🌟' : 'closed short'}</span></div>`).join('') : '');
     const odForm = over || state.season.mustering || !eligible.length || !openDays.length
       ? `<div class="panel-hint">${over ? 'Season closed.' : state.season.mustering ? 'The season hasn\'t started yet.' : !eligible.length ? 'Every set-piece is already unlocked or run.' : 'No open days left.'}</div>`
       : `<div class="adm-form"><select class="f-input" id="adm-od-region">${eligible.map(r =>
-          `<option value="${r}">${esc(sysR.regions[r].name)} — ${esc((heroFor(sysR.regions[r].setPiece) || {}).name || '?')}</option>`).join('')}</select>` +
+          `<option value="${r}">${esc(regionSpace(r))} — ${esc((heroFor(sysR.regions[r].setPiece) || {}).name || '?')}</option>`).join('')}</select>` +
         `<select class="f-input" id="adm-od-day">${openDays.map(d =>
           `<option value="${d}">${d === state.tick ? `Today — day ${d + 1}` : dayLabel(d)}</option>`).join('')}</select>` +
         `<button class="btn btn-mini" id="adm-od-call">📣 Call it</button></div>`;
@@ -660,7 +663,7 @@
       if (done) status = `<span class="sp-done">✓ run ×${done.runs || 1}</span> <button class="linklike" data-sp-record="${rid}">encore</button>`;
       else if (unlocked) status = `<span class="sp-done">🔓 unlocked</span> <button class="btn btn-mini" data-sp-record="${rid}">record the run</button>`;
       else status = `<span class="proj-locks">locked — needs an Org Day</span>`;
-      return `<div class="req-row"><span>${esc(sysR.regions[rid].name)} — <b>${esc(h ? h.name : '?')}</b></span>` +
+      return `<div class="req-row"><span>${esc(regionSpace(rid))} — <b>${esc(h ? h.name : '?')}</b></span>` +
         `<span class="req-act">${status}</span></div>`;
     }).join('');
     const voyageRow = state.victory
@@ -837,8 +840,7 @@
     const prov = provs.length ? provs[Math.floor(rand() * provs.length)] : null;
     const hub = sysR.regions[p.region].name;
     const restock = (D.providers.restockStations[state.config.system] || {})[hub];
-    // either direction counts — the board never promises a specific cargo run exists
-    const haulDir = `a run departing or arriving at ${hub}`;
+    const haulDir = haulDirFor(p.region);
     // ship-combat difficulty follows the ORG TIER (collective performance):
     // BHG asks name the risk rank; Gilly rolls a tier, 7/8 = org ops at the top
     let rank = null, gillyTier = null;
@@ -874,6 +876,16 @@
     return '';
   }
 
+  // Required vs bonus, said out loud on every objective. Contract boards
+  // randomise across a REGION, so that is the whole ask; the zone is only where
+  // the credit lands. Read the zone as the requirement and you go hunting for a
+  // contract that names the moon, find none, and conclude the day is stalled.
+  function creditNote(rid, zid, submitting) {
+    return `<div class="pr-credit">★ Anywhere in <b>${esc(regionSpace(rid))}</b> counts — the credit lands on ` +
+      `<b>${esc(zoneLabel(rid, zid))}</b> either way.` +
+      (submitting ? '' : ` Work that happens there is worth +50%.`) + `</div>`;
+  }
+
   // ── Today's objectives (derived pushes) ─────────────────────────────────
   function fmtLeft(ms) {
     if (ms <= 0) return 'expired';
@@ -897,6 +909,7 @@
         `2 — ${step2Text(rc)}</div>` +
         repNote(rc) +
         (rc.type === 'mining' ? `<div class="mine-warn">⛏ Mining materials for your contract can only be gathered at <b>amber</b> or <b>green</b> planets.</div>` : '') +
+        creditNote(p.region, p.zone) +
         `</div>`;
     }
     return `<div class="push-row k-${p.kind}${p.completed ? ' done' : ''}">` +
@@ -1150,7 +1163,9 @@
     const region = sysR.regions[c.region];
     const zoneName = region && region.zones[c.zone] ? region.zones[c.zone].name : c.zone;
     const roll = c.roll || {};
-    const rcLike = { prov: roll.prov ? { name: roll.prov, tab: roll.tab } : null, tab: roll.tab, typeName: roll.typeName, ctype: c.ctype, type: c.ctype, haulDir: roll.dir, rank: roll.rank, gillyTier: roll.gillyTier };
+    // haulDir is re-derived, not read from the claim: a claim taken before the
+    // wording was fixed would otherwise keep showing the old ambiguous line
+    const rcLike = { prov: roll.prov ? { name: roll.prov, tab: roll.tab } : null, tab: roll.tab, typeName: roll.typeName, ctype: c.ctype, type: c.ctype, haulDir: haulDirFor(c.region), rank: roll.rank, gillyTier: roll.gillyTier };
     const steps =
       `1 — Travel to <b>${esc((roll.hub || (region ? region.name : '')) + ' space')}</b>${roll.restock ? ` <span class="pr-restock">(restock &amp; rearm at ${esc(roll.restock)})</span>` : ''}<br>` +
       `2 — ${step2Text(rcLike)}`;
@@ -1160,6 +1175,7 @@
       `<div class="pr-steps">${steps}</div>` +
       repNote(rcLike) +
       (c.ctype === 'mining' ? `<div class="mine-warn">⛏ Mining materials for your contract can only be gathered at <b>amber</b> or <b>green</b> planets.</div>` : '') +
+      creditNote(c.region, c.zone, true) +
       `<div class="onsite-ask"><label class="f-check" style="margin:0"><input type="checkbox" id="mc-onsite">` +
       `<span>Tick if the contract itself happened <b>at ${esc(zoneName)}</b> — worth +50%.</span></label></div>` +
       crewPickerHtml('mc-crew') +
@@ -1194,12 +1210,12 @@
   // ── Log-a-contract modal (optionally prefilled by a push + its roll) ────
   function showLogModal(push, roll) {
     const regionOpts = push
-      ? `<option value="${push.region}">${esc(sysR.regions[push.region].name)}</option>`
+      ? `<option value="${push.region}">${esc(regionSpace(push.region))}</option>`
       : Object.entries(sysR.regions)
-        .map(([rid, r]) => `<option value="${rid}">${esc(r.name)}</option>`).join('');
+        .map(([rid]) => `<option value="${rid}">${esc(regionSpace(rid))}</option>`).join('');
     const banner = push
-      ? `<div class="push-banner">Counts toward: ${push.label} ${esc(sysR.regions[push.region].zones[push.zone].name)} (${push.done}/${push.count})` +
-        (roll ? `<br>The ask: <b>${esc(roll.typeName)}</b>${roll.prov ? ` — ${esc(roll.prov.name)}, ${esc(roll.prov.tab)} category, at ${esc(roll.hub)}` : ''}` : '') +
+      ? `<div class="push-banner">Counts toward: ${push.label} ${esc(zoneLabel(push.region, push.zone))} (${push.done}/${push.count})` +
+        (roll ? `<br>The ask: <b>${esc(roll.typeName)}</b>${roll.prov ? ` — ${esc(roll.prov.name)}, ${esc(roll.prov.tab)} category, in ${esc(regionSpace(push.region))}` : ''}` : '') +
         `</div>`
       : '';
     openModal(
@@ -1240,7 +1256,7 @@
       const isMining = selType.value === 'mining';
       selZone.innerHTML = zoneEntries.map(([zid, z]) => {
         const closed = isMining && state.zones[zid] && state.zones[zid].control <= 0;
-        return `<option value="${zid}" ${closed ? 'disabled' : ''}>${esc(z.name)}${closed ? ' — mining locked (no beachhead)' : ''}</option>`;
+        return `<option value="${zid}" ${closed ? 'disabled' : ''}>${esc(zoneLabel(rid, zid))}${closed ? ' — mining locked (no beachhead)' : ''}</option>`;
       }).join('');
       const help = $('lc-mine-help');
       if (help) {
@@ -1248,7 +1264,7 @@
           const open = Object.entries(region.zones).filter(([zid]) => state.zones[zid] && state.zones[zid].control > 0);
           help.innerHTML = open.length
             ? '⛏ Mining materials for your contract can only be gathered at <b>amber</b> or <b>green</b> planets. The contract names its ores — count it at one that bears them: ' +
-              open.map(([zid, z]) => `<b>${esc(z.name)}</b>${z.ores ? ' (' + z.ores.slice(0, 3).map(esc).join(', ') + ')' : ''}`).join(' · ')
+              open.map(([zid, z]) => `<b>${esc(zoneLabel(rid, zid))}</b>${z.ores ? ' (' + z.ores.slice(0, 3).map(esc).join(', ') + ')' : ''}`).join(' · ')
             : `All of ${esc(region.name)} space is grey — locked to mining. Combat or supply work at a planet turns it amber and opens it.`;
           help.style.display = '';
         } else help.style.display = 'none';
@@ -1272,7 +1288,7 @@
       wrap.classList.remove('disabled');
       box.disabled = false;
       $('lc-onsite-label').textContent =
-        `The contract itself happened at ${sysR.regions[rid].zones[zid].name} (+50%)`;
+        `The contract itself happened at ${zoneLabel(rid, zid)} (+50%)`;
     };
     selRegion.addEventListener('change', sync);
     selType.addEventListener('change', sync);

@@ -153,6 +153,8 @@ button.hangar-chip.swap:hover{border-color:var(--accent);color:var(--accent)}
 .front-sum:hover{border-color:var(--accent)}
 .fs-open{margin-left:auto;font-family:var(--mono);font-size:11.5px;color:var(--text-dim)}
 .pr-repnote{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);margin-top:6px;line-height:1.5}
+.pr-credit{font-size:12.5px;color:var(--text-dim);background:rgba(167,139,250,.07);border:1px solid rgba(167,139,250,.28);border-radius:7px;padding:6px 10px;margin-top:8px;line-height:1.5}
+.pr-credit b{color:var(--text)}
 .ride-cur{font-size:14.5px;line-height:1.5}
 .ride-others{font-family:var(--mono);font-size:11.5px;color:var(--text-faint);margin-top:6px;line-height:1.5}
 .wl-list{display:flex;flex-direction:column;gap:9px;font-size:13.5px;line-height:1.55;color:var(--text-dim)}
