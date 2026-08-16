@@ -341,6 +341,21 @@
       .map(([t, lv]) => `<span class="avail-chip ${lv}">${esc(t)}${lv === 'rare' ? ' ×1.5' : ''}</span>`)
       .join('');
 
+    // The Director's demands are answer-or-lose, so they are never filed under
+    // "bonus". They keep their own heading above it.
+    const missionBlock = (() => {
+      const threats = zonePushes.filter(p2 => p2.director);
+      const bonus = zonePushes.filter(p2 => !p2.director);
+      return (threats.length
+        ? `<div class="card-title">⚠ Answer today</div>` + threats.map(buildPushRow).join('')
+        : '') +
+        (bonus.length
+          ? `<div class="card-title">Bonus missions for the day</div>` +
+            `<div class="pz-onsite">These missions count up to <b>+50%</b>.</div>` +
+            bonus.map(buildPushRow).join('')
+          : '');
+    })();
+
     el.innerHTML =
       `<div class="${zs.held ? 'held' : ''}">` +
       close +
@@ -389,9 +404,8 @@
         }
         return `<div class="pz-hero">🌟 Region set-piece: <b>${esc(h.name)}</b> — ${body}</div>`;
       })()) +
-      `<div class="pz-onsite">Work done <b>here</b> counts +50% — tick the box when you submit it.</div>` +
       (zonePushes.length
-        ? `<div class="card-title">Missions here</div>` + zonePushes.map(buildPushRow).join('')
+        ? missionBlock
         : (fr ? `<div class="pz-note">All of today's work here is claimed or done — more tomorrow.</div>` : '')) +
       `<div class="card-title">Region contract boards</div><div class="avail-grid">${avail}</div>` +
       (zs.held ? '' :
