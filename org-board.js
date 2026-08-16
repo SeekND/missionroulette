@@ -526,8 +526,10 @@
           `Fees come from ORG funds — the big ones need an approver's nod.`) +
         p(`<b>Missing a capability?</b> Nobody should watch a contract they can't fly. Fleet → <b>Requisition a ship</b> ` +
           `buys the <b>entry hull of any trade</b> from ORG funds — cargo space, a mining head, a salvage beam, whatever the org ` +
-          `is short of. No captured ground needed, no waiting: it's yours for the season like any assigned ship. ` +
-          `Anything better than the entry hull still comes from flying the work.`) +
+          `is short of. It's yours for the season, like any assigned ship; anything better still comes from flying the work.`) +
+        p(`The catch: a rental hub only serves you while the org is <b>fighting in its region</b> — Lorville needs a beachhead ` +
+          `in Hurston space, Area 18 in ArcCorp's, Orison in Crusader's, New Babbage in microTech's. Spread across Stanton and ` +
+          `the motor pool widens; stay in one corner and you fly what that corner stocks.`) +
         p(`See a ship you'd like on another member? Open Fleet and click it — offer a <b>swap</b>, one of yours for it. They decide.`)) +
 
       sec('🛠', 'The fleet',
@@ -1671,21 +1673,32 @@
     const list = (me && me.requisitions) || [];
     const fmtF = n => n >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : Math.round(n / 1000) + 'k';
     const rows = list.map(r => {
-      let act;
-      if (r.have) act = `<span class="fleet-ready">✓ you fly this</span>`;
-      else if (!r.ride || r.fee == null) act = `<span class="proj-locks">nothing rentable</span>`;
-      else if (state.chest.funds < r.fee) act = `<span class="proj-locks">short ${fmtF(r.fee - state.chest.funds)} ORG funds</span>`;
-      else act = `<button class="btn btn-mini" data-req-line="${esc(r.line)}">Requisition — ${fmtF(r.fee)}</button>`;
+      let act, where;
+      if (r.have) { act = `<span class="fleet-ready">✓ you fly this</span>`; where = r.ship ? esc(r.ship) : esc(r.lineName); }
+      else if (!r.ship) { act = `<span class="proj-locks">nothing rentable</span>`; where = esc(r.lineName); }
+      else if (!r.ride) {
+        // the hub that stocks it sits in region we haven't touched yet
+        act = `<span class="proj-locks">🔒 no open hub stocks it</span>`;
+        where = `${esc(r.ship)} · needs a beachhead near ${r.where.map(esc).join(' or ')}`;
+      } else {
+        where = `${esc(r.ride.name)} · rent at ${esc(r.ride.city)}`;
+        act = state.chest.funds < r.fee
+          ? `<span class="proj-locks">short ${fmtF(r.fee - state.chest.funds)} ORG funds</span>`
+          : `<button class="btn btn-mini" data-req-line="${esc(r.line)}">Requisition — ${fmtF(r.fee)}</button>`;
+      }
       return `<div class="fleet-row${r.have ? ' done' : ''}"><div class="fr-top">` +
         `<span class="fr-ship">${TRADE_NEED[r.line] || esc(r.lineName)}</span>` +
-        `<span class="fr-owner">${r.ride ? esc(r.ride.name) + (r.ride.city ? ` · rent at ${esc(r.ride.city)}` : '') : esc(r.lineName)}</span></div>` +
+        `<span class="fr-owner">${where}</span></div>` +
         `<div class="fr-action">${act}</div></div>`;
     }).join('');
+    const open = [...new Set(list.filter(r => r.ride).map(r => r.ride.city))];
     openModal(
       `<h2>Requisition a ship</h2>` +
       `<div class="m-sub">The org's motor pool — the <b>entry hull of any trade</b>, so no one is stuck watching a contract they ` +
-      `can't fly. Paid from ORG funds; it stays yours for the season, like any assigned ship. ` +
-      `Better hulls than these come from promotions — fly the work and the org offers them.</div>` +
+      `can't fly. Paid from ORG funds; it stays yours for the season, like any assigned ship.</div>` +
+      `<div class="f-note" style="margin-bottom:10px">A hub only serves you once the org is fighting in its region — ` +
+      `<b>${open.length ? 'open now: ' + open.map(esc).join(' · ') : 'no hubs open yet — take ground first'}</b>. ` +
+      `Spread across Stanton and the motor pool widens.</div>` +
       (rows || `<div class="panel-hint">Join the campaign first.</div>`) +
       `<div class="modal-actions"><button class="btn btn-ghost" id="rq-close">Close</button></div>`
     );

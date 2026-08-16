@@ -93,6 +93,9 @@
   const TYPE_LINE = {};
   for (const [ln, ts] of Object.entries(LINE_TYPES)) for (const t of ts) TYPE_LINE[t] = ln;
   const STANTON_RENT_CITIES = ['Area 18', 'Lorville', 'Orison', 'New Babbage'];
+  // a rental hub only serves the org while it operates in that region — the
+  // motor pool reaches exactly as far as the war does
+  const CITY_REGION = { 'Area 18': 'arccorp', Lorville: 'hurston', Orison: 'crusader', 'New Babbage': 'microtech' };
   // org-campaign ladder overrides (story_ranks stays untouched for Story Mode)
   const RIDE_LADDER_OVERRIDES = {
     salvager: { 1: ['Salvation'], 2: ['Fortune'], 3: ['MOTH'], 4: ['MOTH'] },
@@ -228,6 +231,34 @@
       return cands[Math.floor(rand() * cands.length)];
     };
     const rideFee = (ride) => ride ? Math.ceil(ride.price * TUNING.RIDE_FEE_DAYS) : null;
+    // cities the org can actually draw hulls from: their region has a beachhead
+    const openCities = () => STANTON_RENT_CITIES.filter(c => {
+      const rid = CITY_REGION[c];
+      const reg = rid && sys.regions[rid];
+      if (!reg) return false;
+      return Object.keys(reg.zones).some(z => state.zones[z] && state.zones[z].control > 0);
+    });
+    // where a named hull can be picked up, cheapest first, limited to a city list
+    const rentAt = (shipName, cities) => {
+      const rent = rentByName(shipName);
+      if (!rent) return null;
+      const locs = Object.entries(rent.byLocation || {})
+        .filter(([c]) => cities.includes(c)).sort((a, b) => a[1] - b[1]);
+      return locs.length ? { name: rent.name, city: locs[0][0], price: locs[0][1] } : null;
+    };
+    // the requisition on offer for a trade: the rolled entry hull, priced at the
+    // nearest hub the org has opened — locked until one of them is contested
+    const requisitionFor = (name, line) => {
+      const ride = rideFor(name, line, 1);
+      if (!ride) return null;
+      const open = rentAt(ride.name, openCities());
+      const anywhere = rentAt(ride.name, STANTON_RENT_CITIES);
+      return {
+        ship: ride.name,
+        ride: open, fee: open ? rideFee(open) : null,
+        where: anywhere ? Object.keys(rentByName(ride.name).byLocation || {}).filter(c => STANTON_RENT_CITIES.includes(c)) : [],
+      };
+    };
     // one identity per person across every device: names fold to a normalized
     // key (Carlit0 = carlit0 = CARLIT0); the first-typed spelling is kept for display
     const normEvent = (e) => {
@@ -613,22 +644,17 @@
       }
       return out;
     };
-    const applyRideUnlock = (name, line, tier, t, requisition) => {
+    const applyRideUnlock = (name, line, tier, t) => {
       const m0 = state.members[name];
       if (!m0 || !LINE_TYPES[line]) return false;
       if (tier !== (m0.lineTiers[line] || 0) + 1 || tier > 4) return false;
-      // a requisition buys the ENTRY hull of a trade the org can't otherwise
-      // fly — it skips the contract threshold, never the bill, and never
-      // reaches past tier 1 (the promotion ladder above it is untouched)
-      if (requisition ? tier !== 1 : lineCount(m0, line) < rideNeeded(m0, line, tier)) return false;
+      if (lineCount(m0, line) < rideNeeded(m0, line, tier)) return false;
       const ride = rideFor(name, line, tier);
       const fee = rideFee(ride);
       if (!ride || fee == null || state.chest.funds < fee) return false;
       state.chest.funds -= fee;
       m0.lineTiers[line] = tier;
-      chron(t, 'fleet', requisition
-        ? `${dispR(name)} requisitions a ${ride.name} — collect it at ${ride.city}.`
-        : `${dispR(name)} is issued a ${ride.name} — collect it at ${ride.city}.`);
+      chron(t, 'fleet', `${dispR(name)} is issued a ${ride.name} — collect it at ${ride.city}.`);
       return true;
     };
 
@@ -740,11 +766,18 @@
         }
 
         case 'ride.requisition': {
-          // any member, any trade's entry hull, paid from ORG funds. No capture
-          // gate and no contract threshold: this is the floor that stops an org
-          // stalling because nobody owns a cargo hold or a mining head.
-          if (!state.members[ev.a]) { state.skipped++; break; }
-          if (!applyRideUnlock(ev.a, p.line, 1, ev.t, true)) state.skipped++;
+          // any member, any trade's entry hull, paid from ORG funds — but only
+          // from a hub the org has opened. No contract threshold: this is the
+          // floor that stops an org stalling for want of a cargo hold, while
+          // still making reach cost ground.
+          const m0 = state.members[ev.a];
+          if (!m0 || !LINE_TYPES[p.line]) { state.skipped++; break; }
+          if ((m0.lineTiers[p.line] || 0) !== 0) { state.skipped++; break; }
+          const rq = requisitionFor(ev.a, p.line);
+          if (!rq || !rq.ride || rq.fee == null || state.chest.funds < rq.fee) { state.skipped++; break; }
+          state.chest.funds -= rq.fee;
+          m0.lineTiers[p.line] = 1;
+          chron(ev.t, 'fleet', `${dispR(ev.a)} requisitions a ${rq.ride.name} — collect it at ${rq.ride.city}.`);
           break;
         }
 
@@ -1223,15 +1256,19 @@
           tier: next, ride, fee, needsApproval: fee > TUNING.APPROVAL_LIMIT,
         });
       }
-      // entry hulls this member could requisition — every trade they can't fly yet
+      // entry hulls this member could requisition — every trade they can't fly
+      // yet, priced at whichever opened hub stocks it
       m3.requisitions = [];
       for (const line of Object.keys(LINE_TYPES)) {
         const have = m3.lineTiers[line] || 0;
-        const ride = have ? null : rideFor(name, line, 1);
-        const fee = rideFee(ride);
+        const rq = have ? null : requisitionFor(name, line);
         m3.requisitions.push({
           line, lineName: (ranks && ranks.tracks && ranks.tracks[line] && ranks.tracks[line].name) || line,
-          have: have > 0, ride, fee,
+          have: have > 0,
+          ship: rq ? rq.ship : null,
+          ride: rq ? rq.ride : null,
+          fee: rq ? rq.fee : null,
+          where: rq ? rq.where : [],
         });
       }
       // the hangar: every ship this member can use right now
