@@ -1744,12 +1744,6 @@
     tally.push(d.contracts
       ? `**${d.contracts} contract${d.contracts === 1 ? '' : 's'}** · ${types}`
       : `**Nothing flown.** The board sat idle.`);
-    // who was aboard — trimmed, because a thirty-strong org would be a paragraph
-    const crewed = Object.entries(d.flyers || {}).sort((a, b) => b[1] - a[1]);
-    if (crewed.length) {
-      const shown = crewed.slice(0, 6).map(([who, n]) => `${disp(who)} ${n}`).join(' · ');
-      tally.push(`👥 ${shown}${crewed.length > 6 ? ` · +${crewed.length - 6} more` : ''}`);
-    }
     const moved = Object.entries(d.control || {})
       .map(([zid, c]) => [zid, Math.round(c - ((prev.control || {})[zid] || 0))])
       .filter(([, n]) => n !== 0).sort((a, b) => b[1] - a[1])
@@ -1786,6 +1780,35 @@
     award('🎯', 'Closer', d.closes, n => `landed the contract that finished ${n} objective${n === 1 ? '' : 's'}`);
     award('🛰', 'Eyes', d.intel, n => `brought back ${n} intel`);
     if (honours.length) blocks.push(honours.join('\n'));
+
+    // ── who flew, and what ──
+    // An organizer who is offline all day gets this post and nothing else, so it
+    // has to answer "who is actually playing, and is anyone covering salvage".
+    // A bare per-person total could not; the trade breakdown can.
+    const crewed = Object.entries(d.flyers || {}).sort((a, b) => b[1] - a[1]);
+    if (crewed.length) {
+      const roster = [`👥 **Who flew**`];
+      for (const [who, n] of crewed.slice(0, 8)) {
+        const mix = Object.entries((d.byType || {})[who] || {}).sort((a, b) => b[1] - a[1])
+          .map(([t, c]) => `${c} ${typeWordOf(t).toLowerCase()}`).join(' · ');
+        roster.push(`**${disp(who)}** ${n} — ${mix}`);
+      }
+      if (crewed.length > 8) {
+        const rest = crewed.slice(8);
+        roster.push(`…and ${rest.length} more, ${rest.reduce((s, r) => s + r[1], 0)} contracts between them`);
+      }
+      // who has gone quiet is the other half of the picture, and the half an
+      // organizer can act on. Members who joined after this day are not "quiet".
+      const dayEnd = state.config.startedAt + (day + 1) * OrgState.TUNING.DAY_MS;
+      const quiet = Object.entries(state.members)
+        .filter(([who, m]) => !m.spectator && m.joined < dayEnd && !d.flyers[who])
+        .map(([who]) => disp(who)).sort();
+      if (quiet.length) {
+        roster.push(`💤 Quiet today: ${quiet.slice(0, 8).join(' · ')}` +
+          (quiet.length > 8 ? ` · +${quiet.length - 8} more` : ''));
+      }
+      blocks.push(roster.join('\n'));
+    }
 
     // ── the story ──
     // Repetition is what made this unreadable: seven objectives were seven
@@ -1825,13 +1848,33 @@
     const facing = ((state.director || {}).active || []).map(m => m.kind === 'raid'
       ? `a strike on **${zoneLabel(m.region, m.zone)}** — ${OrgState.TUNING.PUSH_COUNT} combat contracts in ${regionSpace(m.region)} breaks it`
       : `convoys going missing in **${regionSpace(m.region)}** — ${OrgState.TUNING.PUSH_COUNT} hauling runs answer it`);
-    if (facing.length) stand.push(`⚠ **Today:** ${facing.join(' · ')}`);
+    // a heavily-pressed org can face five of these at once; spelling all of them
+    // out would be a paragraph on the end of the post
+    if (facing.length) {
+      stand.push(`⚠ **Today:** ` + (facing.length > 3
+        ? `${facing.slice(0, 3).join(' · ')} · and ${facing.length - 3} more on the board`
+        : facing.join(' · ')));
+    }
     stand.push(`🗺 [The map at the close of day ${day + 1}](${buildMapLink(day)})`);
     blocks.push(stand.join('\n'));
 
-    let out = blocks.join('\n\n');
-    if (out.length > 1900) out = out.slice(0, 1880) + '\n… (full log in the war room)';
-    return out;
+    // Discord cuts off at 2000. Trim from the MIDDLE, never the end: the map
+    // link and today's threat are the two things anyone opening this needs, and
+    // a big org's roster is what actually runs the post long.
+    const tail = blocks.pop();
+    let head = blocks.join('\n\n');
+    const limit = 1900 - tail.length - 2;
+    if (head.length > limit) {
+      const kept = [];
+      let n = 0;
+      for (const line of head.split('\n')) {
+        if (n + line.length + 1 > limit - 34) break;
+        kept.push(line);
+        n += line.length + 1;
+      }
+      head = kept.join('\n') + '\n… (full log in the war room)';
+    }
+    return head + '\n\n' + tail;
   }
   // a public snapshot link: the whole board state rides in the URL, so viewers
   // need no code, no account and never touch the org's database

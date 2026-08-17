@@ -380,7 +380,7 @@
     // for SOMEONE ELSE'S contract — the org's most useful wingman is rarely the
     // one who filed the most of their own
     const dayRec = (k) => (state.days[k] = state.days[k] ||
-      { contracts: 0, types: {}, flyers: {}, weight: {}, assists: {}, threat: {}, closes: {}, intel: {} });
+      { contracts: 0, types: {}, flyers: {}, byType: {}, weight: {}, assists: {}, threat: {}, closes: {}, intel: {} });
     const sealDay = (k) => {
       const rec = dayRec(k);
       rec.chest = Object.assign({}, state.chest);
@@ -1138,6 +1138,10 @@
               : gain;
           for (const who of crew) {
             rec.flyers[who] = (rec.flyers[who] || 0) + 1;
+            // per-person trade breakdown: the daily post is the only view an
+            // organizer who is offline all day actually gets
+            const bt = (rec.byType[who] = rec.byType[who] || {});
+            bt[p.ctype] = (bt[p.ctype] || 0) + 1;
             rec.weight[who] = (rec.weight[who] || 0) + worth;
             if (who !== ev.a) rec.assists[who] = (rec.assists[who] || 0) + 1;
             if (directorWork) rec.threat[who] = (rec.threat[who] || 0) + 1;
