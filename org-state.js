@@ -1644,6 +1644,14 @@
       const region = sys.regions[m[2]];
       if (!region || !region.zones[m[4]]) continue;
       const z = state.zones[m[4]];
+      // A part-done push whose bucket has since FILLED must not stay on the
+      // board: its remaining contracts would earn control the cap throws away,
+      // and the row promises "+5% when all 3 land", which cannot be paid either.
+      // A COMPLETED one stays — the main branch drops a full bucket outright, so
+      // this is what keeps the ✓ visible for the push that did the filling.
+      const recipe = regions.archetypes[region.zones[m[4]].archetype].recipe;
+      if (z && n < TUNING.PUSH_COUNT &&
+          Math.min(z.cats[def.bucket], recipe[def.bucket]) >= recipe[def.bucket]) continue;
       let types = def.types.filter(t => region.availability[t] && region.availability[t] !== 'none');
       if (m[3] === 'industry' && (!z || z.control <= 0)) types = types.filter(t => t !== 'mining');
       pushes.push({
