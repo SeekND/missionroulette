@@ -1654,6 +1654,10 @@
           Math.min(z.cats[def.bucket], recipe[def.bucket]) >= recipe[def.bucket]) continue;
       let types = def.types.filter(t => region.availability[t] && region.availability[t] !== 'none');
       if (m[3] === 'industry' && (!z || z.control <= 0)) types = types.filter(t => t !== 'mining');
+      // the main branch refuses a push with nothing to roll; this one never did.
+      // Unreachable in Stanton, where every region posts salvage, but a Pyro or
+      // Nyx region with none would hand out a contract naming no trade at all.
+      if (!types.length && n < TUNING.PUSH_COUNT) continue;
       pushes.push({
         id: pid, kind: m[3], label: def.label, bucket: def.bucket, region: m[2], zone: m[4],
         types, count: TUNING.PUSH_COUNT, done: Math.min(n, TUNING.PUSH_COUNT),
