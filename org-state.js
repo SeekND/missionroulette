@@ -376,7 +376,10 @@
     // The chronicle carries the story; this carries the numbers. The digest used
     // to be built from chronicle lines alone, so a busy day that happened not to
     // finish an objective reported nothing the org had done.
-    const dayRec = (k) => (state.days[k] = state.days[k] || { contracts: 0, types: {}, flyers: {} });
+    // flyers counts everyone aboard; assists counts only the ones who turned up
+    // for SOMEONE ELSE'S contract — the org's most useful wingman is rarely the
+    // one who filed the most of their own
+    const dayRec = (k) => (state.days[k] = state.days[k] || { contracts: 0, types: {}, flyers: {}, assists: {} });
     const sealDay = (k) => {
       const rec = dayRec(k);
       rec.chest = Object.assign({}, state.chest);
@@ -1136,7 +1139,9 @@
             if (n === needed) {
               hit.cats[bucket] += TUNING.PUSH_BONUS;
               state.chest.funds += TUNING.PUSH_FUNDS_BONUS;
-              chron(ev.t, 'push', `Daily Objective Bonus — ${PUSH_KIND[pm[3]].label} ${sys.regions[p.region].zones[p.zone].name}: +${TUNING.PUSH_BONUS}% ${bucket}.`);
+              // "Daily Objective Bonus — Take Yela" read as a label, not an event:
+          // people asked whether it meant the objective was finished. It does.
+          chron(ev.t, 'push', `✔ ${PUSH_KIND[pm[3]].label} ${sys.regions[p.region].zones[p.zone].name} complete — Daily Objective Bonus earned, +${TUNING.PUSH_BONUS}% ${bucket}.`);
             }
           }
           if (CHEST_BUCKET[p.ctype] && bucket !== 'intel') {
@@ -1151,7 +1156,10 @@
           const rec = dayRec(tickOf(ev.t));
           rec.contracts++;
           rec.types[p.ctype] = (rec.types[p.ctype] || 0) + 1;
-          for (const who of crew) rec.flyers[who] = (rec.flyers[who] || 0) + 1;
+          for (const who of crew) {
+            rec.flyers[who] = (rec.flyers[who] || 0) + 1;
+            if (who !== ev.a) rec.assists[who] = (rec.assists[who] || 0) + 1;
+          }
           for (const who of crew) {
             const mw = member(who, ev.t);
             mw.total++;
@@ -1229,7 +1237,10 @@
 
         case 'fleet.pledge': {
           state.fleet.push({ id: state.fleet.length, ship: p.ship, by: ev.a, status: 'pledged' });
-          chron(ev.t, 'fleet', `${dispR(ev.a)} pledges a ${p.ship} to the org census.`);
+          // tagged so the digest can collapse a bulk pledge into one line —
+          // someone adding thirty hulls would otherwise be thirty lines and
+          // would blow Discord's message limit on its own
+          chron(ev.t, 'fleet', `${dispR(ev.a)} pledges a ${p.ship} to the org census.`, { pledge: ev.a });
           break;
         }
 
@@ -1270,9 +1281,11 @@
         // It folds only so the war log shows that the record was touched.
         case 'contract.amend': {
           if (!state.approvers.includes(ev.a) || !p.ref) { state.skipped++; break; }
+          // bookkeeping: the war room keeps the audit trail, the channel is
+          // spared it
           chron(ev.t, 'join', p.void
             ? `${dispR(ev.a)} struck a mis-filed contract from the record.`
-            : `${dispR(ev.a)} re-filed a mis-logged contract — the meters were corrected.`);
+            : `${dispR(ev.a)} re-filed a mis-logged contract — the meters were corrected.`, { sys: true });
           break;
         }
 

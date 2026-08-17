@@ -1690,19 +1690,29 @@
   // work that finished no objective used to post "a quiet day — no contracts
   // logged" after nine contracts. The chronicle still supplies the narrative.
   function buildDailyReport(day) {
-    const d = (state.days || {})[day] || { contracts: 0, types: {}, flyers: {} };
+    const d = (state.days || {})[day] || { contracts: 0, types: {}, flyers: {}, assists: {} };
     const prev = (state.days || {})[day - 1] || {};
     const fmtF = n => n >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : Math.round(n / 1000) + 'k';
     const lines = [`⚑ **${state.config.name || 'Org Campaign'}** — day ${day + 1} of ${state.config.seasonDays} closes`];
 
-    // what the org actually flew
-    const turnout = Object.keys(d.flyers).length;
-    const roster = Object.values(state.members).filter(m => !m.spectator).length;
+    // what the org actually flew, and WHO — "3 of 3" told nobody anything
+    const crewed = Object.entries(d.flyers || {}).sort((a, b) => b[1] - a[1]);
     const types = Object.entries(d.types).sort((a, b) => b[1] - a[1])
       .map(([t, n]) => `${n} ${typeWordOf(t).toLowerCase()}`).join(' · ');
     lines.push(d.contracts
-      ? `**${d.contracts} contract${d.contracts === 1 ? '' : 's'}** flown by ${turnout} of ${roster} — ${types}`
+      ? `**${d.contracts} contract${d.contracts === 1 ? '' : 's'}** — ${types}`
       : `**Nothing flown.** The board sat idle.`);
+    // "Aboard", not "flown": everyone on a crewed contract is counted, so these
+    // deliberately add up to more than the contract total
+    if (crewed.length) {
+      lines.push(`👥 Aboard: ${crewed.map(([who, n]) => `${disp(who)} ${n}`).join(' · ')}`);
+    }
+    // the wingman award: turning up for someone else's contract, which the
+    // contract count alone will never show
+    const helper = Object.entries(d.assists || {}).sort((a, b) => b[1] - a[1])[0];
+    if (helper && helper[1] > 0) {
+      lines.push(`🤝 **Best wingman:** ${disp(helper[0])} — flew ${helper[1]} of the org's contracts alongside someone else.`);
+    }
 
     // ground gained or lost, and what it cost the enemy
     const moved = Object.entries(d.control || {})
@@ -1721,11 +1731,24 @@
         .filter(Boolean).join(' · ')} (now ${fmtF(state.chest.funds)} funds)`);
     }
 
-    // the narrative: notable events only, never muster setup or internal plumbing
-    const story = state.chronicle
-      .filter(c => c.tick === day && !c.pre && !c.sys)
-      .map(c => `• ${c.text}`);
-    if (story.length) lines.push(story.join('\n'));
+    // the narrative: notable events only, never muster setup or bookkeeping.
+    // A line that opens with its own icon does not also want a bullet, and a
+    // bulk pledge collapses to one line per person instead of one per hull.
+    const todays = state.chronicle.filter(c => c.tick === day && !c.pre && !c.sys);
+    const pledged = {}, slot = {}, story = [];
+    for (const c of todays) {
+      if (c.pledge) {
+        // hold the spot the first hull took, so the summary stays in sequence
+        if (slot[c.pledge] == null) { slot[c.pledge] = story.length; story.push(''); }
+        pledged[c.pledge] = (pledged[c.pledge] || 0) + 1;
+        continue;
+      }
+      story.push(/^[\p{Emoji_Presentation}\p{Extended_Pictographic}✔✕⚑⚔★]/u.test(c.text) ? c.text : `• ${c.text}`);
+    }
+    for (const [who, n] of Object.entries(pledged)) {
+      story[slot[who]] = `• ${disp(who)} pledges ${n} ship${n === 1 ? '' : 's'} to the org census.`;
+    }
+    if (story.length) lines.push(story.filter(Boolean).join('\n'));
 
     const held = state.season.heldZones.map(z => zoneLabel(state.zones[z].region, z));
     lines.push(`⚑ Held: ${held.length ? held.join(' · ') : 'nothing yet'}`);
@@ -1741,14 +1764,26 @@
 
     let out = lines.join('\n');
     if (out.length > 1700) out = out.slice(0, 1680) + '\n… (full log in the war room)';
-    return out + `\n🗺 The map right now: <${buildMapLink()}>`;
+    return out + `\n🗺 [The map at the close of day ${day + 1}](${buildMapLink(day)})`;
   }
   // a public snapshot link: the whole board state rides in the URL, so viewers
   // need no code, no account and never touch the org's database
-  function buildMapLink() {
+  function buildMapLink(day) {
     const base = location.href.replace(/[^/]*$/, '') + 'campaignmap.html';
     const name = state.config.name ? '&n=' + encodeURIComponent(state.config.name) : '';
-    return `${base}?${OrgMap.encodeState(state)}${name}`;
+    // A day's digest gets that day's CLOSING control, not live numbers: the post
+    // is a record of the day, and it lands after the next day has already begun.
+    // Front lines and incoming raids stay current — that is what "where things
+    // stand" means to whoever opens it.
+    const rec = day == null ? null : (state.days || {})[day];
+    const snap = rec && rec.control
+      ? Object.assign({}, state, {
+        tick: day,
+        zones: Object.fromEntries(Object.entries(state.zones)
+          .map(([zid, z]) => [zid, Object.assign({}, z, { control: rec.control[zid] || 0 })])),
+      })
+      : state;
+    return `${base}?${OrgMap.encodeState(snap)}${name}`;
   }
 
   function postToDiscord(webhook, content) {
