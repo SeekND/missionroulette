@@ -1217,7 +1217,7 @@
           }
           state.filed.push({ ref: eventRef(ev), t: ev.t, tick: tickOf(ev.t), by: ev.a,
             region: p.region, zone: p.zone, ctype: p.ctype, onSite: onSiteOk, deep: !!p.deep,
-            cmat: !!p.cmat, rmc: rmcOk, crew: crew.length, fixed: !!fix });
+            cmat: !!p.cmat, rmc: rmcOk, crew: crew.filter(n => n !== ev.a), fixed: !!fix });
           // everyone who flew counts as turnout — the Director answers real numbers
           const act = (activeSets[tickOf(ev.t)] = activeSets[tickOf(ev.t)] || new Set());
           for (const who of crew) act.add(who);
@@ -1413,9 +1413,10 @@
         stake: m.kind === 'raid' ? `−${TUNING.RAID_PENALTY}% control if ignored` : 'the war chest bleeds if ignored',
       };
     });
-    // the console only ever shows a recent tail — a full-season log would be
-    // both unusable and unbounded
-    if (state.filed.length > 60) state.filed = state.filed.slice(-60);
+    // a recent tail, not the whole season. It has to hold a full day for a large
+    // org, since the day's log reads from it — thirty pilots at eight contracts
+    // is 240, so the tail is sized above that rather than the console's dozen.
+    if (state.filed.length > 250) state.filed = state.filed.slice(-250);
     const mustering = config.startedAt == null;
     const seasonOver = !mustering && (now >= seasonEndMs || !!state.victory);
     state.pushes = seasonOver || mustering ? [] : threatPushes.concat(derivePushes(regions, sys, config, state, state.tick, pushTally));

@@ -882,7 +882,7 @@
       if (f.onSite) tags.push('on-site');
       if (f.rmc) tags.push('RMC');
       if (f.cmat) tags.push('CMAT');
-      if (f.crew > 1) tags.push(`${f.crew} aboard`);
+      if ((f.crew || []).length) tags.push(`with ${f.crew.map(disp).join(', ')}`);
       if (f.fixed) tags.push('corrected');
       return `<div class="req-row"><span>${f.struck ? '<s>' : ''}${esc(disp(f.by))} — ${esc(what)}${f.struck ? '</s>' : ''} ` +
         `<span class="proj-locks">${esc(tags.join(' · '))}${f.struck ? ' · struck' : ''}</span></span>` +
@@ -1143,6 +1143,43 @@
     rmc: !!($(prefix + '-rmc') && $(prefix + '-rmc').checked) || undefined,
   });
 
+  // ── The day's log ───────────────────────────────────────────────────────
+  // Contracts have never appeared anywhere a player can see: the war log only
+  // carries notable events, and the only per-contract view was the leadership
+  // console. Anyone can work alone, so without this nobody knows what the org
+  // has already covered today, or who to go and find. Collapsed by default,
+  // like the front summary — the column is busy enough.
+  let dayLogOpen = false;
+  const agoTxt = (ms) => {
+    const m = Math.round(ms / 60000);
+    return m < 1 ? 'just now' : m < 60 ? `${m}m ago` : `${Math.floor(m / 60)}h ${m % 60}m ago`;
+  };
+  function dayLogHtml() {
+    const today = (state.filed || []).filter(f => f.tick === state.tick && !f.struck);
+    if (!today.length) {
+      return `<div class="card-title" style="margin-top:12px">Today's work</div>` +
+        `<div class="panel-hint">Nothing logged yet today — first contract in sets the pace.</div>`;
+    }
+    const rows = today.slice().reverse().slice(0, 40).map(f => {
+      const tags = [];
+      if (f.onSite) tags.push('on-site');
+      if (f.rmc) tags.push('RMC');
+      if (f.deep) tags.push('deep');
+      if ((f.crew || []).length) tags.push(`with ${f.crew.map(disp).join(', ')}`);
+      return `<div class="daylog-row"><span class="dl-who">${esc(disp(f.by))}</span>` +
+        `<span class="dl-what">${esc(typeWordOf(f.ctype))} · ${esc(zoneLabel(f.region, f.zone))}` +
+        (tags.length ? ` <span class="dl-tag">${esc(tags.join(' · '))}</span>` : '') + `</span>` +
+        `<span class="dl-ago">${esc(agoTxt(Date.now() - f.t))}</span></div>`;
+    }).join('');
+    const heads = Object.keys(today.reduce((a, f) => { a[f.by] = 1; return a; }, {})).length;
+    return `<div class="card-title" style="margin-top:12px">Today's work</div>` +
+      `<div class="front-sum" id="daylog-toggle">📋 <b>${today.length} contract${today.length === 1 ? '' : 's'}</b>` +
+      `<span class="fs-open">${heads} pilot${heads === 1 ? '' : 's'} · ${dayLogOpen ? 'click to hide' : 'click to view'}</span></div>` +
+      (dayLogOpen ? `<div class="daylog">${rows}` +
+        (today.length > 40 ? `<div class="panel-hint">…and ${today.length - 40} more earlier today.</div>` : '') +
+        `</div>` : '');
+  }
+
   // ── Today's objectives (derived pushes) ─────────────────────────────────
   function fmtLeft(ms) {
     if (ms <= 0) return 'expired';
@@ -1350,6 +1387,7 @@
       body = urgent.map(buildPushRow).join('') +
         (frontSum ? `<div class="card-title" style="margin-top:${urgent.length ? '12px' : '0'}">Front lines</div>${frontSum}` : '');
     }
+    body += dayLogHtml();
     // Scouting: intel buys a look at ONE region's tomorrow, so it stays worth earning
     const dir = state.director;
     if (dir) {
@@ -1413,6 +1451,8 @@
       infoView = 'zone';
       renderMap(); renderInfo(); updateTabs();
     }));
+    const dlt = el.querySelector('#daylog-toggle');
+    if (dlt) dlt.addEventListener('click', () => { dayLogOpen = !dayLogOpen; renderPushes(); });
   }
 
   // Who else was on the contract: the war banks it once, but everyone who flew
@@ -1656,6 +1696,14 @@
   function renderMembersInfo(el, close) {
     const list = Object.entries(state.members).sort((a, b) => b[1].total - a[1].total);
     const iApprove = state.approvers.includes(callsign());
+    // who is out on a contract right this minute, so you know who to go and
+    // find. Only CLAIMED work has a live state — someone flying on their own
+    // and filing afterwards never shows here, which is inherent, not a gap.
+    const outNow = {};
+    for (const c of Object.values(state.claims || {})) {
+      if (c.effective === 'active') outNow[c.by] = c;
+    }
+    const todayCount = ((state.days || {})[state.tick] || {}).flyers || {};
     el.innerHTML = close + `<div class="card-title">Members</div>` + (list.length
       ? list.map(([name, m], i) => {
         const t = (k) => (m.tallies[k] || 0);
@@ -1669,6 +1717,12 @@
           `${isSpec ? ' <span title="spectator — eyes only">👁</span>' : ''}</span>` +
           (cal ? `<span class="mr-cal">${esc(cal)}</span>` : '') +
           `<span class="mr-medals">${medals}</span>` +
+          (outNow[name]
+            ? `<span class="mr-out" title="out on a claimed contract">🛸 ${esc(typeWordOf(outNow[name].ctype))} · ` +
+              `${esc(zoneLabel(outNow[name].region, outNow[name].zone))} · ${esc(agoTxt(Date.now() - outNow[name].at))}</span>`
+            : todayCount[name]
+              ? `<span class="mr-today">${todayCount[name]} today</span>`
+              : '') +
           (iApprove && !isApp && !isSpec ? `<button class="linklike" data-grant="${esc(name)}">make approver</button>` : '') +
           (iApprove && !isApp && !isSpec ? `<button class="linklike" data-spec="${esc(name)}">make spectator</button>` : '') +
           (iApprove && isSpec ? `<button class="linklike" data-unspec="${esc(name)}">make player</button>` : '') +

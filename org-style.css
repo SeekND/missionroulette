@@ -353,6 +353,18 @@ button.hangar-chip.swap:hover{border-color:var(--accent);color:var(--accent)}
 .mr-medals{display:flex;gap:3px;font-size:13px}
 .medal{cursor:default}
 .mr-total{font-family:var(--mono);font-size:13px;color:var(--accent);margin-left:auto;font-weight:600}
+.mr-out{font-family:var(--mono);font-size:11px;color:#4dd4c4;margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mr-today{font-family:var(--mono);font-size:11px;color:var(--text-faint);margin-left:auto;white-space:nowrap}
+.mr-out + .mr-total,.mr-today + .mr-total{margin-left:10px}
+
+/* ── The day's log (objectives column) ── */
+.daylog{display:flex;flex-direction:column;gap:2px;margin:2px 0 4px;max-height:340px;overflow-y:auto}
+.daylog-row{display:flex;gap:8px;align-items:baseline;font-size:12.5px;padding:4px 2px;border-bottom:1px solid var(--border)}
+.daylog-row:last-child{border-bottom:none}
+.dl-who{font-weight:600;color:var(--text);flex-shrink:0}
+.dl-what{color:var(--text-dim);min-width:0}
+.dl-tag{font-family:var(--mono);font-size:10.5px;color:var(--text-faint)}
+.dl-ago{font-family:var(--mono);font-size:10.5px;color:var(--text-faint);margin-left:auto;flex-shrink:0}
 
 .side-tools{display:flex;gap:16px;justify-content:flex-end;padding:0 4px}
 .linklike{background:none;border:none;cursor:pointer;font-family:var(--mono);font-size:11px;color:var(--text-faint);text-decoration:underline;text-underline-offset:3px}
