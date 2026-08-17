@@ -1823,7 +1823,7 @@
         objectives.push(c.objective);
       } else if (c.front) {
         if (frontSlot == null) { frontSlot = story.length; story.push(''); }
-        fronts.push(c.front);
+        fronts.push(`**${c.front}** (${c.frontKind || 'zone'}, by ${c.frontBy || 'leadership'})`);
       } else if (c.pledge) {
         if (slot[c.pledge] == null) { slot[c.pledge] = story.length; story.push(''); }
         pledged[c.pledge] = (pledged[c.pledge] || 0) + 1;
@@ -1891,6 +1891,8 @@
         tick: day,
         zones: Object.fromEntries(Object.entries(state.zones)
           .map(([zid, z]) => [zid, Object.assign({}, z, { control: rec.control[zid] || 0 })])),
+        fronts: Object.fromEntries((rec.fronts || []).map(z => [z, true])),
+        director: { active: (rec.raided || []).map(z => ({ kind: 'raid', zone: z })) },
       })
       : state;
     return `${base}?${OrgMap.encodeState(snap)}${name}`;

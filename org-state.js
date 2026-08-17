@@ -386,6 +386,11 @@
       rec.chest = Object.assign({}, state.chest);
       rec.control = {};
       for (const [zid, z] of Object.entries(state.zones)) rec.control[zid] = z.control;
+      // the front lines and the raids as they stood THAT day. Without these a
+      // day-1 map record gets stamped with day 2's attacks, because by the time
+      // anyone opens the board to trigger the post, tomorrow's moves exist.
+      rec.fronts = Object.keys(state.fronts);
+      rec.raided = dirMoves.filter(m => m.tick === k && m.kind === 'raid').map(m => m.zone);
     };
     const activeSets = {};
     const pushTally = {};   // pushId → qualifying completions
@@ -977,8 +982,12 @@
           if (state.fronts[zid]) break; // no-op
           if (Object.keys(state.fronts).length >= TUNING.FRONT_CAP) { state.skipped++; break; }
           state.fronts[zid] = { by: ev.a, at: ev.t };
-          const zn = sys.regions[state.zones[zid].region].zones[zid].name;
-          chron(ev.t, 'target', `${dispR(ev.a)} adds ${zn} to the front lines.`, { front: zn });
+          const zdef = sys.regions[state.zones[zid].region].zones[zid];
+          const zn = zdef.name;
+          // the archetype rides along: "Resource Moon" tells an organizer
+          // reading the digest what that front will actually ask of the org
+          chron(ev.t, 'target', `${dispR(ev.a)} adds ${zn} to the front lines.`,
+            { front: zn, frontBy: dispR(ev.a), frontKind: regions.archetypes[zdef.archetype].name });
           break;
         }
 
