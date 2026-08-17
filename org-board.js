@@ -1715,7 +1715,8 @@
   // every night — and a board that always reads one name is one nobody new wants
   // to join. `exclude` keeps a second honour from landing on the same person.
   function pickTop(counts, exclude) {
-    const rows = Object.entries(counts || {}).filter(([who, n]) => n > 0 && who !== exclude);
+    const skip = Array.isArray(exclude) ? exclude : exclude ? [exclude] : [];
+    const rows = Object.entries(counts || {}).filter(([who, n]) => n > 0 && skip.indexOf(who) < 0);
     if (!rows.length) return null;
     const best = Math.max.apply(null, rows.map(r => r[1]));
     return rows.filter(r => r[1] === best).sort((a, b) =>
@@ -1728,84 +1729,109 @@
   // work that finished no objective used to post "a quiet day — no contracts
   // logged" after nine contracts. The chronicle still supplies the narrative.
   function buildDailyReport(day) {
-    const d = (state.days || {})[day] || { contracts: 0, types: {}, flyers: {}, assists: {} };
+    const d = (state.days || {})[day] ||
+      { contracts: 0, types: {}, flyers: {}, weight: {}, assists: {}, threat: {}, closes: {}, intel: {} };
     const prev = (state.days || {})[day - 1] || {};
     const fmtF = n => n >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : Math.round(n / 1000) + 'k';
-    const lines = [`⚑ **${state.config.name || 'Org Campaign'}** — day ${day + 1} of ${state.config.seasonDays} closes`];
+    // blocks are joined with a BLANK line between them: the single biggest thing
+    // that makes a twenty-line Discord post readable is white space
+    const blocks = [`⚑ **${state.config.name || 'Org Campaign'}** — day ${day + 1} of ${state.config.seasonDays} closes`];
 
-    // what the org actually flew, and WHO — "3 of 3" told nobody anything
-    const crewed = Object.entries(d.flyers || {}).sort((a, b) => b[1] - a[1]);
+    // ── the day in numbers ──
+    const tally = [];
     const types = Object.entries(d.types).sort((a, b) => b[1] - a[1])
       .map(([t, n]) => `${n} ${typeWordOf(t).toLowerCase()}`).join(' · ');
-    lines.push(d.contracts
-      ? `**${d.contracts} contract${d.contracts === 1 ? '' : 's'}** — ${types}`
+    tally.push(d.contracts
+      ? `**${d.contracts} contract${d.contracts === 1 ? '' : 's'}** · ${types}`
       : `**Nothing flown.** The board sat idle.`);
-    // "Aboard", not "flown": everyone on a crewed contract is counted, so these
-    // deliberately add up to more than the contract total
+    // who was aboard — trimmed, because a thirty-strong org would be a paragraph
+    const crewed = Object.entries(d.flyers || {}).sort((a, b) => b[1] - a[1]);
     if (crewed.length) {
-      lines.push(`👥 Aboard: ${crewed.map(([who, n]) => `${disp(who)} ${n}`).join(' · ')}`);
+      const shown = crewed.slice(0, 6).map(([who, n]) => `${disp(who)} ${n}`).join(' · ');
+      tally.push(`👥 ${shown}${crewed.length > 6 ? ` · +${crewed.length - 6} more` : ''}`);
     }
-    const mvp = pickTop(d.flyers);
-    if (mvp) lines.push(`🏅 **MVP:** ${disp(mvp[0])} — ${mvp[1]} contract${mvp[1] === 1 ? '' : 's'}.`);
-    // the wingman award: turning up for someone ELSE'S contract, which the
-    // contract count alone will never show. Skips the MVP where it can, so two
-    // honours are not handed to the same person while others go unnamed.
-    const helper = pickTop(d.assists, mvp && mvp[0]);
-    if (helper) {
-      lines.push(`🤝 **Best wingman:** ${disp(helper[0])} — flew ${helper[1]} of the org's contracts alongside someone else.`);
-    }
-
-    // ground gained or lost, and what it cost the enemy
     const moved = Object.entries(d.control || {})
       .map(([zid, c]) => [zid, Math.round(c - ((prev.control || {})[zid] || 0))])
       .filter(([, n]) => n !== 0).sort((a, b) => b[1] - a[1])
       .map(([zid, n]) => `${zoneLabel(state.zones[zid].region, zid)} ${n > 0 ? '+' : ''}${n}%`);
-    if (moved.length) lines.push(`🗺 Ground: ${moved.join(' · ')}`);
-
-    // what landed in the stores
+    if (moved.length) tally.push(`🗺 ${moved.join(' · ')}`);
     const mats = ['metals', 'components', 'supplies', 'intel']
       .map(m => [m, Math.round(((d.chest || {})[m] || 0) - ((prev.chest || {})[m] || 0))])
       .filter(([, n]) => n > 0).map(([m, n]) => `+${n} ${m}`);
     const fundsUp = Math.round(((d.chest || {}).funds || 0) - ((prev.chest || {}).funds || 0));
     if (mats.length || fundsUp) {
-      lines.push(`📦 Stores: ${[fundsUp ? `${fundsUp > 0 ? '+' : ''}${fmtF(fundsUp)} ORG funds` : '', ...mats]
-        .filter(Boolean).join(' · ')} (now ${fmtF(state.chest.funds)} funds)`);
+      tally.push(`📦 ${[fundsUp ? `${fundsUp > 0 ? '+' : ''}${fmtF(fundsUp)} funds` : '', ...mats]
+        .filter(Boolean).join(' · ')}`);
     }
+    blocks.push(tally.join('\n'));
 
-    // the narrative: notable events only, never muster setup or bookkeeping.
-    // A line that opens with its own icon does not also want a bullet, and a
-    // bulk pledge collapses to one line per person instead of one per hull.
+    // ── the honours ──
+    // At most three, and never twice to the same person: a board that reads one
+    // name every night is a board nobody new wants to join. MVP is scored on the
+    // control each contract was WORTH, so on-site work, RMC hauls and scarce
+    // trades outrank a pile of easy ones. The rest are awarded in turn, each
+    // skipping anyone already named, and dropped entirely if that leaves nobody.
+    const honours = [];
+    const named = [];
+    const award = (icon, title, counts, phrase) => {
+      if (honours.length >= 3) return;
+      const top = pickTop(counts, named);
+      if (!top) return;
+      named.push(top[0]);
+      honours.push(`${icon} **${title}** ${disp(top[0])} — ${phrase(top[1])}`);
+    };
+    award('🏅', 'MVP', d.weight, n => `${Math.round(n)}% of the day's control`);
+    award('🤝', 'Best wingman', d.assists, n => `flew ${n} contract${n === 1 ? '' : 's'} as someone else's crew`);
+    award('🛡', 'Firefighter', d.threat, n => `answered ${n} of the Director's demands`);
+    award('🎯', 'Closer', d.closes, n => `landed the contract that finished ${n} objective${n === 1 ? '' : 's'}`);
+    award('🛰', 'Eyes', d.intel, n => `brought back ${n} intel`);
+    if (honours.length) blocks.push(honours.join('\n'));
+
+    // ── the story ──
+    // Repetition is what made this unreadable: seven objectives were seven
+    // near-identical sentences, and each front line its own line. Both collapse.
     const todays = state.chronicle.filter(c => c.tick === day && !c.pre && !c.sys);
     const pledged = {}, slot = {}, story = [];
+    const objectives = [], fronts = [];
+    let objSlot = null, frontSlot = null;
     for (const c of todays) {
-      if (c.pledge) {
-        // hold the spot the first hull took, so the summary stays in sequence
+      if (c.objective) {
+        if (objSlot == null) { objSlot = story.length; story.push(''); }
+        objectives.push(c.objective);
+      } else if (c.front) {
+        if (frontSlot == null) { frontSlot = story.length; story.push(''); }
+        fronts.push(c.front);
+      } else if (c.pledge) {
         if (slot[c.pledge] == null) { slot[c.pledge] = story.length; story.push(''); }
         pledged[c.pledge] = (pledged[c.pledge] || 0) + 1;
-        continue;
+      } else {
+        story.push(/^[\p{Emoji_Presentation}\p{Extended_Pictographic}✔✕⚑⚔★]/u.test(c.text) ? c.text : `• ${c.text}`);
       }
-      story.push(/^[\p{Emoji_Presentation}\p{Extended_Pictographic}✔✕⚑⚔★]/u.test(c.text) ? c.text : `• ${c.text}`);
     }
+    if (objSlot != null) {
+      story[objSlot] = `✔ **${objectives.length} objective${objectives.length === 1 ? '' : 's'} cleared** ` +
+        `(+${OrgState.TUNING.PUSH_BONUS}%${objectives.length > 1 ? ' each' : ''}) — ${objectives.join(' · ')}`;
+    }
+    if (frontSlot != null) story[frontSlot] = `⚑ Front lines opened: ${fronts.join(' · ')}`;
     for (const [who, n] of Object.entries(pledged)) {
       story[slot[who]] = `• ${disp(who)} pledges ${n} ship${n === 1 ? '' : 's'} to the org census.`;
     }
-    if (story.length) lines.push(story.filter(Boolean).join('\n'));
+    if (story.length) blocks.push(story.filter(Boolean).join('\n'));
 
+    // ── where things stand, and what is coming ──
+    const stand = [];
     const held = state.season.heldZones.map(z => zoneLabel(state.zones[z].region, z));
-    lines.push(`⚑ Held: ${held.length ? held.join(' · ') : 'nothing yet'}`);
-
-    // what is on the board RIGHT NOW — the post lands as the new day opens, so
-    // this is the call to action. (The old "scouted for tomorrow" line read the
-    // telegraph, which is always empty at this hour: the report fires on the
-    // first page-open of the day, before anyone has bought a scout.)
+    if (held.length) stand.push(`⚑ Held: ${held.join(' · ')}`);
     const facing = ((state.director || {}).active || []).map(m => m.kind === 'raid'
       ? `a strike on **${zoneLabel(m.region, m.zone)}** — ${OrgState.TUNING.PUSH_COUNT} combat contracts in ${regionSpace(m.region)} breaks it`
       : `convoys going missing in **${regionSpace(m.region)}** — ${OrgState.TUNING.PUSH_COUNT} hauling runs answer it`);
-    if (facing.length) lines.push(`⚠ **Today:** ${facing.join(' · ')}`);
+    if (facing.length) stand.push(`⚠ **Today:** ${facing.join(' · ')}`);
+    stand.push(`🗺 [The map at the close of day ${day + 1}](${buildMapLink(day)})`);
+    blocks.push(stand.join('\n'));
 
-    let out = lines.join('\n');
-    if (out.length > 1700) out = out.slice(0, 1680) + '\n… (full log in the war room)';
-    return out + `\n🗺 [The map at the close of day ${day + 1}](${buildMapLink(day)})`;
+    let out = blocks.join('\n\n');
+    if (out.length > 1900) out = out.slice(0, 1880) + '\n… (full log in the war room)';
+    return out;
   }
   // a public snapshot link: the whole board state rides in the URL, so viewers
   // need no code, no account and never touch the org's database

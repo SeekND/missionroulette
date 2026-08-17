@@ -379,7 +379,8 @@
     // flyers counts everyone aboard; assists counts only the ones who turned up
     // for SOMEONE ELSE'S contract — the org's most useful wingman is rarely the
     // one who filed the most of their own
-    const dayRec = (k) => (state.days[k] = state.days[k] || { contracts: 0, types: {}, flyers: {}, assists: {} });
+    const dayRec = (k) => (state.days[k] = state.days[k] ||
+      { contracts: 0, types: {}, flyers: {}, weight: {}, assists: {}, threat: {}, closes: {}, intel: {} });
     const sealDay = (k) => {
       const rec = dayRec(k);
       rec.chest = Object.assign({}, state.chest);
@@ -977,7 +978,7 @@
           if (Object.keys(state.fronts).length >= TUNING.FRONT_CAP) { state.skipped++; break; }
           state.fronts[zid] = { by: ev.a, at: ev.t };
           const zn = sys.regions[state.zones[zid].region].zones[zid].name;
-          chron(ev.t, 'target', `${dispR(ev.a)} adds ${zn} to the front lines.`);
+          chron(ev.t, 'target', `${dispR(ev.a)} adds ${zn} to the front lines.`, { front: zn });
           break;
         }
 
@@ -1119,6 +1120,33 @@
             ? TUNING.BASE_GAIN * mult * (onSiteOk || rmcOk ? TUNING.ONSITE_MULT : 1) * gainMultFor(p.ctype, bucket, p.region)
             : TUNING.OFF_FRONT_GAIN;
 
+          // the war banks ONE contract however many flew it — but everyone who
+          // was there gets the personal credit: tallies, medals, promotions
+          const crew = [...new Set([ev.a].concat(Array.isArray(p.crew) ? p.crew : []))]
+            .filter(n => n === ev.a || state.members[n]);
+          const rec = dayRec(tickOf(ev.t));
+          rec.contracts++;
+          rec.types[p.ctype] = (rec.types[p.ctype] || 0) + 1;
+          // What this contract was WORTH, for the day's honours. Using the same
+          // number the meters get means on-site work, RMC hauls, scarce trades
+          // and zone powers all count for more without a second scoring system.
+          // Investigation moves no meter, so it is scored at the base rate — a
+          // long ASD run at double — or investigators would place last on a
+          // board they are quietly funding.
+          const worth = industryGated ? 0
+            : bucket === 'intel' ? TUNING.BASE_GAIN * (p.deep ? 2 : 1)
+              : gain;
+          for (const who of crew) {
+            rec.flyers[who] = (rec.flyers[who] || 0) + 1;
+            rec.weight[who] = (rec.weight[who] || 0) + worth;
+            if (who !== ev.a) rec.assists[who] = (rec.assists[who] || 0) + 1;
+            if (directorWork) rec.threat[who] = (rec.threat[who] || 0) + 1;
+            if (bucket === 'intel') {
+              rec.intel[who] = (rec.intel[who] || 0) +
+                (p.deep ? TUNING.INTEL_DEEP_YIELD : TUNING.MATERIAL_PER_CONTRACT);
+            }
+          }
+
           if (bucket === 'intel') {
             // a long delving run is worth more than a quick missing-person case
             state.chest.intel += p.deep ? TUNING.INTEL_DEEP_YIELD : TUNING.MATERIAL_PER_CONTRACT;
@@ -1141,7 +1169,11 @@
               state.chest.funds += TUNING.PUSH_FUNDS_BONUS;
               // "Daily Objective Bonus — Take Yela" read as a label, not an event:
           // people asked whether it meant the objective was finished. It does.
-          chron(ev.t, 'push', `✔ ${PUSH_KIND[pm[3]].label} ${sys.regions[p.region].zones[p.zone].name} complete — Daily Objective Bonus earned, +${TUNING.PUSH_BONUS}% ${bucket}.`);
+              // tagged so the digest can collapse a day's objectives into one
+              // line — seven near-identical sentences is a wall, not a report
+              chron(ev.t, 'push', `✔ ${PUSH_KIND[pm[3]].label} ${sys.regions[p.region].zones[p.zone].name} complete — Daily Objective Bonus earned, +${TUNING.PUSH_BONUS}% ${bucket}.`,
+                { objective: `${PUSH_KIND[pm[3]].label} ${sys.regions[p.region].zones[p.zone].name}` });
+              for (const who of crew) rec.closes[who] = (rec.closes[who] || 0) + 1;
             }
           }
           if (CHEST_BUCKET[p.ctype] && bucket !== 'intel') {
@@ -1149,17 +1181,6 @@
               TUNING.MATERIAL_PER_CONTRACT + (rmcOk ? TUNING.RMC_COMPONENTS : 0);
           }
 
-          // the war banks ONE contract however many flew it — but everyone who
-          // was there gets the personal credit: tallies, medals, promotions
-          const crew = [...new Set([ev.a].concat(Array.isArray(p.crew) ? p.crew : []))]
-            .filter(n => n === ev.a || state.members[n]);
-          const rec = dayRec(tickOf(ev.t));
-          rec.contracts++;
-          rec.types[p.ctype] = (rec.types[p.ctype] || 0) + 1;
-          for (const who of crew) {
-            rec.flyers[who] = (rec.flyers[who] || 0) + 1;
-            if (who !== ev.a) rec.assists[who] = (rec.assists[who] || 0) + 1;
-          }
           for (const who of crew) {
             const mw = member(who, ev.t);
             mw.total++;
