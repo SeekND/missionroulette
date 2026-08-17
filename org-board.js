@@ -635,7 +635,10 @@
   function renderHelpInfo(el, close) {
     const T = OrgState.TUNING;
     const days = state.config.seasonDays;
-    const claimMin = Math.round(T.CLAIM_TTL_MS / 60000);
+    // "3 hours" reads; "180 minutes" does not
+    const claimWindow = T.CLAIM_TTL_MS % 3600000 === 0
+      ? `${T.CLAIM_TTL_MS / 3600000} hour${T.CLAIM_TTL_MS === 3600000 ? '' : 's'}`
+      : `${Math.round(T.CLAIM_TTL_MS / 60000)} minutes`;
     const sec = (icon, title, body) =>
       `<div class="help-sec"><div class="help-h">${icon} ${title}</div>${body}</div>`;
     const p = (t) => `<div class="help-p">${t}</div>`;
@@ -674,7 +677,7 @@
         p(`Work anywhere else still counts, but only +${T.OFF_FRONT_GAIN}%. Fight where the flags are.`)) +
 
       sec('📋', 'Claims',
-        p(`<b>Claim</b> a mission to reserve it — it leaves the pool for ${claimMin} minutes so nobody doubles up. ` +
+        p(`<b>Claim</b> a mission to reserve it — it leaves the pool for ${claimWindow} so nobody doubles up. ` +
           `It then sits in <b>Your contract</b> on the right; finish it in game and press <b>✓ Submit this contract</b> there, ` +
           `or return it. If you forget, it quietly returns itself.`) +
         p(`Claiming is optional. Anything you flew <b>without</b> claiming goes in through <b>＋ Submit other work</b> ` +
@@ -1092,13 +1095,11 @@
   // the credit lands. Read the zone as the requirement and you go hunting for a
   // contract that names the moon, find none, and conclude the day is stalled.
   function creditNote(rid, zid, submitting, ctype) {
-    // salvage is the one trade with nothing to travel to: wrecks and panels turn
-    // up where they turn up. Its bonus rides on the HAUL instead of the place.
-    const bonus = ctype === 'salvage'
-      ? ` Wrecks drift where they fall, so there is nothing to fly to — what pays extra is what you bring back.`
-      : ` Work that happens there is worth +50%.`;
+    // salvage gets no bonus sentence here: its bonus is the haul, and the haul
+    // question is put plainly on the contract itself when they submit it
+    const bonus = submitting || ctype === 'salvage' ? '' : ` Work that happens there is worth +50%.`;
     return `<div class="pr-credit">★ Anywhere in <b>${esc(regionSpace(rid))}</b> counts — the credit lands on ` +
-      `<b>${esc(zoneLabel(rid, zid))}</b> either way.` + (submitting ? '' : bonus) + `</div>`;
+      `<b>${esc(zoneLabel(rid, zid))}</b> either way.` + bonus + `</div>`;
   }
 
   // Salvage asks what you brought back, never where you were. CMAT fills fast;
@@ -1408,7 +1409,13 @@
     const el = $('my-contract');
     if (mcTimerHandle) { clearInterval(mcTimerHandle); mcTimerHandle = null; }
     if (state.season && state.season.over) { el.style.display = 'none'; return; }
-    const found = Object.entries(state.claims || {}).find(([, c]) => c.by === callsign() && c.effective === 'active');
+    // An EXPIRED claim keeps its card. The reducer has always accepted a late
+    // submission — only the slot goes back in the pool — but the card used to
+    // vanish at the deadline, so the work someone had just flown had nowhere to
+    // be filed. A live claim always wins; otherwise the newest lapsed one shows.
+    const mine = Object.entries(state.claims || {}).filter(([, c]) => c.by === callsign() && c.status === 'active');
+    const found = mine.find(([, c]) => c.effective === 'active') ||
+      mine.sort((a, b) => b[1].at - a[1].at)[0];
     if (!found) { el.style.display = 'none'; return; }
     const [cid, c] = found;
     el.style.display = '';
@@ -1436,15 +1443,22 @@
       `<div class="mc-actions"><button class="btn btn-primary" id="mc-done">✓ Submit this contract</button>` +
       `<button class="btn btn-ghost" id="mc-return">↩ Return to pool</button></div>` +
       `<div class="f-note" id="mc-ttl"></div>`;
+    // counts DOWN: what a pilot wants off this card is how long they have left,
+    // not how long they have already been at it
     const tick = () => {
       const t = $('mc-timer');
       if (!t) return;
-      const ms = Date.now() - c.at;
-      t.textContent = `${Math.floor(ms / 60000)}:${String(Math.floor((ms % 60000) / 1000)).padStart(2, '0')}`;
-      const left = OrgState.TUNING.CLAIM_TTL_MS - ms;
+      const left = OrgState.TUNING.CLAIM_TTL_MS - (Date.now() - c.at);
+      const s = Math.max(0, Math.floor(left / 1000));
+      const pad = (n) => String(n).padStart(2, '0');
+      t.textContent = left <= 0 ? 'time up'
+        : s >= 3600 ? `${Math.floor(s / 3600)}:${pad(Math.floor(s % 3600 / 60))}:${pad(s % 60)}`
+          : `${Math.floor(s / 60)}:${pad(s % 60)}`;
+      t.classList.toggle('low', left > 0 && left <= 15 * 60000);
+      t.classList.toggle('out', left <= 0);
       $('mc-ttl').textContent = left > 0
-        ? `Auto-returns to the pool in ${Math.ceil(left / 60000)}m if not submitted.`
-        : 'Timed out — it may be back in the pool, but submitting it still counts.';
+        ? 'Time left to fly it and submit. After that it goes back in the pool — but submitting late still counts.'
+        : 'Back in the pool — submitting it still counts.';
     };
     tick();
     mcTimerHandle = setInterval(tick, 1000);

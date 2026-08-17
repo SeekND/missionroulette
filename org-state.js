@@ -50,7 +50,7 @@
     DIRECTOR_PER_RAID: 4,        // one raid per this many active players yesterday…
     DIRECTOR_RAID_CAP: 5,        // …to this ceiling, so a huge org is pressed but not buried
     DIRECTOR_PER_RELIEF: 12,     // an extra relief call per this many actives (max 3)
-    CLAIM_TTL_MS: 90 * 60000,    // a claimed contract auto-returns to the pool after this
+    CLAIM_TTL_MS: 180 * 60000,   // a claimed contract auto-returns to the pool after this
     RECOMMISSION_FRAC: 0.25,     // recommission a lost hull at this fraction of its price
     RIDE_THRESHOLD: 10,          // contracts in a line's types per promotion tier (10, then 20, then 30)
     FRONT_CAP: 3,                // simultaneous front-line zones

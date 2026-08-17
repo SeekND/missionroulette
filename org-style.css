@@ -290,6 +290,8 @@ button.hangar-chip.swap:hover{border-color:var(--accent);color:var(--accent)}
 .pr-taken{font-family:var(--mono);font-size:11px;color:var(--text-faint);margin-left:auto}
 .my-contract{border-color:var(--accent);box-shadow:0 0 0 1px rgba(167,139,250,.25)}
 .mc-timer{font-family:var(--mono);font-size:14px;color:var(--accent);font-weight:700}
+.mc-timer.low{color:#ffb454}
+.mc-timer.out{color:var(--text-faint);font-weight:600}
 .mc-head{font-size:14.5px;margin:2px 0 8px}
 .mc-actions{display:flex;gap:9px;margin-top:12px}
 .mc-actions .btn{flex:1}
