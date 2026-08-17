@@ -907,6 +907,16 @@
         (state.report
           ? `<div class="panel-hint" style="font-size:12.5px">✓ Wired to Discord (a confirmation was posted to the channel when it connected). ` +
             `Each day's digest posts when the first member opens the board after the day rolls — a silent channel means nobody's playing.</div>` +
+            // a day's digest posts once, ever — the write-once marker is what
+            // stops four members opening the board from posting it four times.
+            // This is the deliberate override for a day that was missed.
+            `<div class="adm-form" style="margin:8px 0"><select class="f-input" id="adm-report-day">` +
+            `<option value="start">Season kickoff</option>` +
+            Array.from({ length: Math.max(0, Math.min(state.tick, state.config.seasonDays)) }, (_, i) =>
+              `<option value="${i}" ${i === state.tick - 1 ? 'selected' : ''}>Day ${i + 1}</option>`).join('') +
+            (state.season.over ? `<option value="final">Season close-out</option>` : '') +
+            `</select><button class="btn btn-mini" id="adm-report-again">post it again</button></div>` +
+            `<div class="f-note" id="adm-report-note"></div>` +
             `<button class="linklike" id="adm-report-test">send a test post</button> ` +
             `<button class="linklike danger" id="adm-report-off">disconnect reports</button>`
           : `<div class="panel-hint" style="font-size:12.5px">Post a daily digest to your org's Discord: channel settings → Integrations → ` +
@@ -956,6 +966,20 @@
           repOn.textContent = 'wire it';
           note.textContent = '⚠ Discord refused that webhook — check the URL, or the webhook may have been deleted. Nothing was saved.';
         });
+    });
+    const repAgain = el.querySelector('#adm-report-again');
+    if (repAgain) repAgain.addEventListener('click', () => {
+      const pick = $('adm-report-day').value;
+      const note2 = $('adm-report-note');
+      const body = pick === 'start' ? buildKickoffPost()
+        : pick === 'final' ? buildFinalReport()
+          : buildDailyReport(+pick);
+      repAgain.disabled = true;
+      note2.textContent = 'posting…';
+      postToDiscord(state.report.webhook, body)
+        .then(() => { note2.textContent = '✓ posted — check the channel.'; })
+        .catch(() => { note2.textContent = '⚠ Discord refused it — the webhook may have been deleted. Reconnect it below.'; })
+        .then(() => { repAgain.disabled = false; });
     });
     const repTest = el.querySelector('#adm-report-test');
     if (repTest) repTest.addEventListener('click', () => {
@@ -1685,6 +1709,20 @@
   // boundary claims a write-once marker in the database and posts that day's
   // digest. Nobody opens the board → nothing posts — silence IS the signal.
   const reportTried = {};
+  // Top of a per-member tally, with one deliberate thumb on the scale: a tie
+  // goes to whoever is NOT an organizer. Organizers set the fronts, call the Org
+  // Days and are usually the most active, so on merit alone the same name wins
+  // every night — and a board that always reads one name is one nobody new wants
+  // to join. `exclude` keeps a second honour from landing on the same person.
+  function pickTop(counts, exclude) {
+    const rows = Object.entries(counts || {}).filter(([who, n]) => n > 0 && who !== exclude);
+    if (!rows.length) return null;
+    const best = Math.max.apply(null, rows.map(r => r[1]));
+    return rows.filter(r => r[1] === best).sort((a, b) =>
+      (state.approvers.includes(a[0]) - state.approvers.includes(b[0])) ||
+      a[0].localeCompare(b[0]))[0];
+  }
+
   // The day's digest. Numbers come from the fold's per-day ledger, not from the
   // chronicle: chronicle lines only exist for NOTABLE events, so a day of solid
   // work that finished no objective used to post "a quiet day — no contracts
@@ -1707,10 +1745,13 @@
     if (crewed.length) {
       lines.push(`👥 Aboard: ${crewed.map(([who, n]) => `${disp(who)} ${n}`).join(' · ')}`);
     }
-    // the wingman award: turning up for someone else's contract, which the
-    // contract count alone will never show
-    const helper = Object.entries(d.assists || {}).sort((a, b) => b[1] - a[1])[0];
-    if (helper && helper[1] > 0) {
+    const mvp = pickTop(d.flyers);
+    if (mvp) lines.push(`🏅 **MVP:** ${disp(mvp[0])} — ${mvp[1]} contract${mvp[1] === 1 ? '' : 's'}.`);
+    // the wingman award: turning up for someone ELSE'S contract, which the
+    // contract count alone will never show. Skips the MVP where it can, so two
+    // honours are not handed to the same person while others go unnamed.
+    const helper = pickTop(d.assists, mvp && mvp[0]);
+    if (helper) {
       lines.push(`🤝 **Best wingman:** ${disp(helper[0])} — flew ${helper[1]} of the org's contracts alongside someone else.`);
     }
 
@@ -1791,6 +1832,15 @@
     return fetch(webhook, { method: 'POST', body: new URLSearchParams({ payload_json: JSON.stringify({ content }) }) })
       .then(r => { if (!r.ok) throw new Error('Discord answered ' + r.status); return r; });
   }
+  function buildKickoffPost() {
+    const members = Object.keys(state.members).length;
+    const hulls = (state.fleet || []).filter(f => f.status !== 'withdrawn').length;
+    return `🚀 **${state.config.name || 'Org Campaign'}** — the season begins! ` +
+      `${state.config.seasonDays} days on the clock · ${members} enlisted · ${hulls} hull${hulls === 1 ? '' : 's'} pledged.\n` +
+      `First battle report lands when day 1 closes. Good hunting.\n` +
+      `🗺 [Follow the war, no account needed](${buildMapLink()})`;
+  }
+
   function maybeSendReport() {
     if (!netMode || !state || !state.report || !store.claimOnce) return;
     if (!state.season || state.season.mustering) return;
@@ -1799,14 +1849,8 @@
       reportTried.start = true;
       store.claimOnce('start', { at: Date.now(), by: callsign() }).then(won => {
         if (!won) return;
-        const members = Object.keys(state.members).length;
-        const hulls = (state.fleet || []).filter(f => f.status !== 'withdrawn').length;
-        postToDiscord(state.report.webhook,
-          `🚀 **${state.config.name || 'Org Campaign'}** — the season begins! ` +
-          `${state.config.seasonDays} days on the clock · ${members} enlisted · ${hulls} hull${hulls === 1 ? '' : 's'} pledged.\n` +
-          `First battle report lands when day 1 closes. Good hunting.\n` +
-          `🗺 Follow the war, no account needed: <${buildMapLink()}>`
-        ).catch(err => console.error('kickoff post failed:', err));
+        postToDiscord(state.report.webhook, buildKickoffPost())
+          .catch(err => console.error('kickoff post failed:', err));
       });
     }
     const target = state.season.over ? 'final' : (state.tick > 0 ? 'd' + (state.tick - 1) : null);
