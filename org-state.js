@@ -494,6 +494,24 @@
       return true;
     };
 
+    const recipeOf = (zid) =>
+      regions.archetypes[sys.regions[state.zones[zid].region].zones[zid].archetype].recipe;
+
+    // Add to one of a zone's three shares. Anything ABOVE that share's cap used
+    // to be discarded outright, which made a raided planet unwinnable: the caps
+    // sum to 100, so damage lowered the ceiling below the 100 needed to take it
+    // and nothing but a once-a-season set-piece could repair it. Overflow now
+    // repairs the damage instead — a filled share becomes the repair crew, and
+    // ground wrecked by ignored raids is won back by working it. With no damage
+    // to repair the overflow is still spent, as it always was.
+    const addShare = (zid, bucket, amount) => {
+      const z = state.zones[zid], cap = recipeOf(zid)[bucket];
+      const before = Math.min(z.cats[bucket], cap);
+      z.cats[bucket] += amount;
+      const spill = amount - (Math.min(z.cats[bucket], cap) - before);
+      if (spill > 0 && z.penalty > 0) z.penalty = Math.max(0, z.penalty - spill);
+    };
+
     function recompute(zid) {
       const z = state.zones[zid];
       const zoneDef = sys.regions[z.region].zones[zid];
@@ -1164,7 +1182,7 @@
             // a long delving run is worth more than a quick missing-person case
             state.chest.intel += p.deep ? TUNING.INTEL_DEEP_YIELD : TUNING.MATERIAL_PER_CONTRACT;
           } else if (!industryGated) {
-            hit.cats[bucket] += gain;
+            addShare(p.zone, bucket, gain);
             // mining hot ground draws tomorrow's raids
             if (p.ctype === 'mining' && !hit.held) {
               (heatSets[tickOf(ev.t)] = heatSets[tickOf(ev.t)] || new Set()).add(p.zone);
@@ -1178,7 +1196,7 @@
             const needed = pushNeeded(pm[3], p.region);
             const n = (pushTally[p.pushId] = (pushTally[p.pushId] || 0) + 1);
             if (n === needed) {
-              hit.cats[bucket] += TUNING.PUSH_BONUS;
+              addShare(p.zone, bucket, TUNING.PUSH_BONUS);
               state.chest.funds += TUNING.PUSH_FUNDS_BONUS;
               // "Daily Objective Bonus — Take Yela" read as a label, not an event:
           // people asked whether it meant the objective was finished. It does.
@@ -1614,7 +1632,9 @@
       const recipe = regions.archetypes[region.zones[zid].archetype].recipe;
       for (const [kind, def] of Object.entries(PUSH_KIND)) {
         if (!def.org) continue;
-        if (Math.min(z.cats[def.bucket], recipe[def.bucket]) >= recipe[def.bucket]) continue;
+        // a filled share stops asking — UNLESS the zone carries raid damage, in
+        // which case work above the cap repairs it and is worth doing again
+        if (!z.penalty && Math.min(z.cats[def.bucket], recipe[def.bucket]) >= recipe[def.bucket]) continue;
         let types = def.types.filter(t => region.availability[t] && region.availability[t] !== 'none');
         // mining needs a beachhead first; salvage (Lagrange work) flows regardless
         if (kind === 'industry' && z.control <= 0) types = types.filter(t => t !== 'mining');
@@ -1650,7 +1670,7 @@
       // A COMPLETED one stays — the main branch drops a full bucket outright, so
       // this is what keeps the ✓ visible for the push that did the filling.
       const recipe = regions.archetypes[region.zones[m[4]].archetype].recipe;
-      if (z && n < TUNING.PUSH_COUNT &&
+      if (z && !z.penalty && n < TUNING.PUSH_COUNT &&
           Math.min(z.cats[def.bucket], recipe[def.bucket]) >= recipe[def.bucket]) continue;
       let types = def.types.filter(t => region.availability[t] && region.availability[t] !== 'none');
       if (m[3] === 'industry' && (!z || z.control <= 0)) types = types.filter(t => t !== 'mining');

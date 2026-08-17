@@ -344,7 +344,9 @@
         `<span>${esc(def.name)} control</span><b>${Math.round(zs.control)}%</b></div></div>` +
         bars +
         (pen > 0
-          ? `<div class="cb-pen">⚠ −${pen}% raid damage · ${Math.round(earned)}% earned, ${Math.round(zs.control)}% held</div>`
+          ? `<div class="cb-pen">⚠ −${pen}% raid damage · ${Math.round(earned)}% earned, ${Math.round(zs.control)}% held<br>` +
+            `<b>Ceiling ${OrgState.TUNING.CAPTURE - pen}%</b> — ${esc(def.name)} can't be taken until this is repaired. ` +
+            `Work above a filled share repairs it, point for point.</div>`
           : '') +
         `<div class="cb-help">The three shares add up to control. A contract here is worth ` +
         `${OrgState.TUNING.BASE_GAIN}% to its share — ` +
@@ -1143,6 +1145,13 @@
     rmc: !!($(prefix + '-rmc') && $(prefix + '-rmc').checked) || undefined,
   });
 
+  const bucketFull = (zid, bucket) => {
+    const z = state.zones[zid];
+    if (!z) return false;
+    const cap = D.regions.archetypes[sysR.regions[z.region].zones[zid].archetype].recipe[bucket];
+    return Math.min(z.cats[bucket], cap) >= cap;
+  };
+
   // ── The day's log ───────────────────────────────────────────────────────
   // Contracts have never appeared anywhere a player can see: the war log only
   // carries notable events, and the only per-contract view was the leadership
@@ -1227,7 +1236,14 @@
       `<div class="pr-top"><span class="pr-kind">${p.director ? '⚠ ' : ''}${p.label}</span>` +
       `<span class="pr-title">${esc(region.zones[p.zone].name)}</span>` +
       `<span class="pr-region">${esc(region.name)} space${p.carried ? ' · carried' : ''}</span></div>` +
-      `<div class="pr-detail">${attribution}${p.scarce ? 'scarce ×1.5 · ' : ''}+${p.bonus}% ${p.bucket} when all ${p.count} land${p.types.includes('mining') && state.zones[p.zone] && !state.zones[p.zone].held ? ' · ⚠ mining hot ground draws raids' : ''} · ${fmtLeft(p.expiresAt - Date.now())}</div>` +
+      // when the share is already full, the bonus cannot land in it — it spills
+      // into repairing raid damage, so say that rather than promising a meter
+      // move the cap will refuse
+      `<div class="pr-detail">${attribution}${p.scarce ? 'scarce ×1.5 · ' : ''}${
+        bucketFull(p.zone, p.bucket) && (state.zones[p.zone] || {}).penalty
+          ? `repairs ${p.bonus}% raid damage when all ${p.count} land`
+          : `+${p.bonus}% ${p.bucket} when all ${p.count} land`
+      }${p.types.includes('mining') && state.zones[p.zone] && !state.zones[p.zone].held ? ' · ⚠ mining hot ground draws raids' : ''} · ${fmtLeft(p.expiresAt - Date.now())}</div>` +
       roll +
       more +
       `<div class="pr-foot">${pips}${p.completed
