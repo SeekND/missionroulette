@@ -1861,10 +1861,13 @@
   function buildKickoffPost() {
     const members = Object.keys(state.members).length;
     const hulls = (state.fleet || []).filter(f => f.status !== 'withdrawn').length;
+    // No map link here. At the starting gun the map is empty, and because the
+    // link encodes live state, reposting this later would attach a picture of
+    // whatever day it is now to a "the season begins" announcement. The daily
+    // digests carry the map, each pinned to its own day.
     return `🚀 **${state.config.name || 'Org Campaign'}** — the season begins! ` +
       `${state.config.seasonDays} days on the clock · ${members} enlisted · ${hulls} hull${hulls === 1 ? '' : 's'} pledged.\n` +
-      `First battle report lands when day 1 closes. Good hunting.\n` +
-      `🗺 [Follow the war, no account needed](${buildMapLink()})`;
+      `First battle report lands when day 1 closes. Good hunting.`;
   }
 
   function maybeSendReport() {
