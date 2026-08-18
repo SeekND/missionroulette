@@ -273,13 +273,13 @@
   }
 
   // Crusader is both a region and the gas giant inside it — never print a bare
-  // name where either could be meant. Regions get "space"; the capital planet
-  // that shares its region's name gets "itself".
-  const regionSpace = (rid) => `${(sysR.regions[rid] || {}).name || rid} space`;
+  // name where either could be meant. A region is a "region"; the capital
+  // planet that shares its region's name is that "planet".
+  const regionSpace = (rid) => `${(sysR.regions[rid] || {}).name || rid} region`;
   const zoneLabel = (rid, zid) => {
     const r = sysR.regions[rid];
     const zn = r && r.zones[zid] ? r.zones[zid].name : zid;
-    return (r && zn === r.name) ? `${zn} itself` : zn;
+    return (r && zn === r.name) ? `${zn} planet` : zn;
   };
   // Either direction counts, and a bare "Crusader" reads as the gas giant —
   // the board never promises a cargo run to one specific rock exists.
@@ -413,7 +413,7 @@
         } else if (unlocked) {
           body = `<span class="sp-done">🔓 unlocked</span> — run it together! Your organizer records it in the objectives column.`;
         } else if (od && od.region === zs.region) {
-          body = `📣 Org Day in progress — ${od.count} / ${od.target} contracts in ${esc(region.name)} space today unlock it.`;
+          body = `📣 Org Day in progress — ${od.count} / ${od.target} contracts in ${esc(regionSpace(zs.region))} today unlock it.`;
         } else if (sched) {
           body = `📅 Org Day planned — ${esc(dayLabel(+sched[0]))} brings the org here.`;
         } else if (state.approvers.includes(callsign())) {
@@ -462,9 +462,9 @@
       opts.push(`<option value="${d}">${d === state.tick ? `Today — day ${d + 1}` : dayLabel(d)}</option>`);
     }
     openModal(
-      `<h2>📣 Call an Org Day — ${esc(rdef.name)} space</h2>` +
+      `<h2>📣 Call an Org Day — ${esc(regionSpace(regionId))}</h2>` +
       `<div class="m-sub">The whole org points one direction for a day: ${OrgState.TUNING.ORGDAY_TARGET} contracts in ` +
-      `${esc(rdef.name)} space before that day ends clear the path to <b>${esc(h ? h.name : 'its set-piece')}</b>.</div>` +
+      `${esc(regionSpace(regionId))} before that day ends clear the path to <b>${esc(h ? h.name : 'its set-piece')}</b>.</div>` +
       (opts.length
         ? `<label class="f-label">Which day?</label><select class="f-input" id="od-day">${opts.join('')}</select>`
         : `<div class="panel-hint">No open days left in the season.</div>`) +
@@ -571,7 +571,7 @@
       `<h2>🌟 ${esc(h.name)}${encore ? ' — encore' : ''}</h2>` +
       `<div class="m-sub">${encore
         ? `Record another run for the chronicle — medals for everyone who was there. The control surge only fires on a season's first run.`
-        : `Record the run for ${esc(rdef.name)} space. The region's front surges +${OrgState.TUNING.SETPIECE_SURGE}% control, and everyone who was there gets the medal.`}</div>` +
+        : `Record the run for ${esc(regionSpace(regionId))}. The region's front surges +${OrgState.TUNING.SETPIECE_SURGE}% control, and everyone who was there gets the medal.`}</div>` +
       `<label class="f-label">Who was there?</label>` +
       `<div class="sp-parts"><label class="f-check"><input type="checkbox" checked disabled> ${esc(disp(me))} (you)</label>` +
       others.map(n => `<label class="f-check"><input type="checkbox" data-part="${esc(n)}"> ${esc(disp(n))}</label>`).join('') + `</div>` +
@@ -701,7 +701,7 @@
           `${T.INTEL_DEEP_YIELD}. Say which when you submit it.`) +
         p(`<b>Scouting:</b> spend <b>${T.INTEL_READ_COST} intel</b> to see what's coming in <b>one region</b> tomorrow — ` +
           `"quiet" is an answer too. Each region is its own look, once a day, so intel keeps its worth all season. ` +
-          `Hold <b>Cellin</b> and Crusader space is watched for free; build the <b>Sensor Lattice</b> and every region ` +
+          `Hold <b>Cellin</b> and the Crusader region is watched for free; build the <b>Sensor Lattice</b> and every region ` +
           `costs 1 instead of 2.`)) +
 
       sec('🌟', 'Set-pieces & Org Days',
@@ -730,8 +730,8 @@
         p(`<b>Missing a capability?</b> Nobody should watch a contract they can't fly. Fleet → <b>Requisition a ship</b> ` +
           `buys the <b>entry hull of any trade</b> from ORG funds — cargo space, a mining head, a salvage beam, whatever the org ` +
           `is short of. It's yours for the season, like any assigned ship; anything better still comes from flying the work.`) +
-        p(`The catch: a rental hub only serves you while the org is <b>fighting in its region</b> — anywhere in Hurston space ` +
-          `opens Lorville, ArcCorp space opens Area 18, Crusader space opens Orison, microTech space opens New Babbage ` +
+        p(`The catch: a rental hub only serves you while the org is <b>fighting in its region</b> — anywhere in the Hurston region ` +
+          `opens Lorville, the ArcCorp region opens Area 18, Crusader opens Orison, microTech opens New Babbage ` +
           `(a moon counts — it's the whole region, not just the planet). Spread across Stanton and the motor pool widens; ` +
           `stay in one corner and you fly what that corner stocks.`) +
         p(`See a ship you'd like on another member? Open Fleet and click it — offer a <b>swap</b>, one of yours for it. They decide.`)) +
@@ -1208,7 +1208,7 @@
     if (!p.completed) {
       const rc = rollContract(p, p.done);
       roll = `<div class="pr-roll"><span class="pr-rollnum">Contract ${p.done + 1} of ${p.count}</span> · <b>${esc(rc.typeName)}</b>` +
-        `<div class="pr-steps">1 — Travel to <b>${esc(rc.hub)} space</b>${rc.restock ? ` <span class="pr-restock">(restock &amp; rearm at ${esc(rc.restock)})</span>` : ''}<br>` +
+        `<div class="pr-steps">1 — Travel to <b>${esc(regionSpace(p.region))}</b>${rc.restock ? ` <span class="pr-restock">(restock &amp; rearm at ${esc(rc.restock)})</span>` : ''}<br>` +
         `2 — ${step2Text(rc)}</div>` +
         repNote(rc) +
         (rc.type === 'mining' ? `<div class="mine-warn">⛏ Mining materials for your contract can only be gathered at <b>amber</b> or <b>green</b> planets.</div>` : '') +
@@ -1235,7 +1235,7 @@
     return `<div class="push-row k-${p.kind}${p.completed ? ' done' : ''}">` +
       `<div class="pr-top"><span class="pr-kind">${p.director ? '⚠ ' : ''}${p.label}</span>` +
       `<span class="pr-title">${esc(region.zones[p.zone].name)}</span>` +
-      `<span class="pr-region">${esc(region.name)} space${p.carried ? ' · carried' : ''}</span></div>` +
+      `<span class="pr-region">${esc(regionSpace(p.region))}${p.carried ? ' · carried' : ''}</span></div>` +
       // when the share is already full, the bonus cannot land in it — it spills
       // into repairing raid damage, so say that rather than promising a meter
       // move the cap will refuse
@@ -1356,12 +1356,12 @@
     const od = state.orgDay;
     if (od && !od.unlocked && !(state.spUnlocked && state.spUnlocked[od.region])) {
       const rn = sysR.regions[od.region].name;
-      odBlock += `<div class="orgday"><div class="od-head">📣 ORG DAY — ${esc(rn)} space</div>` +
-        `<div class="od-line">${od.count} / ${od.target} contracts in ${esc(rn)} space today — clear the path to <b>${esc(heroNameFor(od.region))}</b>.</div>` +
+      odBlock += `<div class="orgday"><div class="od-head">📣 ORG DAY — ${esc(regionSpace(od.region))}</div>` +
+        `<div class="od-line">${od.count} / ${od.target} contracts in ${esc(regionSpace(od.region))} today — clear the path to <b>${esc(heroNameFor(od.region))}</b>.</div>` +
         `<div class="m-bar od-bar"><div class="m-fill" style="width:${Math.min(100, od.count / od.target * 100)}%"></div></div>` +
         (od.extra ? `<div class="od-line od-threat">⚔ The Director threw pickets in the way — the path grew by ${od.extra}.</div>` : '') +
         (od.drag && !od.drag.met
-          ? `<div class="od-line od-threat">⚠ Feint: ${od.drag.need - od.drag.done} hauling contract${od.drag.need - od.drag.done === 1 ? '' : 's'} in ${esc(sysR.regions[od.drag.region].name)} space before day's end, or the HQ stores bleed.</div>`
+          ? `<div class="od-line od-threat">⚠ Feint: ${od.drag.need - od.drag.done} hauling contract${od.drag.need - od.drag.done === 1 ? '' : 's'} in ${esc(regionSpace(od.drag.region))} before day's end, or the HQ stores bleed.</div>`
           : '') +
         (od.drag && od.drag.met ? `<div class="od-line">✓ The feint collapsed — the ${esc(sysR.regions[od.drag.region].name)} convoys got through.</div>` : '') +
         `</div>`;
@@ -1370,7 +1370,7 @@
       .filter(([d]) => d > state.tick).sort((a, b) => a[0] - b[0]);
     for (const [d, o] of future) {
       odBlock += `<div class="orgday od-sched"><div class="od-head">📅 ORG DAY PLANNED — ${esc(dayLabel(d))}</div>` +
-        `<div class="od-line">All wings to <b>${esc(sysR.regions[o.region].name)} space</b> — set by ${esc(disp(o.by))}.` +
+        `<div class="od-line">All wings to <b>${esc(regionSpace(o.region))}</b> — set by ${esc(disp(o.by))}.` +
         (iApprove ? ` <button class="linklike danger" data-od-cancel="${d}">call it off</button>` : '') +
         `</div></div>`;
     }
@@ -1506,11 +1506,11 @@
     // wording was fixed would otherwise keep showing the old ambiguous line
     const rcLike = { prov: roll.prov ? { name: roll.prov, tab: roll.tab } : null, tab: roll.tab, typeName: roll.typeName, ctype: c.ctype, type: c.ctype, haulDir: haulDirFor(c.region), rank: roll.rank, gillyTier: roll.gillyTier };
     const steps =
-      `1 — Travel to <b>${esc((roll.hub || (region ? region.name : '')) + ' space')}</b>${roll.restock ? ` <span class="pr-restock">(restock &amp; rearm at ${esc(roll.restock)})</span>` : ''}<br>` +
+      `1 — Travel to <b>${esc(regionSpace(c.region))}</b>${roll.restock ? ` <span class="pr-restock">(restock &amp; rearm at ${esc(roll.restock)})</span>` : ''}<br>` +
       `2 — ${step2Text(rcLike)}`;
     el.innerHTML =
       `<div class="card-title ct-row">Your contract <span class="mc-timer" id="mc-timer"></span></div>` +
-      `<div class="mc-head"><b>${esc(roll.typeName || c.ctype)}</b> · ${esc(zoneName)} — ${esc(region ? region.name : c.region)} space</div>` +
+      `<div class="mc-head"><b>${esc(roll.typeName || c.ctype)}</b> · ${esc(zoneName)} — ${esc(regionSpace(c.region))}</div>` +
       `<div class="pr-steps">${steps}</div>` +
       repNote(rcLike) +
       (c.ctype === 'mining' ? `<div class="mine-warn">⛏ Mining materials for your contract can only be gathered at <b>amber</b> or <b>green</b> planets.</div>` : '') +
@@ -1616,7 +1616,7 @@
           help.innerHTML = open.length
             ? '⛏ Mining materials for your contract can only be gathered at <b>amber</b> or <b>green</b> planets. The contract names its ores — count it at one that bears them: ' +
               open.map(([zid, z]) => `<b>${esc(zoneLabel(rid, zid))}</b>${z.ores ? ' (' + z.ores.slice(0, 3).map(esc).join(', ') + ')' : ''}`).join(' · ')
-            : `All of ${esc(region.name)} space is grey — locked to mining. Combat or supply work at a planet turns it amber and opens it.`;
+            : `All of ${esc(regionSpace(rid))} is grey — locked to mining. Combat or supply work at a planet turns it amber and opens it.`;
           help.style.display = '';
         } else help.style.display = 'none';
       }
@@ -2035,7 +2035,7 @@
     }).filter(Boolean).sort((a, b) => (a.flown ? 1 : 0) - (b.flown ? 1 : 0));
     if (cands.length) {
       const c = cands[0];
-      return `Close the season together: run <b>${esc(c.name)}</b> in ${esc(c.region)} space — ` +
+      return `Close the season together: run <b>${esc(c.name)}</b> in the ${esc(c.region)} region — ` +
         `the set-piece on ground you took${c.flown ? ', one more time for the chronicle' : ' — the one op the org never got to'}. ` +
         `Full briefing in the Hero Adventures codex.`;
     }
@@ -2380,7 +2380,7 @@
         // every hub that stocks it sits on ground the org hasn't touched yet
         const planets = r.where.map(rid => (sysR.regions[rid] && sysR.regions[rid].name) || rid);
         act = `<span class="proj-locks">🔒 locked</span>`;
-        where = `${esc(r.ship)} · needs a beachhead in ${planets.map(esc).join(', ').replace(/, ([^,]*)$/, ' or $1')} space`;
+        where = `${esc(r.ship)} · needs a beachhead in ${planets.map(esc).join(', ').replace(/, ([^,]*)$/, ' or $1')} region`;
       } else {
         where = `${esc(r.ride.name)} · rent at ${esc(r.ride.city)}`;
         act = state.chest.funds < r.fee

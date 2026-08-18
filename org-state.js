@@ -634,9 +634,9 @@
         const rn = sys.regions[plan.region].name;
         const t = config.startedAt + k * TUNING.DAY_MS;
         if (plan.kind === 'raid') {
-          chron(t, 'threat', `⚠ Pressure is mounting on ${zn} — ${faction} are likely behind it. ${TUNING.PUSH_COUNT} combat contracts in ${rn} space before day's end will break it.`);
+          chron(t, 'threat', `⚠ Pressure is mounting on ${zn} — ${faction} are likely behind it. ${TUNING.PUSH_COUNT} combat contracts in the ${rn} region before day's end will break it.`);
         } else {
-          chron(t, 'threat', `⚠ A relief call from ${rn} space: convoys are going missing — likely ${faction} work. ${TUNING.PUSH_COUNT} hauling contracts there would shore it up.`);
+          chron(t, 'threat', `⚠ A relief call from the ${rn} region: convoys are going missing — likely ${faction} work. ${TUNING.PUSH_COUNT} hauling contracts there would shore it up.`);
         }
       }
     }
@@ -665,7 +665,7 @@
           if (answered) {
             move.status = 'answered';
             for (const [mat, amt] of Object.entries(TUNING.DISTRACT_REWARD)) state.chest[mat] += amt;
-            chron(move.deadline, 'answered', `Relief reached ${rn} space — the convoys got through. The HQ stores grow.`);
+            chron(move.deadline, 'answered', `Relief reached the ${rn} region — the convoys got through. The HQ stores grow.`);
           } else {
             move.status = 'ignored';
             if (hasFx('distractImmune')) {
@@ -758,11 +758,11 @@
     // Crusader is both a region and the gas giant inside it. The board learned
     // this rule already; the war log and every Discord line come from HERE, and
     // still read "pressure is mounting on Crusader ... contracts in Crusader
-    // space", which names two different places with one word.
+    // region", which names two different places with one word.
     const zName = (zoneId) => {
       const hit = findZone(regions, config.system, zoneId);
       if (!hit) return zoneId;
-      return hit.zone.name === hit.region.name ? `${hit.zone.name} itself` : hit.zone.name;
+      return hit.zone.name === hit.region.name ? `${hit.zone.name} planet` : hit.zone.name;
     };
     // promotion threshold: the calling line got tier 1 free at join
     const rideNeeded = (m0, line, tier) => (tier - (line === m0.calling ? 1 : 0)) * TUNING.RIDE_THRESHOLD;
@@ -939,7 +939,7 @@
           if (state.chest.intel < cost2) { state.skipped++; break; }
           state.chest.intel -= cost2;
           day2[rid2] = { by: ev.a, at: ev.t };
-          chron(ev.t, 'threat', `🛰 ${dispR(ev.a)} scouts ${sys.regions[rid2].name} space.`);
+          chron(ev.t, 'threat', `🛰 ${dispR(ev.a)} scouts the ${sys.regions[rid2].name} region.`);
           break;
         }
 
@@ -1052,9 +1052,9 @@
           if (orgDayByTick[day]) { state.skipped++; break; }   // one Org Day per day
           orgDayByTick[day] = { region: p.region, by: ev.a, at: ev.t, count: 0, unlocked: false };
           chron(ev.t, 'target', day === tk
-            ? `📣 ${dispR(ev.a)} calls an Org Day — all wings to ${rdef.name} space. ` +
+            ? `📣 ${dispR(ev.a)} calls an Org Day — all wings to the ${rdef.name} region. ` +
               `${TUNING.ORGDAY_TARGET} contracts there today clear the path to ${heroName(rdef.setPiece)}.`
-            : `📣 ${dispR(ev.a)} schedules an Org Day — all wings to ${rdef.name} space on day ${day + 1}. ` +
+            : `📣 ${dispR(ev.a)} schedules an Org Day — all wings to the ${rdef.name} region on day ${day + 1}. ` +
               `${TUNING.ORGDAY_TARGET} contracts there that day clear the path to ${heroName(rdef.setPiece)}.`);
           break;
         }
@@ -1064,7 +1064,7 @@
           const d = p.day;
           if (!state.approvers.includes(ev.a) || !Number.isInteger(d) ||
               !orgDayByTick[d] || d <= tickOf(ev.t)) { state.skipped++; break; }
-          chron(ev.t, 'target', `The day-${d + 1} Org Day (${sys.regions[orgDayByTick[d].region].name} space) is called off.`);
+          chron(ev.t, 'target', `The day-${d + 1} Org Day (${sys.regions[orgDayByTick[d].region].name} region) is called off.`);
           delete orgDayByTick[d];
           break;
         }
@@ -1117,7 +1117,7 @@
               delete state.fronts[target];
             }
           } else {
-            chron(ev.t, 'push', `🌟 The org runs ${hn} — ${rdef.name} space is already swept; the story goes in the log.`);
+            chron(ev.t, 'push', `🌟 The org runs ${hn} — the ${rdef.name} region is already swept; the story goes in the log.`);
           }
           for (const n of parts) member(n, ev.t).setPieces++;
           state.setPieces[p.region] = { at: ev.t, tick: tickOf(ev.t), by: ev.a, participants: parts, hero: spId, zone: target, runs: 1 };
@@ -1278,7 +1278,7 @@
             od2.count++;
             if (od2.count === TUNING.ORGDAY_CONFRONT_AT) {
               od2.extra = (od2.extra || 0) + TUNING.ORGDAY_CONFRONT_ADD;
-              chron(ev.t, 'threat', `⚔ Pickets are massing over ${sys.regions[p.region].name} space — ${faction} are likely behind it. ` +
+              chron(ev.t, 'threat', `⚔ Pickets are massing over the ${sys.regions[p.region].name} region — ${faction} are likely behind it. ` +
                 `The path to ${heroName(sys.regions[p.region].setPiece)} needs ${TUNING.ORGDAY_CONFRONT_ADD} more contracts.`);
             }
             if (od2.count === TUNING.ORGDAY_DRAG_AT && !od2.drag) {
@@ -1286,7 +1286,7 @@
               const others = Object.keys(sys.regions).filter(r => r !== p.region && sys.regions[r].availability.hauling !== 'none');
               if (others.length) {
                 od2.drag = { region: others[Math.floor(randD() * others.length)], need: TUNING.ORGDAY_DRAG_NEED, done: 0, met: false };
-                chron(ev.t, 'threat', `⚠ Convoys are going missing out in ${sys.regions[od2.drag.region].name} space — likely ${faction} work, ` +
+                chron(ev.t, 'threat', `⚠ Convoys are going missing out in the ${sys.regions[od2.drag.region].name} region — likely ${faction} work, ` +
                   `timed to pull the org apart. ${TUNING.ORGDAY_DRAG_NEED} hauling contracts there before day's end, or the HQ stores bleed.`);
               }
             }

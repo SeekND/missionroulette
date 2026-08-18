@@ -115,7 +115,7 @@
                 "Aluminium",
                 "Tin"
               ],
-              "why": "Lorville's rental terminals, Everus Harbor rearm, and the region's market — the operational heart of Hurston space.",
+              "why": "Lorville's rental terminals, Everus Harbor rearm, and the region's market — the operational heart of the Hurston region.",
               "power": {
                 "name": "Logistics Command",
                 "text": "Hauling contracts count +25% more control — zones unlock faster.",
@@ -214,7 +214,7 @@
               "why": "Surface strongpoints and solid ore — a forward post over Lorville's shoulder.",
               "power": {
                 "name": "Forward Garrison",
-                "text": "Defend objectives in Hurston space need 2 contracts instead of 3.",
+                "text": "Defend objectives in the Hurston region need 2 contracts instead of 3.",
                 "effect": {
                   "defendCount": {
                     "region": "hurston",
@@ -226,7 +226,7 @@
           },
           "regionPower": {
             "name": "Hurston Secured",
-            "text": "Raids in Hurston space cost half control when they land.",
+            "text": "Raids in the Hurston region cost half control when they land.",
             "effect": {
               "raidPenaltyMult": 0.5
             }
@@ -279,7 +279,7 @@
               "why": "Bunker country. Whoever holds Cellin's strongpoints watches every approach to Crusader.",
               "power": {
                 "name": "Early-Warning Net",
-                "text": "Scouting Crusader space costs nothing — the net watches its own back yard.",
+                "text": "Scouting the Crusader region costs nothing — the net watches its own back yard.",
                 "effect": {
                   "scoutFree": "crusader"
                 }
@@ -300,7 +300,7 @@
               "why": "The classic proving ground — caves, outposts, and rock that pays. Holding Daymar is holding the region's crossroads.",
               "power": {
                 "name": "Rally Point",
-                "text": "Ground combat in Crusader space counts +50% more control.",
+                "text": "Ground combat in the Crusader region counts +50% more control.",
                 "effect": {
                   "gainMult": {
                     "type": "ground-combat",
@@ -326,7 +326,7 @@
               "why": "The ring is the prize: belt mining on the org's doorstep, with Grim Hex traffic to watch.",
               "power": {
                 "name": "Ring Claim",
-                "text": "+1 metals/day, and industry in Crusader space counts +50% more control.",
+                "text": "+1 metals/day, and industry in the Crusader region counts +50% more control.",
                 "effect": {
                   "income": {
                     "metals": 1
@@ -510,7 +510,7 @@
                 "Copper",
                 "Ice"
               ],
-              "why": "A gentle moon with honest ore — the safest industry posting in microTech space.",
+              "why": "A gentle moon with honest ore — the safest industry posting in the microTech region.",
               "power": {
                 "name": "Listening Post",
                 "text": "+1 intel to the HQ stores every day.",
