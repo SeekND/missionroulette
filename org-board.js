@@ -1352,10 +1352,15 @@
       const e = state.season.ending;
       const iApprove = state.approvers.includes(callsign());
       $('btn-log').style.display = 'none';
-      const nextBtn = state.nextSeason
+      // A campaign that was stood down does not point anywhere: it stopped, it did
+      // not move camp. And nothing here creates a board — "set up a new campaign"
+      // drops the join code and returns to the front door, where the organizer
+      // chooses what to do next. Creating one silently, on a code the org already
+      // has, is how someone ends up trapped in a setup screen they never asked for.
+      const nextBtn = (state.nextSeason && !state.season.closedEarly)
         ? `<button class="btn btn-primary" id="btn-nextjoin">→ Move to the new season</button>`
         : netMode
-          ? (iApprove ? `<button class="btn" id="btn-newseason-net">Call the next season</button>` : '')
+          ? `<button class="btn" id="btn-newcampaign">Set up a new campaign</button>`
           : `<button class="btn" id="btn-newseason">Start a new season</button>`;
       el.innerHTML = `<div class="card-title">Season closed</div>` +
         `<div class="ending tone-${e.tone}"><div class="ending-head">${e.icon} ${esc(e.title)}</div>` +
@@ -1368,8 +1373,11 @@
       el.querySelector('#btn-report').addEventListener('click', showFinalReport);
       const bNew = el.querySelector('#btn-newseason');
       if (bNew) bNew.addEventListener('click', (ev2) => armConfirm(ev2.currentTarget, startNewSeason, 'clears the demo — sure?'));
-      const bNet = el.querySelector('#btn-newseason-net');
-      if (bNet) bNet.addEventListener('click', (ev2) => armConfirm(ev2.currentTarget, callNextSeason, 'new code, fresh map — sure?'));
+      const bNewC = el.querySelector('#btn-newcampaign');
+      if (bNewC) bNewC.addEventListener('click', (ev2) => armConfirm(ev2.currentTarget, () => {
+        localStorage.removeItem(NET_KEY);
+        location.reload();
+      }, 'leave this board — sure?'));
       const bJoin = el.querySelector('#btn-nextjoin');
       if (bJoin) bJoin.addEventListener('click', () => {
         localStorage.setItem(NET_KEY, state.nextSeason.code);
@@ -2210,24 +2218,6 @@
   // net mode: the log is append-only forever — a new season is a NEW campaign
   // path. Same database, fresh map; the old board stays up as the monument,
   // with a one-click pointer everyone can follow.
-  function callNextSeason() {
-    let code;
-    try {
-      const d = OrgNet.readCode(localStorage.getItem(NET_KEY));
-      const path = 'campaigns/c' + Array.from(crypto.getRandomValues(new Uint8Array(6))).map(b => (b % 36).toString(36)).join('');
-      code = OrgNet.makeCode(d.cfg, path);
-    } catch (err) {
-      console.error('could not derive the next-season code:', err);
-      return;
-    }
-    store.append(OrgState.newEvent('season.next', callsign(), { code }));
-    // give the push a beat to reach the database before we leave this campaign
-    setTimeout(() => {
-      localStorage.setItem(NET_KEY, code);
-      localStorage.removeItem(WELCOME_KEY);
-      location.reload();
-    }, 800);
-  }
 
   // ── Ship picker: a button per hull, grouped by manufacturer ─────────────
   const MFR = {
@@ -2704,10 +2694,20 @@
       shipGridHtml('su-grid', new Set(), '') +
       `<div class="pledge-chips" id="su-chips"></div>` +
       `<div class="modal-actions">` +
-      (firstIn ? '' : `<button class="btn btn-ghost" id="su-back">← Back</button>`) +
+      (firstIn
+        ? `<button class="btn btn-ghost" id="su-drop">← Use a different code</button>`
+        : `<button class="btn btn-ghost" id="su-back">← Back</button>`) +
       `<button class="btn btn-primary" id="su-start">Create & open the war room →</button></div>`,
       true
     );
+    // arriving here means a join code pointed at an empty board. Nobody should
+    // be stuck setting up a campaign they did not mean to start — dropping the
+    // code returns them to the front door.
+    const drop = $('su-drop');
+    if (drop) drop.addEventListener('click', () => {
+      localStorage.removeItem(NET_KEY);
+      location.reload();
+    });
     const back = $('su-back');
     if (back) back.addEventListener('click', showStart);
     let seasonDays = 28;

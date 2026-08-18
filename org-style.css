@@ -73,7 +73,7 @@ body.spectator [data-salv],body.spectator #btn-pledge,body.spectator #btn-commis
 body.spectator [data-commission],body.spectator [data-commreq],body.spectator [data-project],
 body.spectator #od-roll,body.spectator [data-od-cancel],body.spectator #ride-swap,
 body.spectator #offers-card,body.spectator #my-contract,body.spectator #btn-convert,
-body.spectator #btn-newseason,body.spectator #btn-newseason-net,body.spectator #ride-card [data-lost]{display:none!important}
+body.spectator #btn-newseason,body.spectator #btn-newcampaign,body.spectator #ride-card [data-lost]{display:none!important}
 .net-chip{font-family:var(--mono);font-size:10.5px}
 .net-chip.ok{color:#3fb950;border-color:rgba(63,185,80,.5)}
 .net-chip.bad{color:#f0685a;border-color:rgba(240,104,90,.5)}
