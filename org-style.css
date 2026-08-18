@@ -449,3 +449,13 @@ button.hangar-chip.swap:hover{border-color:var(--accent);color:var(--accent)}
   .modal-actions{flex-wrap:wrap}
   .modal-actions .btn{flex:1 1 46%}
 }
+
+/* ── Closed-campaign bar ──
+   A closed board is still worth reading, so it stays up — but it has to say so
+   before someone tries to claim a contract, and offer the way out. */
+.closed-bar{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
+  margin:0 16px 10px;padding:9px 13px;border-radius:9px;
+  border:1px solid rgba(255,180,84,.4);background:rgba(255,180,84,.08);font-size:13.5px}
+.cbar-txt{color:var(--text-dim)}
+.cbar-txt b{color:#ffcf87}
+.closed-bar .linklike{margin-left:auto}

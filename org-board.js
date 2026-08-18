@@ -250,6 +250,27 @@
       (meRec2 && meRec2.spectator ? ' · 👁 spectator' : '');
     const adminTab = document.querySelector('.oh-tabs [data-info="admin"]');
     if (adminTab) adminTab.style.display = state.approvers.includes(callsign()) ? '' : 'none';
+    renderClosedBar();
+  }
+
+  // A closed campaign should say so at the top of the page, not only in the
+  // objectives column, and should offer the way out — nobody is booted, and the
+  // board stays reachable with the same join code whenever anyone wants it back.
+  function renderClosedBar() {
+    const el = $('closed-bar');
+    if (!el) return;
+    if (!state.season || !state.season.over) { el.style.display = 'none'; return; }
+    el.style.display = '';
+    el.innerHTML = `<span class="cbar-txt">⏹ <b>This campaign is closed.</b> ` +
+      (netMode
+        ? `You can come back any time with the join code.`
+        : `The demo stays in this browser.`) + `</span>` +
+      (netMode ? `<button class="linklike" id="cbar-exit">exit the campaign</button>` : '');
+    const x = el.querySelector('#cbar-exit');
+    if (x) x.addEventListener('click', (e) => armConfirm(e.currentTarget, () => {
+      localStorage.removeItem(NET_KEY);
+      location.reload();
+    }, 'exit — sure?'));
   }
 
   // ── Map ─────────────────────────────────────────────────────────────────
@@ -2092,10 +2113,8 @@
     const lines = [];
     lines.push(`${e.icon} ${e.title.toUpperCase()}`);
     lines.push(`${state.config.name || 'Org Campaign'} — ` +
-      (state.season.closedEarly
-        ? `called on day ${state.season.daysPlayed} of ${state.config.seasonDays}`
-        : `season of ${state.config.seasonDays} days`) +
-      `, ${state.config.system} theater`);
+      (state.season.closedEarly ? '' : `season of ${state.config.seasonDays} days, `) +
+      `${state.config.system} theater`);
     lines.push(e.line.replace(/<[^>]+>/g, ''));
     lines.push('────────────────');
     lines.push(`Contracts flown: ${contracts} · Captures: ${count(/is taken — the org holds it/)} · Raids repelled: ${count(/stands — the pressure broke/)} · suffered: ${count(/went unanswered — control slips/)}`);
@@ -2136,10 +2155,8 @@
     openModal(
       `<h2>${e.icon} ${esc(e.title)}</h2>` +
       `<div class="m-sub">${esc(state.config.name || 'Org Campaign')} — ` +
-      (state.season.closedEarly
-        ? `called on day ${state.season.daysPlayed} of ${state.config.seasonDays}`
-        : `a season of ${state.config.seasonDays} days`) +
-      ` in the ${esc(state.config.system)} theater.</div>` +
+      (state.season.closedEarly ? '' : `a season of ${state.config.seasonDays} days in `) +
+      `the ${esc(state.config.system)} theater.</div>` +
       `<div class="ending tone-${e.tone}" style="margin-bottom:12px"><div class="ending-line">${esc(e.line)}</div></div>` +
       `<div class="fr-grid">` +
       stat('contracts flown', contracts) +

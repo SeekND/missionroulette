@@ -551,10 +551,13 @@
       if (state.closedEarly) {
         const days = Math.min(state.tick + 1, config.seasonDays);
         return {
-          id: 'stood-down', tone: 'honor', icon: '🕯', title: 'Stood down — called before time',
-          line: `Called on day ${days} of ${config.seasonDays}` +
-            (state.closedEarly.reason ? ` — ${state.closedEarly.reason}` : '') +
-            `. ${held ? `${held} zone${held === 1 ? '' : 's'} held at the close.` : 'Nothing held at the close.'}`,
+          id: 'stood-down', tone: 'honor', icon: '⏹', title: `Ended on day ${days} of ${config.seasonDays}`,
+          // the reason now opens the line, so it gets a capital whatever the
+          // organizer typed into the box
+          line: (state.closedEarly.reason
+            ? `${state.closedEarly.reason.charAt(0).toUpperCase()}${state.closedEarly.reason.slice(1)}. `
+            : '') +
+            (held ? `${held} zone${held === 1 ? '' : 's'} held at the close.` : 'Nothing held at the close.'),
         };
       }
       if (held >= 9) return {
