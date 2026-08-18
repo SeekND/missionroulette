@@ -754,6 +754,7 @@
     };
     // pretty name for the chronicle — the key is lowercase, people aren't
     const dispR = (k) => (state.members[k] && state.members[k].display) || k;
+    const an = (name) => (/^[AEIOU8]/i.test(String(name)) ? 'an' : 'a') + ' ' + name;
     // promotion threshold: the calling line got tier 1 free at join
     const rideNeeded = (m0, line, tier) => (tier - (line === m0.calling ? 1 : 0)) * TUNING.RIDE_THRESHOLD;
     const lineCount = (m0, line) => LINE_TYPES[line].reduce((n, t2) => n + (m0.tallies[t2] || 0), 0);
@@ -788,7 +789,10 @@
       if (!ride || fee == null || state.chest.funds < fee) return false;
       state.chest.funds -= fee;
       m0.lineTiers[line] = tier;
-      chron(t, 'fleet', `${dispR(name)} is issued a ${ride.name} — collect it at ${ride.city}.`);
+      const lineName = (ranks && ranks.tracks && ranks.tracks[line] && ranks.tracks[line].name) || line;
+      // the contracts were theirs, the unlock fee was the org's — say both, and
+      // leave the pickup city to the Ships card where someone can act on it
+      chron(t, 'fleet', `🎖 ${dispR(name)} makes ${lineName} tier ${tier} — the org issues ${an(ride.name)}.`);
       return true;
     };
 
@@ -849,7 +853,7 @@
             m0.lineTiers[p.calling] = 1;
             const issued = rideFor(name, p.calling, 1);
             chron(ev.t, 'join', issued
-              ? `${m0.display} joins the campaign — the org issues their ${issued.name} (collect at ${issued.city}).`
+              ? `${m0.display} joins the campaign — issued ${an(issued.name)}.`
               : `${m0.display} joins the campaign.`);
           } else {
             chron(ev.t, 'join', `${m0.display} joins the campaign.`);
@@ -942,7 +946,7 @@
           if (!rq || !rq.ride || rq.fee == null || state.chest.funds < rq.fee) { state.skipped++; break; }
           state.chest.funds -= rq.fee;
           m0.lineTiers[p.line] = 1;
-          chron(ev.t, 'fleet', `${dispR(ev.a)} requisitions a ${rq.ride.name} — collect it at ${rq.ride.city}.`);
+          chron(ev.t, 'fleet', `🚀 ${dispR(ev.a)} requisitions ${an(rq.ride.name)} from the org yards.`);
           break;
         }
 
@@ -1209,8 +1213,11 @@
           // people asked whether it meant the objective was finished. It does.
               // tagged so the digest can collapse a day's objectives into one
               // line — seven near-identical sentences is a wall, not a report
-              chron(ev.t, 'push', `✔ ${PUSH_KIND[pm[3]].label} ${sys.regions[p.region].zones[p.zone].name} complete — Daily Objective Bonus earned, +${TUNING.PUSH_BONUS}% ${bucket}.`,
-                { objective: `${PUSH_KIND[pm[3]].label} ${sys.regions[p.region].zones[p.zone].name}` });
+              const objName = `${PUSH_KIND[pm[3]].label} ${sys.regions[p.region].zones[p.zone].name}`;
+              chron(ev.t, 'push', PUSH_KIND[pm[3]].org
+                ? `✔ ${objName} complete — Daily Objective Bonus earned, +${TUNING.PUSH_BONUS}% ${bucket}.`
+                : `🛡 ${objName} answered — the Director's demand is met, +${TUNING.PUSH_BONUS}% ${bucket}.`,
+                { objective: objName, objectiveOrg: !!PUSH_KIND[pm[3]].org });
               for (const who of crew) rec.closes[who] = (rec.closes[who] || 0) + 1;
             }
           }

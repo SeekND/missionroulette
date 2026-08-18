@@ -1823,8 +1823,11 @@
       .map(m => [m, Math.round(((d.chest || {})[m] || 0) - ((prev.chest || {})[m] || 0))])
       .filter(([, n]) => n > 0).map(([m, n]) => `+${n} ${m}`);
     const fundsUp = Math.round(((d.chest || {}).funds || 0) - ((prev.chest || {}).funds || 0));
+    // the swing alone reads as the whole story — "−513k funds" looks alarming
+    // without the balance it left behind, so the closing total rides with it
+    const fundsAt = Math.round((d.chest || {}).funds || 0);
     if (mats.length || fundsUp) {
-      tally.push(`📦 ${[fundsUp ? `${fundsUp > 0 ? '+' : ''}${fmtF(fundsUp)} funds` : '', ...mats]
+      tally.push(`📦 ${[fundsUp ? `${fundsUp > 0 ? '+' : ''}${fmtF(fundsUp)} funds (${fmtF(fundsAt)} left)` : '', ...mats]
         .filter(Boolean).join(' · ')}`);
     }
     blocks.push(tally.join('\n'));
@@ -1885,10 +1888,16 @@
     // near-identical sentences, and each front line its own line. Both collapse.
     const todays = state.chronicle.filter(c => c.tick === day && !c.pre && !c.sys);
     const pledged = {}, slot = {}, story = [];
-    const objectives = [], fronts = [];
-    let objSlot = null, frontSlot = null;
+    // an answered Director demand completes the same way and pays the same
+    // bonus, but calling a broken raid a "bonus objective" reads as though the
+    // org chose it. The two are counted apart.
+    const objectives = [], threats = [], fronts = [];
+    let objSlot = null, threatSlot = null, frontSlot = null;
     for (const c of todays) {
-      if (c.objective) {
+      if (c.objective && c.objectiveOrg === false) {
+        if (threatSlot == null) { threatSlot = story.length; story.push(''); }
+        threats.push(c.objective);
+      } else if (c.objective) {
         if (objSlot == null) { objSlot = story.length; story.push(''); }
         objectives.push(c.objective);
       } else if (c.front) {
@@ -1902,8 +1911,12 @@
       }
     }
     if (objSlot != null) {
-      story[objSlot] = `✔ **${objectives.length} objective${objectives.length === 1 ? '' : 's'} cleared** ` +
+      story[objSlot] = `✔ **${objectives.length} daily bonus objective${objectives.length === 1 ? '' : 's'} cleared** ` +
         `(+${OrgState.TUNING.PUSH_BONUS}%${objectives.length > 1 ? ' each' : ''}) — ${objectives.join(' · ')}`;
+    }
+    if (threatSlot != null) {
+      story[threatSlot] = `🛡 **${threats.length} threat${threats.length === 1 ? '' : 's'} broken** ` +
+        `(+${OrgState.TUNING.PUSH_BONUS}%${threats.length > 1 ? ' each' : ''}) — ${threats.join(' · ')}`;
     }
     if (frontSlot != null) story[frontSlot] = `⚑ Front lines opened: ${fronts.join(' · ')}`;
     for (const [who, n] of Object.entries(pledged)) {
