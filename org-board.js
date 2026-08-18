@@ -2105,8 +2105,18 @@
       .sort((a, b) => b[1].total - a[1].total).slice(0, 3)
       .map(([n, m], i) => `${['🥇', '🥈', '🥉'][i]} ${disp(n)} (${m.total})`);
     if (top.length) lines.push(`Season honors: ${top.join(' · ')}`);
+    // turnout day by day — the one number that says what happened to a season,
+    // without anybody having to characterise it
+    const byDay = [];
+    for (let k = 0; k < state.season.daysPlayed; k++) {
+      const rec = (state.days || {})[k] || {};
+      byDay.push(`d${k + 1}: ${rec.contracts || 0} / ${Object.keys(rec.flyers || {}).length}`);
+    }
+    if (byDay.length) lines.push(`Contracts / pilots by day — ${byDay.join(' · ')}`);
     lines.push('────────────────');
-    lines.push(ceremonyFor().replace(/<[^>]+>/g, ''));
+    // a called campaign gets no send-off line: a suggestion of what to do next
+    // is an opinion, and this report is meant to be the numbers
+    if (!state.season.closedEarly) lines.push(ceremonyFor().replace(/<[^>]+>/g, ''));
     lines.push(`🗺 [The final map](${buildMapLink()})`);
     return lines.join('\n');
   }

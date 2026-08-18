@@ -554,8 +554,7 @@
           id: 'stood-down', tone: 'honor', icon: '🕯', title: 'Stood down — called before time',
           line: `Called on day ${days} of ${config.seasonDays}` +
             (state.closedEarly.reason ? ` — ${state.closedEarly.reason}` : '') +
-            `. ${held ? `${held} zone${held === 1 ? '' : 's'} held when the org stood down.` : 'Nothing held at the close.'}` +
-            ' Everything flown still counts, and the log keeps it.',
+            `. ${held ? `${held} zone${held === 1 ? '' : 's'} held at the close.` : 'Nothing held at the close.'}`,
         };
       }
       if (held >= 9) return {
