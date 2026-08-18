@@ -390,7 +390,14 @@
       // day-1 map record gets stamped with day 2's attacks, because by the time
       // anyone opens the board to trigger the post, tomorrow's moves exist.
       rec.fronts = Object.keys(state.fronts);
-      rec.raided = dirMoves.filter(m => m.tick === k && m.kind === 'raid').map(m => m.zone);
+      // ...and only the raids that actually LANDED. sealDay runs after
+      // resolveDirector, so a raid the org broke is already 'repelled' — flagging
+      // it as under attack on the day's closing map would report a fight the org
+      // won as ground it was losing. The live map filters on 'pending' for the
+      // same reason; this is the record's version of that.
+      rec.raided = dirMoves
+        .filter(m => m.tick === k && m.kind === 'raid' && m.status === 'suffered')
+        .map(m => m.zone);
     };
     const activeSets = {};
     const pushTally = {};   // pushId → qualifying completions
