@@ -552,12 +552,14 @@
         const days = Math.min(state.tick + 1, config.seasonDays);
         return {
           id: 'stood-down', tone: 'honor', icon: '⏹', title: `Ended on day ${days} of ${config.seasonDays}`,
-          // the reason now opens the line, so it gets a capital whatever the
-          // organizer typed into the box
-          line: (state.closedEarly.reason
-            ? `${state.closedEarly.reason.charAt(0).toUpperCase()}${state.closedEarly.reason.slice(1)}. `
-            : '') +
-            (held ? `${held} zone${held === 1 ? '' : 's'} held at the close.` : 'Nothing held at the close.'),
+          // the reason, and nothing else. What was held is a number on the board
+          // and a list further down; it does not need saying in a sentence, and
+          // "nothing held at the close" is a verdict rather than a stat.
+          // Capitalised and de-punctuated, because organizers type both ways.
+          line: state.closedEarly.reason
+            ? `Reason: ${state.closedEarly.reason.charAt(0).toUpperCase()}` +
+              `${state.closedEarly.reason.slice(1).replace(/[.\s]+$/, '')}.`
+            : '',
         };
       }
       if (held >= 9) return {

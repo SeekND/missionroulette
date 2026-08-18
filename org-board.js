@@ -2118,7 +2118,7 @@
     lines.push(e.line.replace(/<[^>]+>/g, ''));
     lines.push('────────────────');
     lines.push(`Contracts flown: ${contracts} · Captures: ${count(/is taken — the org holds it/)} · Raids repelled: ${count(/stands — the pressure broke/)} · suffered: ${count(/went unanswered — control slips/)}`);
-    lines.push(`Held at the close: ${heldNames.length ? heldNames.join(' · ') : 'nothing'}`);
+    if (heldNames.length) lines.push(`Held at the close: ${heldNames.join(' · ')}`);
     lines.push(`HQ stores at the close: ${fmtF(c.funds)} ORG funds · projects done: ${Object.keys(state.projectsDone).length}`);
     const top = Object.entries(state.members).filter(([, m]) => m.total > 0)
       .sort((a, b) => b[1].total - a[1].total).slice(0, 3)
@@ -2133,9 +2133,15 @@
     }
     if (byDay.length) lines.push(`Contracts / pilots by day — ${byDay.join(' · ')}`);
     lines.push('────────────────');
-    // a called campaign gets no send-off line: a suggestion of what to do next
-    // is an opinion, and this report is meant to be the numbers
-    if (!state.season.closedEarly) lines.push(ceremonyFor().replace(/<[^>]+>/g, ''));
+    // a called campaign gets facts where a completed one gets its send-off:
+    // what to do next is an opinion, what was held is not
+    if (state.season.closedEarly) {
+      lines.push(heldNames.length
+        ? `Held at the end: ${heldNames.join(' · ')}`
+        : 'No moons or planets were held at the end of the campaign.');
+    } else {
+      lines.push(ceremonyFor().replace(/<[^>]+>/g, ''));
+    }
     lines.push(`🗺 [The final map](${buildMapLink()})`);
     return lines.join('\n');
   }
@@ -2151,7 +2157,10 @@
     // "reached <line> tier N — issued", and this counter silently read 0
     const promotions = count(/ reached .+ tier \d+ — issued /);
     const stat = (label, val) => `<div class="fr-stat"><b>${val}</b><span>${label}</span></div>`;
-    const top = Object.entries(state.members).sort((a, b) => b[1].total - a[1].total).slice(0, 3);
+    // same rule as the copyable report: a podium with a zero on it is not a
+    // podium
+    const top = Object.entries(state.members).filter(([, m]) => m.total > 0)
+      .sort((a, b) => b[1].total - a[1].total).slice(0, 3);
     openModal(
       `<h2>${e.icon} ${esc(e.title)}</h2>` +
       `<div class="m-sub">${esc(state.config.name || 'Org Campaign')} — ` +
@@ -2171,8 +2180,13 @@
       (heldNames.length ? `<div class="f-note" style="margin-top:8px">Held at the close: <b>${heldNames.map(esc).join(' · ')}</b></div>` : '') +
       (top.length ? `<div class="card-title" style="margin-top:10px">Season honors</div>` +
         top.map(([n, m], i) => `<div class="req-row"><span>${['🥇', '🥈', '🥉'][i]} ${esc(disp(n))}</span><span class="mr-total">${m.total}</span></div>`).join('') : '') +
-      `<div class="card-title" style="margin-top:10px">The closing ceremony</div>` +
-      `<div class="help-p">${ceremonyFor()}</div>` +
+      (state.season.closedEarly
+        ? `<div class="card-title" style="margin-top:10px">Ground at the end</div>` +
+          `<div class="help-p">${heldNames.length
+            ? `Held: <b>${heldNames.map(esc).join(' · ')}</b>.`
+            : 'No moons or planets were held at the end of the campaign.'}</div>`
+        : `<div class="card-title" style="margin-top:10px">The closing ceremony</div>` +
+          `<div class="help-p">${ceremonyFor()}</div>`) +
       `<div class="modal-actions"><button class="btn btn-ghost" id="fr-close">Close</button>` +
       `<button class="btn" id="fr-copy">Copy for discord</button>` +
       (netMode ? '' : `<button class="btn btn-primary" id="fr-new">Start a new season</button>`) + `</div>`
