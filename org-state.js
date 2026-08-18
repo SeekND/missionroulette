@@ -351,6 +351,7 @@
       setPieces: {},       // regionId → {at, tick, by, participants, hero, zone, runs} — surge fires on the first run
       spUnlocked: {},      // regionId → true once an Org Day cleared the path to its set-piece
       finaleReady: null,   // {at, project} — the flagship is built; the maiden voyage remains
+      closedEarly: null,   // {at, by, reason} — leadership stood the campaign down before its last day
       nextSeason: null,    // {code, by, at} — a closed campaign pointing at its successor
       spectators: {},      // callsign key → true — invited eyes; their gameplay events don't fold
       report: null,        // {by, at, webhook} — daily battle-report wiring (approver-set)
@@ -545,6 +546,18 @@
         id: 'built', tone: 'win', icon: '🏗', title: 'The flagship waits — voyage unflown',
         line: 'Built, armed, ready — but the maiden voyage never mustered. The yard holds her for next season.',
       };
+      // A campaign called off is not a rout. Servers break, summers happen, and a
+      // short season that people actually flew is still worth writing down.
+      if (state.closedEarly) {
+        const days = Math.min(state.tick + 1, config.seasonDays);
+        return {
+          id: 'stood-down', tone: 'honor', icon: '🕯', title: 'Stood down — called before time',
+          line: `Called on day ${days} of ${config.seasonDays}` +
+            (state.closedEarly.reason ? ` — ${state.closedEarly.reason}` : '') +
+            `. ${held ? `${held} zone${held === 1 ? '' : 's'} held when the org stood down.` : 'Nothing held at the close.'}` +
+            ' Everything flown still counts, and the log keeps it.',
+        };
+      }
       if (held >= 9) return {
         id: 'dominion', tone: 'win', icon: '👑', title: 'Dominion — Stanton is held',
         line: `${held} zones under org colors at the close. No flagship — but nobody doubts who runs this system.`,
@@ -729,7 +742,9 @@
       }
     }
     // once the season is closed, the board is a monument — gameplay events freeze
-    const seasonClosedAt = (t) => seasonEndMs != null && (t >= seasonEndMs || (state.victory && t > state.victory.at));
+    const seasonClosedAt = (t) => seasonEndMs != null &&
+      (t >= seasonEndMs || (state.victory && t > state.victory.at) ||
+       (state.closedEarly && t > state.closedEarly.at));
     // while mustering, only enlistment folds — the war waits for the gun
     // What may happen BEFORE the starting gun. Everything else is war activity
     // and is dropped. Getting this list wrong is silent and permanent: the fold
@@ -841,6 +856,16 @@
           if (!config.staged || config.startedAt != null || !state.approvers.includes(ev.a)) { state.skipped++; break; }
           armClock(ev.t);
           chron(ev.t, 'start', `🚀 The season begins — ${config.seasonDays} days on the clock. Good hunting.`);
+          break;
+        }
+
+        case 'season.close': {
+          // leadership stands the campaign down early. Approver-only, and once
+          // only — the log is append-only, so this is the record of the call.
+          if (!state.approvers.includes(ev.a) || state.closedEarly || state.victory) { state.skipped++; break; }
+          state.closedEarly = { at: ev.t, by: ev.a, reason: String(p.reason || '').slice(0, 200) };
+          chron(ev.t, 'end', `⏹ ${dispR(ev.a)} stands the campaign down` +
+            (state.closedEarly.reason ? ` — ${state.closedEarly.reason}` : '.'));
           break;
         }
 
@@ -1459,7 +1484,7 @@
     // is 240, so the tail is sized above that rather than the console's dozen.
     if (state.filed.length > 250) state.filed = state.filed.slice(-250);
     const mustering = config.startedAt == null;
-    const seasonOver = !mustering && (now >= seasonEndMs || !!state.victory);
+    const seasonOver = !mustering && (now >= seasonEndMs || !!state.victory || !!state.closedEarly);
     state.pushes = seasonOver || mustering ? [] : threatPushes.concat(derivePushes(regions, sys, config, state, state.tick, pushTally));
     const odNow = orgDayByTick[state.tick];
     state.orgDay = !seasonOver && !mustering && odNow
@@ -1473,6 +1498,7 @@
       endsAt: seasonEndMs,
       daysPlayed: mustering ? 0 : Math.min(state.tick + 1, config.seasonDays),
       ending: seasonOver ? evalEnding() : null,
+      closedEarly: state.closedEarly,
       heldZones: Object.entries(state.zones).filter(([, z]) => z.held).map(([id]) => id),
     };
     // effective claim status (expiry is derived, never written) + per-push claimed slots

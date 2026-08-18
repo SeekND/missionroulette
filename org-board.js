@@ -876,6 +876,26 @@
                 `${fmtDur(rows.reduce((n, r) => n + r.ms, 0))}</div>` + groupRows(rows)).join(''))
         : `<div class="panel-hint">No timed runs yet — they appear once people claim contracts from the board and submit them.</div>`);
 
+    // — Standing the campaign down early —
+    // A season that cannot be played out — a broken patch, a thin summer, a
+    // a month-long holiday — should end on the org's terms, and still leave a record.
+    const closeSect = state.season.over
+      ? sect('⏹ Campaign closed') +
+        `<div class="panel-hint" style="font-size:12.5px">` +
+        (state.season.closedEarly
+          ? `Stood down by ${esc(disp(state.season.closedEarly.by))} on day ${state.season.daysPlayed}. ` +
+            `Nothing was posted automatically — read the close-out, then post it if you want to.`
+          : `The season ran its course.`) +
+        `</div>` +
+        `<div class="adm-form" style="margin:8px 0"><button class="btn btn-mini" id="adm-read-final">read the close-out</button></div>`
+      : sect('⏹ End the campaign') +
+        `<div class="panel-hint" style="font-size:12.5px">Ends it now, on day ${state.season.daysPlayed} of ${state.config.seasonDays}. ` +
+        `The board, the map and the war log stay up, and you get a close-out to read — ` +
+        `nothing is posted to Discord unless you choose to post it.</div>` +
+        `<div class="pl-row" style="margin-top:6px"><input class="f-input" id="adm-close-why" maxlength="200" ` +
+        `placeholder="why, in a line — shown in the close-out (optional)"></div>` +
+        `<div class="adm-form" style="margin:8px 0"><button class="btn btn-mini danger" id="adm-close-season">⏹ End the campaign</button></div>`;
+
     // — Corrections: the log is append-only, so a mis-filed contract is fixed
     //   by re-filing it, never by deleting anything —
     const fileRows = (state.filed || []).slice().reverse().slice(0, 12).map(f => {
@@ -940,6 +960,7 @@
       approvalsHtml() +
       sect('⚑ Front lines') + frontRows +
       timeSect +
+      closeSect +
       sect('✎ Filed contracts') +
       `<div class="panel-hint" style="font-size:12.5px">Someone logged the wrong thing? Re-file it. ` +
       `The meters, the war chest and their record all recompute — the credit stays with whoever flew it, on the day they flew it.</div>` +
@@ -1020,6 +1041,13 @@
     bindApprovalButtons(el);
     el.querySelectorAll('[data-front-pull]').forEach(b => b.addEventListener('click', () =>
       store.append(OrgState.newEvent('front.remove', callsign(), { zone: b.dataset.frontPull }))));
+    const closeBtn = el.querySelector('#adm-close-season');
+    if (closeBtn) closeBtn.addEventListener('click', (e) => armConfirm(e.currentTarget, () => {
+      const why = ($('adm-close-why') && $('adm-close-why').value.trim()) || undefined;
+      store.append(OrgState.newEvent('season.close', callsign(), { reason: why }));
+    }, 'end it now — sure?'));
+    const readFinal = el.querySelector('#adm-read-final');
+    if (readFinal) readFinal.addEventListener('click', showFinalReport);
     el.querySelectorAll('[data-timeview]').forEach(b => b.addEventListener('click', () => {
       timeView = b.dataset.timeview;
       renderInfo();
@@ -2010,6 +2038,9 @@
           .catch(err => console.error('kickoff post failed:', err));
       });
     }
+    // a season that ran its course announces itself; one that leadership stood
+    // down is theirs to post, from Admin, after they have read it
+    if (state.season.closedEarly) return;
     const target = state.season.over ? 'final' : (state.tick > 0 ? 'd' + (state.tick - 1) : null);
     if (!target || reportTried[target]) return;
     reportTried[target] = true;
@@ -2039,6 +2070,13 @@
         `the set-piece on ground you took${c.flown ? ', one more time for the chronicle' : ' — the one op the org never got to'}. ` +
         `Full briefing in the Hero Adventures codex.`;
     }
+    // a campaign stood down early gets its own send-off, and nothing about
+    // "ground you held" when the org held none
+    if (e.id === 'stood-down') {
+      return state.season.heldZones.length
+        ? 'Stood down with ground still under org colors. The log keeps every contract — pick it back up when the org is ready.'
+        : 'Called before it could get going. Nothing lost but time, and the log keeps what was flown — pick it back up when the org is ready.';
+    }
     if (e.tone === 'win') return 'Close the season together: bring every hull to Orison and fly the fleet in formation — the org\'s own review.';
     if (e.id === 'rout') return 'Regroup night: one last flight together, then the map resets. Next season the Director starts from zero too.';
     return 'Close the season together: one last org night on the ground you held — and pick next season\'s first front.';
@@ -2053,18 +2091,23 @@
     const contracts = Object.values(state.members).reduce((n, m) => n + m.total, 0);
     const lines = [];
     lines.push(`${e.icon} ${e.title.toUpperCase()}`);
-    lines.push(`${state.config.name || 'Org Campaign'} — season of ${state.config.seasonDays} days, ${state.config.system} theater`);
+    lines.push(`${state.config.name || 'Org Campaign'} — ` +
+      (state.season.closedEarly
+        ? `called on day ${state.season.daysPlayed} of ${state.config.seasonDays}`
+        : `season of ${state.config.seasonDays} days`) +
+      `, ${state.config.system} theater`);
     lines.push(e.line.replace(/<[^>]+>/g, ''));
     lines.push('────────────────');
     lines.push(`Contracts flown: ${contracts} · Captures: ${count(/is taken — the org holds it/)} · Raids repelled: ${count(/stands — the pressure broke/)} · suffered: ${count(/went unanswered — control slips/)}`);
     lines.push(`Held at the close: ${heldNames.length ? heldNames.join(' · ') : 'nothing'}`);
     lines.push(`HQ stores at the close: ${fmtF(c.funds)} ORG funds · projects done: ${Object.keys(state.projectsDone).length}`);
-    const top = Object.entries(state.members).sort((a, b) => b[1].total - a[1].total).slice(0, 3)
-      .map(([n, m], i) => `${['🥇', '🥈', '🥉'][i]} ${n} (${m.total})`);
+    const top = Object.entries(state.members).filter(([, m]) => m.total > 0)
+      .sort((a, b) => b[1].total - a[1].total).slice(0, 3)
+      .map(([n, m], i) => `${['🥇', '🥈', '🥉'][i]} ${disp(n)} (${m.total})`);
     if (top.length) lines.push(`Season honors: ${top.join(' · ')}`);
     lines.push('────────────────');
     lines.push(ceremonyFor().replace(/<[^>]+>/g, ''));
-    lines.push(`🗺 The final map: <${buildMapLink()}>`);
+    lines.push(`🗺 [The final map](${buildMapLink()})`);
     return lines.join('\n');
   }
 
@@ -2075,12 +2118,18 @@
     const heldNames = state.season.heldZones.map(z => sysR.regions[state.zones[z].region].zones[z].name);
     const count = (re) => state.chronicle.filter(cl => re.test(cl.text)).length;
     const contracts = Object.values(state.members).reduce((n, m) => n + m.total, 0);
-    const promotions = count(/is issued a /);
+    // matches the promotion line's wording — it changed from "is issued a" to
+    // "reached <line> tier N — issued", and this counter silently read 0
+    const promotions = count(/ reached .+ tier \d+ — issued /);
     const stat = (label, val) => `<div class="fr-stat"><b>${val}</b><span>${label}</span></div>`;
     const top = Object.entries(state.members).sort((a, b) => b[1].total - a[1].total).slice(0, 3);
     openModal(
       `<h2>${e.icon} ${esc(e.title)}</h2>` +
-      `<div class="m-sub">${esc(state.config.name || 'Org Campaign')} — a season of ${state.config.seasonDays} days in the ${esc(state.config.system)} theater.</div>` +
+      `<div class="m-sub">${esc(state.config.name || 'Org Campaign')} — ` +
+      (state.season.closedEarly
+        ? `called on day ${state.season.daysPlayed} of ${state.config.seasonDays}`
+        : `a season of ${state.config.seasonDays} days`) +
+      ` in the ${esc(state.config.system)} theater.</div>` +
       `<div class="ending tone-${e.tone}" style="margin-bottom:12px"><div class="ending-line">${esc(e.line)}</div></div>` +
       `<div class="fr-grid">` +
       stat('contracts flown', contracts) +
