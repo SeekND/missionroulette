@@ -630,13 +630,13 @@
           deadline: config.startedAt + (k + 1) * TUNING.DAY_MS, status: 'pending',
         };
         dirMoves.push(move);
-        const zn = sys.regions[plan.region].zones[plan.zone].name;
+        const zn = zName(plan.zone);
         const rn = sys.regions[plan.region].name;
         const t = config.startedAt + k * TUNING.DAY_MS;
         if (plan.kind === 'raid') {
           chron(t, 'threat', `⚠ Pressure is mounting on ${zn} — ${faction} are likely behind it. ${TUNING.PUSH_COUNT} combat contracts in ${rn} space before day's end will break it.`);
         } else {
-          chron(t, 'threat', `⚠ A relief call from ${rn}: convoys are going missing — likely ${faction} work. ${TUNING.PUSH_COUNT} hauling contracts there would shore it up.`);
+          chron(t, 'threat', `⚠ A relief call from ${rn} space: convoys are going missing — likely ${faction} work. ${TUNING.PUSH_COUNT} hauling contracts there would shore it up.`);
         }
       }
     }
@@ -646,7 +646,7 @@
         if (move.tick !== k || move.status !== 'pending') continue;
         const pkind = move.kind === 'raid' ? 'defend' : 'relief';
         const answered = (pushTally[move.pushId] || 0) >= pushNeeded(pkind, move.region);
-        const zn = sys.regions[move.region].zones[move.zone].name;
+        const zn = zName(move.zone);
         const rn = sys.regions[move.region].name;
         if (move.kind === 'raid') {
           if (answered) {
@@ -665,7 +665,7 @@
           if (answered) {
             move.status = 'answered';
             for (const [mat, amt] of Object.entries(TUNING.DISTRACT_REWARD)) state.chest[mat] += amt;
-            chron(move.deadline, 'answered', `Relief reached ${rn} — the convoys got through. The HQ stores grow.`);
+            chron(move.deadline, 'answered', `Relief reached ${rn} space — the convoys got through. The HQ stores grow.`);
           } else {
             move.status = 'ignored';
             if (hasFx('distractImmune')) {
@@ -755,6 +755,15 @@
     // pretty name for the chronicle — the key is lowercase, people aren't
     const dispR = (k) => (state.members[k] && state.members[k].display) || k;
     const an = (name) => (/^[AEIOU8]/i.test(String(name)) ? 'an' : 'a') + ' ' + name;
+    // Crusader is both a region and the gas giant inside it. The board learned
+    // this rule already; the war log and every Discord line come from HERE, and
+    // still read "pressure is mounting on Crusader ... contracts in Crusader
+    // space", which names two different places with one word.
+    const zName = (zoneId) => {
+      const hit = findZone(regions, config.system, zoneId);
+      if (!hit) return zoneId;
+      return hit.zone.name === hit.region.name ? `${hit.zone.name} itself` : hit.zone.name;
+    };
     // promotion threshold: the calling line got tier 1 free at join
     const rideNeeded = (m0, line, tier) => (tier - (line === m0.calling ? 1 : 0)) * TUNING.RIDE_THRESHOLD;
     const lineCount = (m0, line) => LINE_TYPES[line].reduce((n, t2) => n + (m0.tallies[t2] || 0), 0);
@@ -792,7 +801,7 @@
       const lineName = (ranks && ranks.tracks && ranks.tracks[line] && ranks.tracks[line].name) || line;
       // the contracts were theirs, the unlock fee was the org's — say both, and
       // leave the pickup city to the Ships card where someone can act on it
-      chron(t, 'fleet', `🎖 ${dispR(name)} makes ${lineName} tier ${tier} — the org issues ${an(ride.name)}.`);
+      chron(t, 'fleet', `🎖 ${dispR(name)} reached ${lineName} tier ${tier} — issued ${an(ride.name)}.`);
       return true;
     };
 
@@ -1012,7 +1021,7 @@
           if (Object.keys(state.fronts).length >= TUNING.FRONT_CAP) { state.skipped++; break; }
           state.fronts[zid] = { by: ev.a, at: ev.t };
           const zdef = sys.regions[state.zones[zid].region].zones[zid];
-          const zn = zdef.name;
+          const zn = zName(zid);
           // the archetype rides along: "Resource Moon" tells an organizer
           // reading the digest what that front will actually ask of the org
           chron(ev.t, 'target', `${dispR(ev.a)} adds ${zn} to the front lines.`,
@@ -1027,7 +1036,7 @@
           const sameDay = tickOf(f2.at) === tickOf(ev.t);
           if (sameDay && f2.by !== ev.a && !state.zones[p.zone].held) { state.skipped++; break; }
           delete state.fronts[p.zone];
-          const zn2 = sys.regions[state.zones[p.zone].region].zones[p.zone].name;
+          const zn2 = zName(p.zone);
           chron(ev.t, 'target', `${dispR(ev.a)} pulls ${zn2} off the front lines.`);
           break;
         }
@@ -1101,7 +1110,7 @@
               left -= heal;
             }
             const { wasHeld, isHeld } = recompute(target);
-            const zn3 = rdef.zones[target].name;
+            const zn3 = zName(target);
             chron(ev.t, 'push', `🌟 The org runs ${hn} — ${zn3} surges +${TUNING.SETPIECE_SURGE - left}% control.`);
             if (!wasHeld && isHeld) {
               chron(ev.t, 'capture', `${zn3} is taken — the org holds it.`);
@@ -1213,7 +1222,7 @@
           // people asked whether it meant the objective was finished. It does.
               // tagged so the digest can collapse a day's objectives into one
               // line — seven near-identical sentences is a wall, not a report
-              const objName = `${PUSH_KIND[pm[3]].label} ${sys.regions[p.region].zones[p.zone].name}`;
+              const objName = `${PUSH_KIND[pm[3]].label} ${zName(p.zone)}`;
               chron(ev.t, 'push', PUSH_KIND[pm[3]].org
                 ? `✔ ${objName} complete — Daily Objective Bonus earned, +${TUNING.PUSH_BONUS}% ${bucket}.`
                 : `🛡 ${objName} answered — the Director's demand is met, +${TUNING.PUSH_BONUS}% ${bucket}.`,
@@ -1292,7 +1301,7 @@
           }
 
           const { wasHeld, isHeld } = recompute(p.zone);
-          const zn = sys.regions[p.region].zones[p.zone].name;
+          const zn = zName(p.zone);
           if (!wasHeld && isHeld) {
             chron(ev.t, 'capture', `${zn} is taken — the org holds it.`);
             delete state.fronts[p.zone]; // captured: the front slot frees itself
